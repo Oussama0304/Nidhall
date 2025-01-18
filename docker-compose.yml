@@ -27,6 +27,8 @@ services:
       - EMAIL_PASSWORD=${EMAIL_PASSWORD}
     ports:
       - "3000:3000"
+    volumes:
+      - ./uploads:/app/uploads
     depends_on:
       - db
     networks:
@@ -43,7 +45,8 @@ services:
       - MYSQL_USER=admin
       - MYSQL_PASSWORD=admin123
     volumes:
-      - ./database.sql:/docker-entrypoint-initdb.d/database.sql
+      - ./database.sql:/docker-entrypoint-initdb.d/1-schema.sql
+      - ./sql/data.sql:/docker-entrypoint-initdb.d/2-data.sql
       - mysql_data:/var/lib/mysql
     ports:
       - "3306:3306"
@@ -52,6 +55,7 @@ services:
 
 volumes:
   mysql_data:
+    name: pfe_mysql_data
 
 networks:
   app-network:
