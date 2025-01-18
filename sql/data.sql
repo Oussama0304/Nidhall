@@ -28,6 +28,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE Commande;
 TRUNCATE TABLE CommandeProduit;
 TRUNCATE TABLE Produit;
+TRUNCATE TABLE Gerant;
 TRUNCATE TABLE Livraison;
 TRUNCATE TABLE MouvementStock;
 TRUNCATE TABLE Reclamation;
@@ -35,9 +36,15 @@ TRUNCATE TABLE Utilisateur;
 TRUNCATE TABLE Depot;
 TRUNCATE TABLE StationService;
 TRUNCATE TABLE Material;
-TRUNCATE TABLE equipmentsensors;
+TRUNCATE TABLE EquipmentSensors;
+TRUNCATE TABLE MaintenanceAnalytics;
+TRUNCATE TABLE ReclamationAnalytics;
+TRUNCATE TABLE PerformanceMetrics;
 
---
+-- Activer les contraintes de clés étrangères
+SET FOREIGN_KEY_CHECKS = 1;
+
+--    
 -- Structure de la table `commande`
 --
 
