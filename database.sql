@@ -47,7 +47,9 @@ CREATE TABLE IF NOT EXISTS Produit (
     LIBPRD VARCHAR(100),
     CODEMB VARCHAR(20),
     LIBEMB VARCHAR(100),
-    TYPPRD VARCHAR(50)
+    TYPPRD VARCHAR(50),
+    quantite INT DEFAULT 0,
+    seuil_alerte INT DEFAULT 10
 );
 
 -- Create Depot table
@@ -82,6 +84,7 @@ CREATE TABLE IF NOT EXISTS Livraison (
 
 -- Create Material table
 CREATE TABLE IF NOT EXISTS Material (
+    idMaterial BIGINT PRIMARY KEY AUTO_INCREMENT,
     idStation BIGINT,
     Actif VARCHAR(50) NOT NULL,
     Description TEXT,
@@ -100,8 +103,39 @@ CREATE TABLE IF NOT EXISTS Reclamation (
     type ENUM('TECHNIQUE', 'COMMERCIALE') NOT NULL,
     etat ENUM('En instance', 'En cours', 'Validée') NOT NULL DEFAULT 'En instance',
     material VARCHAR(50),
-    FOREIGN KEY (idGerant) REFERENCES Gerant(idGerant),
+    image_url VARCHAR(255),
+    priority ENUM('NORMAL', 'URGENT', 'CRITIQUE') DEFAULT 'NORMAL',
+    estimatedResolutionTime DATETIME,
+    actualResolutionTime DATETIME,
+    satisfaction ENUM('SATISFAIT', 'NON_SATISFAIT', 'NEUTRE') DEFAULT 'NEUTRE',
+    gravite ENUM('FAIBLE', 'MOYENNE', 'ELEVEE') DEFAULT 'FAIBLE',
+    sentiment_score FLOAT,
+    FOREIGN KEY (idGerant) REFERENCES Utilisateur(identifiant),
     FOREIGN KEY (idCommercial) REFERENCES Utilisateur(identifiant)
+);
+
+-- Create CommandeProduit table
+CREATE TABLE IF NOT EXISTS CommandeProduit (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    idCommande BIGINT,
+    idProduit BIGINT,
+    quantite INT NOT NULL,
+    prix FLOAT NOT NULL,
+    FOREIGN KEY (idCommande) REFERENCES Commande(idCommande),
+    FOREIGN KEY (idProduit) REFERENCES Produit(idProduit)
+);
+
+-- Create MouvementStock table
+CREATE TABLE IF NOT EXISTS MouvementStock (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    idProduit BIGINT,
+    quantite INT NOT NULL,
+    type_mouvement ENUM('ENTREE', 'RETRAIT') NOT NULL,
+    date_mouvement DATETIME NOT NULL,
+    idCommande BIGINT,
+    raison VARCHAR(255),
+    FOREIGN KEY (idProduit) REFERENCES Produit(idProduit),
+    FOREIGN KEY (idCommande) REFERENCES Commande(idCommande)
 );
 
 -- Création de l'administrateur permanent
