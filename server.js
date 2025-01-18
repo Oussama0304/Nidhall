@@ -1,24 +1,24 @@
 require('dotenv').config();
 const express = require('express');
-const mysql = require('mysql');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const auth = require('./middleware/auth');
 const http = require('http');
 const path = require('path');
+const db = require('./config/db');
 
 const app = express();
 const server = http.createServer(app);
 const io = require('socket.io')(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3001",
+    origin: process.env.FRONTEND_URL || "http://localhost:8098",
     methods: ["GET", "POST"]
   }
 });
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:3001",
+  origin: process.env.FRONTEND_URL || "http://localhost:8098",
   credentials: true
 }));
 app.use(bodyParser.json());
@@ -26,6 +26,21 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Servir les fichiers statiques
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Log all requests
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`, req.body);
+    next();
+});
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('Un client est connecté');
+
+  socket.on('disconnect', () => {
+    console.log('Un client est déconnecté');
+  });
+});
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -50,66 +65,10 @@ app.use('/api/users', auth, userRoutes);
 app.use('/api/stations', auth, stationRoutes);
 app.use('/api/products', auth, productRoutes);
 app.use('/api/admin/dashboard', auth, dashboardRoutes);
-app.use('/api', auth, exportRoutes);  
+app.use('/api', auth, exportRoutes);
 app.use('/api/recommendations', auth, recommendationRoutes);
 app.use('/api/analysis', auth, analysisRoutes);
-app.use('/api/analysis/image', imageAnalysisRoutes);
-
-// Log all requests
-app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url}`, req.body);
-    next();
-});
-
-// Socket.IO connection handling
-io.on('connection', (socket) => {
-  console.log('Un client est connecté');
-
-  socket.on('disconnect', () => {
-    console.log('Un client est déconnecté');
-  });
-});
-
-// Fonction pour créer une connexion à la base de données
-function createConnection() {
-    const connection = mysql.createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME
-    });
-
-    // Gérer la reconnexion
-    connection.on('error', function(err) {
-        console.error('Erreur de base de données:', err);
-        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-            console.log('Tentative de reconnexion à la base de données...');
-            handleDisconnect();
-        } else {
-            throw err;
-        }
-    });
-
-    connection.connect(function(err) {
-        if (err) {
-            console.error('Erreur lors de la connexion à la base de données:', err);
-            setTimeout(handleDisconnect, 2000);
-        } else {
-            console.log('Connecté à la base de données MySQL');
-        }
-    });
-
-    return connection;
-}
-
-// Fonction pour gérer la déconnexion
-function handleDisconnect() {
-    console.log('Tentative de reconnexion à la base de données...');
-    db = createConnection();
-}
-
-// Créer la connexion initiale
-let db = createConnection();
+app.use('/api/image-analysis', auth, imageAnalysisRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

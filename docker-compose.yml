@@ -9,6 +9,7 @@ services:
       - backend
     networks:
       - app-network
+    restart: unless-stopped
 
   backend:
     image: oussama22444/backend:latest
@@ -17,12 +18,16 @@ services:
       - DB_USER=root
       - DB_PASSWORD=root123
       - DB_NAME=ProjetPfeAgil
+      - NODE_ENV=production
+      - PORT=3000
+      - FRONTEND_URL=http://localhost:8098
     ports:
       - "3000:3000"
     depends_on:
       - db
     networks:
       - app-network
+    restart: unless-stopped
 
   db:
     image: mysql:8.0

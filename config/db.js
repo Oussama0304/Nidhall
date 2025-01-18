@@ -1,58 +1,22 @@
 const mysql = require('mysql');
 require('dotenv').config();
 
-const dbConfig = {
+const db = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
+    password: process.env.DB_PASSWORD || 'root123',
     database: process.env.DB_NAME || 'ProjetPfeAgil',
     connectionLimit: 10,
-    connectTimeout: 20000,
-    acquireTimeout: 20000,
-    timeout: 20000,
-    waitForConnections: true,
-    queueLimit: 0
-};
-
-let retries = 5;
-const retryInterval = 5000; // 5 secondes
-
-function createPool() {
-    const pool = mysql.createPool(dbConfig);
-    
-    function testConnection(retryCount = 0) {
-        pool.getConnection((err, connection) => {
-            if (err) {
-                console.error(`Tentative ${retryCount + 1}/${retries} - Erreur de connexion à la base de données:`, err.message);
-                if (retryCount < retries) {
-                    console.log(`Nouvelle tentative dans ${retryInterval/1000} secondes...`);
-                    setTimeout(() => testConnection(retryCount + 1), retryInterval);
-                } else {
-                    console.error('Échec de la connexion à la base de données après plusieurs tentatives');
-                    process.exit(1);
-                }
-                return;
-            }
-            
-            console.log('Connexion à la base de données établie avec succès!');
-            connection.release();
-            
-            // Une fois la connexion établie, on vérifie/ajoute la colonne idUtilisateur
-            addUserIdColumn(pool);
-        });
-    }
-    
-    // Démarrer le test de connexion
-    testConnection();
-    
-    return pool;
-}
+    connectTimeout: 60000,
+    acquireTimeout: 60000,
+    timeout: 60000
+});
 
 // Ajouter la colonne idUtilisateur si elle n'existe pas
-function addUserIdColumn(pool) {
-    pool.getConnection((err, connection) => {
+const addUserIdColumn = () => {
+    db.getConnection((err, connection) => {
         if (err) {
-            console.error('Erreur lors de la vérification de la structure de la table:', err);
+            console.error('Erreur de connexion à la base de données:', err);
             return;
         }
 
@@ -92,17 +56,24 @@ function addUserIdColumn(pool) {
             }
         });
     });
-}
+};
 
-// Créer et exporter le pool de connexions
-const db = createPool();
+// Vérifier la connexion
+db.getConnection((err, connection) => {
+    if (err) {
+        console.error('Erreur de connexion à la base de données:', err);
+        return;
+    }
+    console.log('Connecté à la base de données MySQL');
+    connection.release();
+    addUserIdColumn();
+});
 
 // Gérer les erreurs de pool
 db.on('error', (err) => {
     console.error('Erreur inattendue du pool de connexions:', err);
     if (err.code === 'PROTOCOL_CONNECTION_LOST') {
         console.log('Tentative de reconnexion à la base de données...');
-        createPool();
     }
 });
 
