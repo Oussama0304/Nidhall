@@ -9,6 +9,9 @@ TRUNCATE TABLE Livraison;
 TRUNCATE TABLE MouvementStock;
 TRUNCATE TABLE Reclamation;
 TRUNCATE TABLE Utilisateur;
+TRUNCATE TABLE Depot;
+TRUNCATE TABLE StationService;
+TRUNCATE TABLE Material;
 
 -- Insertion des utilisateurs
 INSERT INTO Utilisateur (identifiant, nom, prenom, telephone, mail, mot_de_passe, matricule, roles) VALUES
@@ -110,6 +113,25 @@ INSERT INTO Reclamation (idReclamation, idGerant, idCommercial, description, dat
 (1, 3, NULL, 'hfhhfhfhhfh', '2024-12-08 23:53:39', 'COMMERCIALE', 'Validée', NULL, NULL, 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL),
 (2, 3, NULL, 'hvgfchxdgwsdxgcfhgvj', '2024-12-18 11:10:10', 'TECHNIQUE', 'En instance', NULL, NULL, 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL),
 (3, 3, NULL, 'lnbhgvfcxdxgchv', '2024-12-18 13:53:08', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1734526388342-images.png', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL);
+
+-- Insertion des données dans la table Depot
+INSERT INTO Depot (idDepot, nomDepot, adresse) VALUES
+(1, 'Depot Central', '123 Rue Principale, Tunis'),
+(2, 'Depot Nord', '456 Avenue du Nord, Bizerte'),
+(3, 'Depot Sud', '789 Route du Sud, Sfax');
+
+-- Insertion des données dans la table StationService
+INSERT INTO StationService (idStation, nom, adresse, ville, telephone, email, capacite) VALUES
+(1, 'Station Centre Ville', '10 Rue de la République, Tunis', 'Tunis', '71123456', 'station1@pfe.tn', 50000),
+(2, 'Station Port', '20 Avenue du Port, Sfax', 'Sfax', '71234567', 'station2@pfe.tn', 40000),
+(3, 'Station Lac', '30 Boulevard du Lac, Tunis', 'Tunis', '71345678', 'station3@pfe.tn', 45000);
+
+-- Insertion des données dans la table Material
+INSERT INTO Material (idMaterial, idStation, Actif, Description, Emplacement, status) VALUES
+(1, 1, 'Pompe 1', 'Pompe à essence principale', 'Zone A', 'Actif'),
+(2, 1, 'Pompe 2', 'Pompe à diesel principale', 'Zone B', 'Actif'),
+(3, 2, 'Pompe 1', 'Pompe à essence', 'Zone A', 'En maintenance'),
+(4, 3, 'Réservoir 1', 'Réservoir principal', 'Zone Stock', 'Actif');
 
 -- Réactiver les contraintes de clés étrangères
 SET FOREIGN_KEY_CHECKS = 1;
