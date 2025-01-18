@@ -24,156 +24,59 @@ SET time_zone = "+00:00";
 -- Désactiver les contraintes de clés étrangères temporairement
 SET FOREIGN_KEY_CHECKS = 0;
 
--- Réinitialiser les tables
-TRUNCATE TABLE Commande;
-TRUNCATE TABLE CommandeProduit;
-TRUNCATE TABLE Produit;
-TRUNCATE TABLE Gerant;
-TRUNCATE TABLE Livraison;
-TRUNCATE TABLE MouvementStock;
-TRUNCATE TABLE Reclamation;
-TRUNCATE TABLE Utilisateur;
-TRUNCATE TABLE Depot;
-TRUNCATE TABLE StationService;
-TRUNCATE TABLE Material;
-TRUNCATE TABLE EquipmentSensors;
-TRUNCATE TABLE MaintenanceAnalytics;
-TRUNCATE TABLE ReclamationAnalytics;
-TRUNCATE TABLE PerformanceMetrics;
+-- Supprimer les tables si elles existent
+DROP TABLE IF EXISTS `Commande`;
+DROP TABLE IF EXISTS `CommandeProduit`;
+DROP TABLE IF EXISTS `Produit`;
+DROP TABLE IF EXISTS `Gerant`;
+DROP TABLE IF EXISTS `Livraison`;
+DROP TABLE IF EXISTS `MouvementStock`;
+DROP TABLE IF EXISTS `Reclamation`;
+DROP TABLE IF EXISTS `Utilisateur`;
+DROP TABLE IF EXISTS `Depot`;
+DROP TABLE IF EXISTS `StationService`;
+DROP TABLE IF EXISTS `Material`;
+DROP TABLE IF EXISTS `EquipmentSensors`;
+DROP TABLE IF EXISTS `MaintenanceAnalytics`;
+DROP TABLE IF EXISTS `ReclamationAnalytics`;
+DROP TABLE IF EXISTS `PerformanceMetrics`;
 
--- Activer les contraintes de clés étrangères
-SET FOREIGN_KEY_CHECKS = 1;
-
---    
--- Structure de la table `commande`
---
-
-DROP TABLE IF EXISTS `commande`;
-CREATE TABLE IF NOT EXISTS `commande` (
-  `idCommande` bigint(20) NOT NULL AUTO_INCREMENT,
-  `montant` float NOT NULL,
-  `date` datetime NOT NULL,
-  `idProduit` bigint(20) DEFAULT NULL,
-  `idUtilisateur` bigint(20) DEFAULT NULL,
-  `etat` enum('En instance','En cours','Validée') NOT NULL DEFAULT 'En instance',
-  `RefCommande` varchar(50) NOT NULL,
-  `depot_id` int(11) DEFAULT NULL,
-  `note` text,
-  PRIMARY KEY (`idCommande`),
-  UNIQUE KEY `RefCommande` (`RefCommande`),
-  KEY `idProduit` (`idProduit`),
-  KEY `idUtilisateur` (`idUtilisateur`),
-  KEY `depot_id` (`depot_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=26 DEFAULT CHARSET=latin1;
+-- Création de la table Utilisateur (à créer en premier car référencée par d'autres tables)
+CREATE TABLE IF NOT EXISTS `Utilisateur` (
+  `identifiant` bigint(20) NOT NULL AUTO_INCREMENT,
+  `nom` varchar(255) NOT NULL,
+  `prenom` varchar(255) NOT NULL,
+  `telephone` varchar(255) NOT NULL,
+  `mail` varchar(255) NOT NULL,
+  `mot_de_passe` varchar(255) NOT NULL,
+  `matricule` bigint(20) NOT NULL,
+  `roles` varchar(255) NOT NULL,
+  PRIMARY KEY (`identifiant`),
+  UNIQUE KEY `mail` (`mail`),
+  UNIQUE KEY `matricule` (`matricule`)
+) ENGINE=MyISAM AUTO_INCREMENT=17 DEFAULT CHARSET=latin1;
 
 --
--- Déchargement des données de la table `commande`
+-- Déchargement des données de la table `utilisateur`
 --
 
-INSERT INTO `commande` (`idCommande`, `montant`, `date`, `idProduit`, `idUtilisateur`, `etat`, `RefCommande`, `depot_id`, `note`) VALUES
-(1, 2800, '2024-12-07 21:47:24', NULL, 3, 'En instance', 'CMD1733604444435', NULL, NULL),
-(2, 2800, '2024-12-07 21:47:58', NULL, 3, 'En instance', 'CMD1733604478485', NULL, NULL),
-(3, 2800, '2024-12-07 21:54:12', NULL, 3, 'En instance', 'CMD1733604852895', NULL, NULL),
-(4, 2800, '2024-12-07 22:03:49', NULL, 3, 'En cours', 'CMD1733605429409', NULL, NULL),
-(5, 5600, '2024-12-07 23:28:04', NULL, 3, 'En cours', 'CMD1733610484417', NULL, NULL),
-(6, 2800, '2024-12-07 23:31:46', NULL, 3, 'En cours', 'CMD1733610706353', NULL, NULL),
-(7, 2800, '2024-12-07 23:42:32', NULL, 3, 'En cours', 'CMD1733611352753', NULL, NULL),
-(8, 70000, '2024-12-08 13:29:48', NULL, 3, 'En cours', 'CMD1733660988368', NULL, NULL),
-(9, 2800, '2024-12-16 16:15:31', NULL, 3, 'En cours', 'CMD1734362131094', NULL, NULL),
-(10, 8400, '2024-12-18 14:15:03', NULL, 3, 'En instance', 'CMD1734527702994', NULL, NULL),
-(11, 140000, '2024-12-18 15:16:33', NULL, 3, 'En cours', 'CMD1734531393702', NULL, NULL),
-(12, 70000, '2024-12-18 23:08:36', NULL, 3, 'En cours', 'CMD1734559716626', NULL, NULL),
-(13, 2800, '2024-12-18 23:16:46', NULL, 3, 'En instance', 'CMD1734560206344', NULL, NULL),
-(14, 140000, '2024-12-18 23:38:33', NULL, 3, 'En instance', 'CMD1734561513804', NULL, NULL),
-(15, 156000, '2024-12-19 00:36:39', NULL, 3, 'En instance', 'CMD1734564999329', NULL, NULL),
-(16, 8400, '2024-12-19 12:25:52', NULL, 3, 'En instance', 'CMD1734607552720', NULL, NULL),
-(17, 11200, '2024-12-19 12:35:33', NULL, 3, 'En instance', 'CMD1734608133948', NULL, NULL),
-(18, 11200, '2024-12-19 14:57:51', NULL, 3, 'En instance', 'CMD1734616671389', NULL, NULL),
-(19, 14000, '2024-12-27 23:40:12', NULL, 3, 'En instance', 'CMD1735339212106', NULL, NULL),
-(20, 8400, '2024-12-27 23:42:27', NULL, 3, 'En instance', 'CMD1735339347614', NULL, NULL),
-(21, 2800, '2024-12-27 23:43:56', NULL, 3, 'En instance', 'CMD1735339436155', NULL, NULL),
-(22, 2800, '2024-12-27 23:47:39', NULL, 3, 'En instance', 'CMD1735339659784', NULL, NULL),
-(23, 2800, '2024-12-27 23:55:33', NULL, 3, 'En instance', 'CMD1735340133239', NULL, NULL),
-(24, 76400, '2024-12-30 10:31:08', NULL, 3, 'En instance', 'CMD1735551068135', NULL, NULL),
-(25, 16800, '2025-01-08 15:09:47', NULL, 3, 'En instance', 'CMD1736345387714', NULL, NULL);
-
---
--- Structure de la table `commandeproduit`
---
-
-DROP TABLE IF EXISTS `commandeproduit`;
-CREATE TABLE IF NOT EXISTS `commandeproduit` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `idCommande` int(11) NOT NULL,
-  `idProduit` int(11) NOT NULL,
-  `quantite` int(11) NOT NULL,
-  `prix` decimal(10,2) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4;
-
-
---
--- Déchargement des données de la table `commandeproduit`
---
-
-INSERT INTO `commandeproduit` (`id`, `idCommande`, `idProduit`, `quantite`, `prix`) VALUES
-(2, 4, 2, 1, '2800.00'),
-(3, 5, 2, 2, '2800.00'),
-(4, 6, 2, 1, '2800.00'),
-(5, 7, 2, 1, '2800.00'),
-(6, 8, 3, 1, '70000.00'),
-(7, 9, 2, 1, '2800.00'),
-(8, 10, 2, 3, '2800.00'),
-(9, 11, 3, 2, '70000.00'),
-(10, 12, 3, 1, '70000.00'),
-(11, 13, 2, 1, '2800.00'),
-(12, 14, 3, 2, '70000.00'),
-(13, 15, 7, 3, '52000.00'),
-(14, 16, 2, 3, '2800.00'),
-(15, 17, 2, 4, '2800.00'),
-(16, 18, 2, 4, '2800.00'),
-(21, 23, 2, 1, '2800.00'),
-(22, 24, 2, 3, '2800.00'),
-(23, 24, 5, 1, '68000.00'),
-(24, 25, 2, 6, '2800.00');
-
---
--- Structure de la table `produit`
---
-
-DROP TABLE IF EXISTS `produit`;
-CREATE TABLE IF NOT EXISTS `produit` (
-  `idProduit` bigint(20) NOT NULL AUTO_INCREMENT,
-  `nom` varchar(100) NOT NULL,
-  `disponibilite` varchar(50) DEFAULT NULL,
-  `prix` float NOT NULL,
-  `CODPRD` varchar(20) DEFAULT NULL,
-  `LIBPRD` varchar(100) DEFAULT NULL,
-  `CODEMB` varchar(20) DEFAULT NULL,
-  `LIBEMB` varchar(100) DEFAULT NULL,
-  `TYPPRD` varchar(50) DEFAULT NULL,
-  `quantite` int(11) DEFAULT '0',
-  `seuil_alerte` int(11) DEFAULT '10',
-  PRIMARY KEY (`idProduit`)
-) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
-
---
--- Déchargement des données de la table `produit`
---
-
-INSERT INTO `produit` (`idProduit`, `nom`, `disponibilite`, `prix`, `CODPRD`, `LIBPRD`, `CODEMB`, `LIBEMB`, `TYPPRD`, `quantite`, `seuil_alerte`) VALUES
-(1, 'sans plomb', 'non disponible', 2550, '', '', '', '', '', 100, 10),
-(2, 'gazoil 50', 'non disponible', 2800, '0101111', 'gazoil', '', '', 'CARBURANT', 65, 10),
-(3, 'castrol ', 'disponible', 70000, '0101112', 'huile', '', '', 'LUBRIFIANT', -6, 10),
-(4, 'castrol ', 'dispo', 70007, '122234', 'huile', '', '', 'LUBRIFIANT', 10, 10),
-(5, 'castrol ', 'non disponible', 68000, '12228', 'huile', '', '', 'LUBRIFIANT', -51, 10),
-(6, 'castrol ', 'non disponible', 56000, '0101122', 'huile', '', '', 'LUBRIFIANT', 0, 10),
-(7, 'castrol ', 'dispo', 52000, '0101123', 'huile', '', '', 'LUBRIFIANT', -3, 10),
-(8, 'shell huilux ', 'dispo', 58000, '0101128', 'huile', '', '', 'LUBRIFIANT', 0, 10),
-(9, 'shell huilux ', 'dispo', 58000, '0101128', 'huile', '', '', 'LUBRIFIANT', 0, 10),
-(10, 'shell', 'disponible', 54000, '0101111', 'huile', '', '', 'LUBRIFIANT', 0, 10),
-(11, 'castrol ', 'disponible', 70000, '0101112', 'huile', '', '', 'LUBRIFIANT', 0, 10),
-(12, 'castrol ', 'disponible', 70000, '0101112', 'huile', '', '', 'LUBRIFIANT', 0, 10);
+INSERT INTO `utilisateur` (`identifiant`, `nom`, `prenom`, `telephone`, `mail`, `mot_de_passe`, `matricule`, `roles`) VALUES
+(1, 'Admin', 'System', '21612345678', 'admin@pfe.tn', '$2a$10$2EZZzs0Gz9LCva1RU.3fDegZan0cQuLvMGr8zVEdypM6hz8UmcVVu', 9999, 'ADMIN'),
+(2, 'neder', 'boughanmi', '26593757', 'commercial@agil.com', '$2a$10$xL5pVQknFxWtfiEVr2R7leBYmZr18HCD11MWRM9PN20OrhgstXwge', 123456, 'COMMERCIAL'),
+(3, 'rodrigo', 'rodriguez', '23456781', 'gerant.test@station.com', '$2a$10$/IWjTxgiBry/8VIwuUsFu.2Bv0d.5uBIOCKgoNqRcdCHqb.CtpABC', 654321, 'GERANT'),
+(4, 'mouldi', 'aifa', '28456934', 'depot.test@gmail.com', '$2a$10$Or1XUqCJ8cPWlQqeeILsLOgrohixpnwiWK.w/FT5gGuUfx2hkWD/2', 9876554, 'DEPOT'),
+(5, 'brian', 'ruiz', '12365478', 'brian.depot@gmail.com', '$2a$10$qf9INIgYJsOKjLdhiArvA.VSQjme8M27UTumUcIsA1AGM9FBrSaUy', 471852, 'DEPOT'),
+(6, 'oussema', 'boughan', '25693784', 'boughanmi.commercial@agil.com', '$2a$10$7he4/mlhVcwDso6exKbQx.tUEoxeK5POd1gioUGXvD.l9UeDJulNi', 14455, 'COMMERCIAL'),
+(7, 'nidhal', 'boughanmi', '26593757', 'nidhal.boughanmi@gmail.com', '$2a$10$K2lK8692KeqV5LgHIC/YwOWiamSV/vNWpVPZ5Px723hM7BFmEHVU2', 213456, 'GERANT'),
+(8, 'nidhal', 'boughanmi', '26593757', 'nidhal.boughanmi22@gmail.com', '$2a$10$uO1Jb5kaQejIkt3136LnXeW6Nu16h1oOF7/3I5eBn7rV2go0aAgTe', 123455, 'GERANT'),
+(9, 'oussema', 'boughanmi', '25693757', 'oussema123@gmail.com', '$2a$10$/Fo0oONuwSRHlGz7tixR6.em9UsM/e.JLNB2Idbg2KJTiHVJaeNiG', 213654, 'COMMERCIAL'),
+(10, 'oussema', 'boughanmi', '26593775', 'oussema.boughanmni22@gmail.com', '$2a$10$S5qK.FakZso2Q0ncUq6tm.VjjhIBMB1dMLga0mIhMCXxscGa4EdW6', 124563, 'GERANT'),
+(11, 'oussema', 'boughanmi', '26593747', 'oussemaboughanmi@agil.com', '$2a$10$LgkAW6rBAsVO5RFtss/V3uEdrkZwziEB0tMMFZno0TF1T1fypVbVK', 124547, 'COMMERCIAL'),
+(12, 'boughanmi', 'nidhal', '21345679', 'boughanmi123@gmail.com', '$2a$10$Rrx3Wq1fumdpWAZGJc9VC.8YYddfLFLbqMbx9jTovnlEzSqtjKpjq', 987655, 'GERANT'),
+(13, 'boughanmi', 'oussema', '26593757', 'boughanmi.test@gmail.com', '$2a$10$YcUthi4NQzHvXJV5Lai.3u3vM5E7S6DEsacibV2YtyWSseLRwMS/e', 147852, 'DEPOT'),
+(14, 'aloui', 'omar', '26593757', 'omar.aloui@gmail.com', '$2a$10$aupiVTuZTBA9oHeLumJZNuNkgDdITRSgskCd5QEGooj/xElABOoHS', 254136, 'GERANT'),
+(15, 'neila', 'bouali', '28741367', 'neila.bou@gmail.com', '$2a$10$auBwaM4fBVH2IkVneNb40ui3JdbdhtIfHwFQBLAh1hgKcykesn/n2', 5468271, 'DEPOT'),
+(16, 'ameur', 'atef', '26593754', 'amer.atef@gmail.com', '$2a$10$Ggz7f7Nnatb9kWNhDV.8XOEHJmt53NwCd1HQOcNfA4nzaKn9MWY8W', 257413, 'GERANT');
 
 --
 -- Structure de la table `depot`
@@ -186,24 +89,6 @@ CREATE TABLE IF NOT EXISTS `depot` (
   `adresse` text NOT NULL,
   PRIMARY KEY (`idDepot`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-
---
--- Structure de la table `equipmentsensors`
---
-
-DROP TABLE IF EXISTS `equipmentsensors`;
-CREATE TABLE IF NOT EXISTS `equipmentsensors` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `equipment_id` int(11) DEFAULT NULL,
-  `temperature` float DEFAULT NULL,
-  `pressure` float DEFAULT NULL,
-  `vibration` float DEFAULT NULL,
-  `timestamp` datetime DEFAULT NULL,
-  `location` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `equipment_id` (`equipment_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-
 
 --
 -- Structure de la table `gerant`
@@ -306,7 +191,6 @@ CREATE TABLE IF NOT EXISTS `mouvementstock` (
   KEY `idCommande` (`idCommande`)
 ) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 
-
 --
 -- Déchargement des données de la table `mouvementstock`
 --
@@ -333,6 +217,43 @@ CREATE TABLE IF NOT EXISTS `performancemetrics` (
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
+--
+-- Structure de la table `produit`
+--
+
+DROP TABLE IF EXISTS `produit`;
+CREATE TABLE IF NOT EXISTS `produit` (
+  `idProduit` bigint(20) NOT NULL AUTO_INCREMENT,
+  `nom` varchar(100) NOT NULL,
+  `disponibilite` varchar(50) DEFAULT NULL,
+  `prix` float NOT NULL,
+  `CODPRD` varchar(20) DEFAULT NULL,
+  `LIBPRD` varchar(100) DEFAULT NULL,
+  `CODEMB` varchar(20) DEFAULT NULL,
+  `LIBEMB` varchar(100) DEFAULT NULL,
+  `TYPPRD` varchar(50) DEFAULT NULL,
+  `quantite` int(11) DEFAULT '0',
+  `seuil_alerte` int(11) DEFAULT '10',
+  PRIMARY KEY (`idProduit`)
+) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
+
+--
+-- Déchargement des données de la table `produit`
+--
+
+INSERT INTO `produit` (`idProduit`, `nom`, `disponibilite`, `prix`, `CODPRD`, `LIBPRD`, `CODEMB`, `LIBEMB`, `TYPPRD`, `quantite`, `seuil_alerte`) VALUES
+(1, 'sans plomb', 'non disponible', 2550, '', '', '', '', '', 100, 10),
+(2, 'gazoil 50', 'non disponible', 2800, '0101111', 'gazoil', '', '', 'CARBURANT', 65, 10),
+(3, 'castrol ', 'disponible', 70000, '0101112', 'huile', '', '', 'LUBRIFIANT', -6, 10),
+(4, 'castrol ', 'dispo', 70007, '122234', 'huile', '', '', 'LUBRIFIANT', 10, 10),
+(5, 'castrol ', 'non disponible', 68000, '12228', 'huile', '', '', 'LUBRIFIANT', -51, 10),
+(6, 'castrol ', 'non disponible', 56000, '0101122', 'huile', '', '', 'LUBRIFIANT', 0, 10),
+(7, 'castrol ', 'dispo', 52000, '0101123', 'huile', '', '', 'LUBRIFIANT', -3, 10),
+(8, 'shell huilux ', 'dispo', 58000, '0101128', 'huile', '', '', 'LUBRIFIANT', 0, 10),
+(9, 'shell huilux ', 'dispo', 58000, '0101128', 'huile', '', '', 'LUBRIFIANT', 0, 10),
+(10, 'shell', 'disponible', 54000, '0101111', 'huile', '', '', 'LUBRIFIANT', 0, 10),
+(11, 'castrol ', 'disponible', 70000, '0101112', 'huile', '', '', 'LUBRIFIANT', 0, 10),
+(12, 'castrol ', 'disponible', 70000, '0101112', 'huile', '', '', 'LUBRIFIANT', 0, 10);
 
 --
 -- Structure de la table `reclamation`
@@ -373,13 +294,13 @@ CREATE TABLE IF NOT EXISTS `reclamation` (
   KEY `idGerant` (`idGerant`),
   KEY `idCommercial` (`idCommercial`)
 ) ENGINE=MyISAM AUTO_INCREMENT=31 DEFAULT CHARSET=latin1;
+
 --
 -- Déchargement des données de la table `reclamation`
 --
 
-
 INSERT INTO `reclamation` (`idReclamation`, `idGerant`, `idCommercial`, `description`, `date`, `type`, `etat`, `material`, `image_url`, `priority`, `estimatedResolutionTime`, `actualResolutionTime`, `satisfaction`, `gravite`, `sentiment_score`, `suggestedActions`, `aiConfidence`, `image_analysis`, `reponse`, `date_reponse`, `categories`, `keywords`, `impact_score`, `related_issues`, `resolution_history`, `predicted_resolution_time`, `maintenance_cost`, `analysis_results`, `last_analyzed`) VALUES
-(1, 3, NULL, 'hfhhfhfhhfh', '2024-12-08 23:53:39', 'COMMERCIALE', 'Validée', NULL, NULL, 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1, 3, NULL, 'hfhhfhfhhfh', '2024-12-08 23:53:39', 'COMMERCIALE', 'Validée', NULL, NULL, 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (2, 3, NULL, 'hvgfchxdgwsdxgcfhgvj', '2024-12-18 11:10:10', 'TECHNIQUE', 'En instance', NULL, NULL, 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (3, 3, NULL, 'lnbhgvfcxdxgchv', '2024-12-18 13:53:08', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1734526388342-images.png', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (4, 3, NULL, 'panne', '2024-12-18 14:13:37', 'COMMERCIALE', 'En instance', NULL, '/uploads/reclamations/1734527617578-usecom.PNG', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
@@ -399,6 +320,8 @@ INSERT INTO `reclamation` (`idReclamation`, `idGerant`, `idCommercial`, `descrip
 (18, 3, NULL, 'panne', '2024-12-21 15:12:36', 'COMMERCIALE', 'En instance', NULL, '/uploads/reclamations/1734790355781-OIP.jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, '{\"metadata\": {\"width\": 474, \"format\": \"jpeg\", \"height\": 632}, \"severity\": {\"level\": \"MOYENNE\", \"mediumCount\": 5, \"totalIssues\": 6, \"urgentCount\": 0}, \"imageQuality\": {\"format\": \"jpeg\", \"quality\": \"Faible\", \"isAdequate\": false, \"resolution\": \"474x632\"}, \"recommendedType\": \"COMMERCIALE\", \"technicalAnalysis\": {\"issues\": [{\"type\": \"Contamination possible\", \"priority\": \"MOYEN\", \"confidence\": 0.679424596885968, \"detectedAt\": \"2024-12-21T14:12:35.911Z\"}, {\"type\": \"Fuite potentielle\", \"priority\": \"MOYEN\", \"confidence\": 0.7078568999160919, \"detectedAt\": \"2024-12-21T14:12:35.911Z\"}, {\"type\": \"Corrosion visible\", \"priority\": \"MOYEN\", \"confidence\": 0.6999226818953832, \"detectedAt\": \"2024-12-21T14:12:35.911Z\"}, {\"type\": \"Problème de joint\", \"priority\": \"MOYEN\", \"confidence\": 0.7137187424789153, \"detectedAt\": \"2024-12-21T14:12:35.911Z\"}, {\"type\": \"Problème de mise à la terre\", \"priority\": \"NORMAL\", \"confidence\": 0.5180150915679863, \"detectedAt\": \"2024-12-21T14:12:35.911Z\"}, {\"type\": \"Dysfonctionnement des alarmes\", \"priority\": \"MOYEN\", \"confidence\": 0.6401280249160551, \"detectedAt\": \"2024-12-21T14:12:35.911Z\"}], \"timestamp\": \"2024-12-21T14:12:35.911Z\", \"categories\": [\"RESERVOIR\", \"TUYAUTERIE\", \"SECURITE\"]}, \"maintenanceRecommendations\": [{\"action\": \"Contrôle de routine des jauges et des systèmes de ventilation\", \"category\": \"RESERVOIR\", \"priority\": \"NORMAL\", \"estimatedTime\": 270, \"requiredExpertise\": \"Expert en systèmes de stockage\"}, {\"action\": \"Vérification des joints et de l\'état général\", \"category\": \"TUYAUTERIE\", \"priority\": \"NORMAL\", \"estimatedTime\": 135, \"requiredExpertise\": \"Plombier industriel\"}, {\"action\": \"Vérification des systèmes de sécurité\", \"category\": \"SECURITE\", \"priority\": \"NORMAL\", \"estimatedTime\": 67.5, \"requiredExpertise\": \"Technicien de sécurité\"}]}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (19, 3, NULL, 'panne grave urgente', '2024-12-22 12:18:36', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1734866315866-OIP.jpg', 'MOYEN', 48, NULL, 'PEU_SATISFAIT', 'MOYENNE', -2, NULL, NULL, '{\"metadata\": {\"width\": 474, \"format\": \"jpeg\", \"height\": 632}, \"severity\": {\"level\": \"HAUTE\", \"mediumCount\": 3, \"totalIssues\": 4, \"urgentCount\": 1}, \"imageQuality\": {\"format\": \"jpeg\", \"quality\": \"Faible\", \"isAdequate\": false, \"resolution\": \"474x632\"}, \"recommendedType\": \"TECHNIQUE\", \"technicalAnalysis\": {\"issues\": [{\"type\": \"Problème de ventilation\", \"priority\": \"MOYEN\", \"confidence\": 0.7814977847330855, \"detectedAt\": \"2024-12-22T11:18:35.949Z\"}, {\"type\": \"Problème de circuit électrique\", \"priority\": \"MOYEN\", \"confidence\": 0.7076271710865283, \"detectedAt\": \"2024-12-22T11:18:35.949Z\"}, {\"type\": \"Problème de circuit électrique\", \"priority\": \"MOYEN\", \"confidence\": 0.7644353313286147, \"detectedAt\": \"2024-12-22T11:18:35.949Z\"}, {\"type\": \"Signalisation défectueuse\", \"priority\": \"URGENT\", \"confidence\": 0.9628847727132398, \"detectedAt\": \"2024-12-22T11:18:35.950Z\"}], \"timestamp\": \"2024-12-22T11:18:35.950Z\", \"categories\": [\"RESERVOIR\", \"ELECTRONIQUE\", \"SECURITE\"]}, \"maintenanceRecommendations\": [{\"action\": \"Contrôle de routine des jauges et des systèmes de ventilation\", \"category\": \"RESERVOIR\", \"priority\": \"NORMAL\", \"estimatedTime\": 180, \"requiredExpertise\": \"Expert en systèmes de stockage\"}, {\"action\": \"Test des systèmes et mise à jour si nécessaire\", \"category\": \"ELECTRONIQUE\", \"priority\": \"NORMAL\", \"estimatedTime\": 90, \"requiredExpertise\": \"Électromécanicien\"}, {\"action\": \"Intervention immédiate - Mise en sécurité requise\", \"category\": \"SECURITE\", \"priority\": \"URGENT\", \"estimatedTime\": 45, \"requiredExpertise\": \"Technicien de sécurité\"}]}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (20, 3, 2, 'panne des pistolé', '2024-12-22 12:31:39', 'COMMERCIALE', 'En instance', NULL, '/uploads/reclamations/1734867098375-maxnewsfrthree.jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, '{\"metadata\": {\"width\": 5760, \"format\": \"jpeg\", \"height\": 3840}, \"severity\": {\"level\": \"MOYENNE\", \"mediumCount\": 3, \"totalIssues\": 5, \"urgentCount\": 0}, \"imageQuality\": {\"format\": \"jpeg\", \"quality\": \"Bonne\", \"isAdequate\": true, \"resolution\": \"5760x3840\"}, \"recommendedType\": \"COMMERCIALE\", \"technicalAnalysis\": {\"issues\": [{\"type\": \"Fuite potentielle\", \"priority\": \"MOYEN\", \"confidence\": 0.7178349890886876, \"detectedAt\": \"2024-12-22T11:31:38.784Z\"}, {\"type\": \"Problème de jauge\", \"priority\": \"MOYEN\", \"confidence\": 0.6402843834718142, \"detectedAt\": \"2024-12-22T11:31:38.784Z\"}, {\"type\": \"Problème de joint\", \"priority\": \"NORMAL\", \"confidence\": 0.5336765683338408, \"detectedAt\": \"2024-12-22T11:31:38.784Z\"}, {\"type\": \"Problème de joint\", \"priority\": \"NORMAL\", \"confidence\": 0.5829925898764249, \"detectedAt\": \"2024-12-22T11:31:38.784Z\"}, {\"type\": \"Signalisation défectueuse\", \"priority\": \"MOYEN\", \"confidence\": 0.7433062493593358, \"detectedAt\": \"2024-12-22T11:31:38.784Z\"}], \"timestamp\": \"2024-12-22T11:31:38.784Z\", \"categories\": [\"RESERVOIR\", \"TUYAUTERIE\", \"SECURITE\"]}, \"maintenanceRecommendations\": [{\"action\": \"Contrôle de routine des jauges et des systèmes de ventilation\", \"category\": \"RESERVOIR\", \"priority\": \"NORMAL\", \"estimatedTime\": 270, \"requiredExpertise\": \"Expert en systèmes de stockage\"}, {\"action\": \"Vérification des joints et de l\'état général\", \"category\": \"TUYAUTERIE\", \"priority\": \"NORMAL\", \"estimatedTime\": 135, \"requiredExpertise\": \"Plombier industriel\"}, {\"action\": \"Vérification des systèmes de sécurité\", \"category\": \"SECURITE\", \"priority\": \"NORMAL\", \"estimatedTime\": 45, \"requiredExpertise\": \"Technicien de sécurité\"}]}', 'ouiii', '2024-12-26 09:50:57', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(21, 2, NULL, 'panne de jauge d essence ', '2024-12-22 12:49:42', 'TECHNIQUE', 'Validée', NULL, '/uploads/reclamations/1734868182053-maxnewsfrthree.jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, '{\"metadata\": {\"width\": 5760, \"format\": \"jpeg\", \"height\": 3840}, \"severity\": {\"level\": \"HAUTE\", \"mediumCount\": 2, \"totalIssues\": 8, \"urgentCount\": 4}, \"imageQuality\": {\"format\": \"jpeg\", \"quality\": \"Bonne\", \"isAdequate\": true, \"resolution\": \"5760x3840\"}, \"recommendedType\": \"TECHNIQUE\", \"technicalAnalysis\": {\"issues\": [{\"type\": \"Contamination possible\", \"priority\": \"MOYEN\", \"confidence\": 0.79377502132514, \"detectedAt\": \"2024-12-22T11:49:42.296Z\"}, {\"type\": \"Problème de jauge\", \"priority\": \"URGENT\", \"confidence\": 0.8689189133200741, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Corrosion visible\", \"priority\": \"URGENT\", \"confidence\": 0.8722830761041439, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Problème de joint\", \"priority\": \"URGENT\", \"confidence\": 0.9128138973683616, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Problème de circuit électrique\", \"priority\": \"URGENT\", \"confidence\": 0.8751091026155587, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Erreur de communication\", \"priority\": \"NORMAL\", \"confidence\": 0.5681755085616752, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Problème d\'arrêt d\'urgence\", \"priority\": \"NORMAL\", \"confidence\": 0.5799126020173094, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Signalisation défectueuse\", \"priority\": \"MOYEN\", \"confidence\": 0.6674826054094176, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}], \"timestamp\": \"2024-12-22T11:49:42.297Z\", \"categories\": [\"RESERVOIR\", \"TUYAUTERIE\", \"ELECTRONIQUE\", \"SECURITE\"]}, \"maintenanceRecommendations\": [{\"action\": \"Vérification immédiate de l\'étanchéité et des niveaux\", \"category\": \"RESERVOIR\", \"priority\": \"URGENT\", \"estimatedTime\": 270, \"requiredExpertise\": \"Expert en systèmes de stockage\"}, {\"action\": \"Inspection immédiate des conduites et remplacement si nécessaire\", \"category\": \"TUYAUTERIE\", \"priority\": \"URGENT\", \"estimatedTime\": 135, \"requiredExpertise\": \"Plombier industriel\"}, {\"action\": \"Diagnostic complet du système électronique requis\", \"category\": \"ELECTRONIQUE\", \"priority\": \"URGENT\", \"estimatedTime\": 90, \"requiredExpertise\": \"Électromécanicien\"}, {\"action\": \"Vérification des systèmes de sécurité\", \"category\": \"SECURITE\", \"priority\": \"NORMAL\", \"estimatedTime\": 67.5, \"requiredExpertise\": \"Technicien de sécurité\"}]}', 'Cher gérant,\n\nSuite à l\'analyse de votre réclamation #21, voici notre évaluation détaillée :\n\n1. Analyse Technique :\n   - URGENT: Dysfonctionnement du système de paiement (Confiance: 80.6%)\n   - Problème de débit (Confiance: 55%)\n   - Problème de ventilation (Confiance: 51.7%)\n\n2. Recommandations de Maintenance :\n   - POMPE: Inspection et maintenance préventive recommandée\n     Expert requis: Technicien spécialisé en pompes\n     Temps estimé: 120 minutes\n\n   - RESERVOIR: Contrôle de routine des jauges et des systèmes de ventilation\n     Expert requis: Expert en systèmes de stockage\n     Temps estimé: 180 minutes\n\n   - ELECTRONIQUE: Diagnostic complet du système électronique requis\n     Expert requis: Electromécanicien\n     Temps estimé: 90 minutes\n\n3. Plan d\'Action :\n   - Intervention immédiate requise pour le système de paiement\n   - Un électromécanicien sera envoyé en priorité\n   - Planification des maintenances préventives pour la pompe et le réservoir\n\nNous prenons en charge votre demande avec la plus grande attention. Notre équipe technique interviendra selon les priorités identifiées.\n\nCordialement,\nVotre Commercial', '2024-12-23 14:29:21', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(22, 2, NULL, 'panne commercial', '2024-12-22 12:59:06', 'TECHNIQUE', 'Validée', NULL, '/uploads/reclamations/1734868745738-OIP (1).jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, '{\"metadata\": {\"width\": 474, \"format\": \"jpeg\", \"height\": 348}, \"severity\": {\"level\": \"HAUTE\", \"mediumCount\": 0, \"totalIssues\": 4, \"urgentCount\": 2}, \"imageQuality\": {\"format\": \"jpeg\", \"quality\": \"Faible\", \"isAdequate\": false, \"resolution\": \"474x348\"}, \"recommendedType\": \"TECHNIQUE\", \"technicalAnalysis\": {\"issues\": [{\"type\": \"Problème de débit\", \"priority\": \"NORMAL\", \"confidence\": 0.5496144200480843, \"detectedAt\": \"2024-12-22T11:59:05.820Z\"}, {\"type\": \"Problème de ventilation\", \"priority\": \"NORMAL\", \"confidence\": 0.5165086574548072, \"detectedAt\": \"2024-12-22T11:59:05.820Z\"}, {\"type\": \"Dysfonctionnement du système de paiement\", \"priority\": \"URGENT\", \"confidence\": 0.8056839099650854, \"detectedAt\": \"2024-12-22T11:59:05.820Z\"}, {\"type\": \"Dysfonctionnement du système de paiement\", \"priority\": \"URGENT\", \"confidence\": 0.8498449122556069, \"detectedAt\": \"2024-12-22T11:59:05.820Z\"}], \"timestamp\": \"2024-12-22T11:59:05.820Z\", \"categories\": [\"POMPE\", \"RESERVOIR\", \"ELECTRONIQUE\"]}, \"maintenanceRecommendations\": [{\"action\": \"Inspection et maintenance préventive recommandée\", \"category\": \"POMPE\", \"priority\": \"NORMAL\", \"estimatedTime\": 120, \"requiredExpertise\": \"Technicien spécialisé en pompes\"}, {\"action\": \"Contrôle de routine des jauges et des systèmes de ventilation\", \"category\": \"RESERVOIR\", \"priority\": \"NORMAL\", \"estimatedTime\": 180, \"requiredExpertise\": \"Expert en systèmes de stockage\"}, {\"action\": \"Diagnostic complet du système électronique requis\", \"category\": \"ELECTRONIQUE\", \"priority\": \"URGENT\", \"estimatedTime\": 90, \"requiredExpertise\": \"Électromécanicien\"}]}', 'traité', '2024-12-24 14:29:46', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (23, 3, NULL, 'panne grave', '2024-12-30 10:32:07', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1735551126749-gaz.jpg', 'MOYEN', 48, NULL, 'PEU_SATISFAIT', 'MOYENNE', -2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"raw\": {\"faultAnalysis\": [{\"label\": \"gas pump, gasoline pump, petrol pump, island dispenser\", \"score\": 0.9997554421424866}, {\"label\": \"pay-phone, pay-station\", \"score\": 0.000022879465177538805}, {\"label\": \"acoustic guitar\", \"score\": 0.000005061816409579478}, {\"label\": \"parking meter\", \"score\": 0.0000050613625717232935}, {\"label\": \"cash machine, cash dispenser, automated teller machine, automatic teller machine, automated teller, automatic teller, ATM\", \"score\": 0.000004366846951597836}], \"classification\": [{\"label\": \"gas pump, gasoline pump, petrol pump, island dispenser\", \"score\": 0.9967055916786194}, {\"label\": \"vending machine\", \"score\": 0.0004425408551469445}, {\"label\": \"cash machine, cash dispenser, automated teller machine, automatic teller machine, automated teller, automatic teller, ATM\", \"score\": 0.0003112129052169621}, {\"label\": \"cinema, movie theater, movie theatre, movie house, picture palace\", \"score\": 0.0002483577700331807}, {\"label\": \"pay-phone, pay-station\", \"score\": 0.00019211266771890223}], \"objectDetection\": [{\"box\": {\"xmax\": 463, \"xmin\": 41, \"ymax\": 606, \"ymin\": 418}, \"label\": \"car\", \"score\": 0.9991008043289183}]}, \"faultAnalysis\": {\"type\": \"pompe_defectueuse\", \"pieces\": [\"Pompe hydraulique\", \"Joint d\'étanchéité\", \"Roulement\"], \"gravite\": \"haute\", \"keywords\": [\"pump\", \"hydraulic\", \"water\", \"flow\"], \"solution\": \"Remplacer la pompe défectueuse et vérifier le circuit hydraulique\", \"confidence\": 0.272435766530841, \"maintenance\": {\"priority\": \"URGENT\", \"estimatedTime\": 120, \"requiredExpertise\": \"Technicien hydraulique\"}}, \"classification\": [{\"label\": \"gas pump, gasoline pump, petrol pump, island dispenser\", \"confidence\": 0.9967055916786194}, {\"label\": \"vending machine\", \"confidence\": 0.0004425408551469445}, {\"label\": \"cash machine, cash dispenser, automated teller machine, automatic teller machine, automated teller, automatic teller, ATM\", \"confidence\": 0.0003112129052169621}, {\"label\": \"cinema, movie theater, movie theatre, movie house, picture palace\", \"confidence\": 0.0002483577700331807}, {\"label\": \"pay-phone, pay-station\", \"confidence\": 0.00019211266771890223}], \"detectedObjects\": [{\"box\": {\"xmax\": 463, \"xmin\": 41, \"ymax\": 606, \"ymin\": 418}, \"label\": \"car\", \"confidence\": 0.9991008043289183}]}', '2025-01-16 21:02:09'),
 (24, 1, NULL, 'panne de paiment ', '2025-01-08 23:40:29', 'COMMERCIALE', 'En instance', NULL, '/uploads/reclamations/1736376024636-OIP (2).jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"raw\": {\"faultAnalysis\": [{\"label\": \"solar dish, solar collector, solar furnace\", \"score\": 0.558073878288269}, {\"label\": \"electric fan, blower\", \"score\": 0.2003784477710724}, {\"label\": \"space shuttle\", \"score\": 0.030233291909098625}, {\"label\": \"lampshade, lamp shade\", \"score\": 0.015254564583301544}, {\"label\": \"bolo tie, bolo, bola tie, bola\", \"score\": 0.013289186172187328}], \"classification\": [{\"label\": \"switch, electric switch, electrical switch\", \"score\": 0.3936117887496948}, {\"label\": \"spotlight, spot\", \"score\": 0.0951634868979454}, {\"label\": \"oscilloscope, scope, cathode-ray oscilloscope, CRO\", \"score\": 0.09016034752130508}, {\"label\": \"modem\", \"score\": 0.06443137675523758}, {\"label\": \"projector\", \"score\": 0.06130140274763107}], \"objectDetection\": [{\"box\": {\"xmax\": 197, \"xmin\": 71, \"ymax\": 157, \"ymin\": 54}, \"label\": \"clock\", \"score\": 0.5825058817863464}, {\"box\": {\"xmax\": 154, \"xmin\": 71, \"ymax\": 152, \"ymin\": 55}, \"label\": \"clock\", \"score\": 0.6265724897384644}]}, \"faultAnalysis\": {\"type\": \"probleme_electrique\", \"pieces\": [\"Capteur\", \"Câblage\", \"Relais\"], \"gravite\": \"haute\", \"keywords\": [\"electric\", \"wire\", \"circuit\", \"power\", \"connection\"], \"solution\": \"Vérifier le circuit électrique et remplacer les composants défectueux\", \"confidence\": 0.22758134524337947, \"maintenance\": {\"priority\": \"URGENT\", \"estimatedTime\": 45, \"requiredExpertise\": \"Électricien\"}}, \"classification\": [{\"label\": \"switch, electric switch, electrical switch\", \"confidence\": 0.3936117887496948}, {\"label\": \"spotlight, spot\", \"confidence\": 0.0951634868979454}, {\"label\": \"oscilloscope, scope, cathode-ray oscilloscope, CRO\", \"confidence\": 0.09016034752130508}, {\"label\": \"modem\", \"confidence\": 0.06443137675523758}, {\"label\": \"projector\", \"confidence\": 0.06130140274763107}], \"detectedObjects\": [{\"box\": {\"xmax\": 197, \"xmin\": 71, \"ymax\": 157, \"ymin\": 54}, \"label\": \"clock\", \"confidence\": 0.5825058817863464}, {\"box\": {\"xmax\": 154, \"xmin\": 71, \"ymax\": 152, \"ymin\": 55}, \"label\": \"clock\", \"confidence\": 0.6265724897384644}]}', '2025-01-16 19:08:39'),
 (21, 2, NULL, 'panne de jauge d essence ', '2024-12-22 12:49:42', 'TECHNIQUE', 'Validée', NULL, '/uploads/reclamations/1734868182053-maxnewsfrthree.jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, '{\"metadata\": {\"width\": 5760, \"format\": \"jpeg\", \"height\": 3840}, \"severity\": {\"level\": \"HAUTE\", \"mediumCount\": 2, \"totalIssues\": 8, \"urgentCount\": 4}, \"imageQuality\": {\"format\": \"jpeg\", \"quality\": \"Bonne\", \"isAdequate\": true, \"resolution\": \"5760x3840\"}, \"recommendedType\": \"TECHNIQUE\", \"technicalAnalysis\": {\"issues\": [{\"type\": \"Contamination possible\", \"priority\": \"MOYEN\", \"confidence\": 0.79377502132514, \"detectedAt\": \"2024-12-22T11:49:42.296Z\"}, {\"type\": \"Problème de jauge\", \"priority\": \"URGENT\", \"confidence\": 0.8689189133200741, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Corrosion visible\", \"priority\": \"URGENT\", \"confidence\": 0.8722830761041439, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Problème de joint\", \"priority\": \"URGENT\", \"confidence\": 0.9128138973683616, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Problème de circuit électrique\", \"priority\": \"URGENT\", \"confidence\": 0.8751091026155587, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Erreur de communication\", \"priority\": \"NORMAL\", \"confidence\": 0.5681755085616752, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Problème d\'arrêt d\'urgence\", \"priority\": \"NORMAL\", \"confidence\": 0.5799126020173094, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Signalisation défectueuse\", \"priority\": \"MOYEN\", \"confidence\": 0.6674826054094176, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}], \"timestamp\": \"2024-12-22T11:49:42.297Z\", \"categories\": [\"RESERVOIR\", \"TUYAUTERIE\", \"ELECTRONIQUE\", \"SECURITE\"]}, \"maintenanceRecommendations\": [{\"action\": \"Vérification immédiate de l\'étanchéité et des niveaux\", \"category\": \"RESERVOIR\", \"priority\": \"URGENT\", \"estimatedTime\": 270, \"requiredExpertise\": \"Expert en systèmes de stockage\"}, {\"action\": \"Inspection immédiate des conduites et remplacement si nécessaire\", \"category\": \"TUYAUTERIE\", \"priority\": \"URGENT\", \"estimatedTime\": 135, \"requiredExpertise\": \"Plombier industriel\"}, {\"action\": \"Diagnostic complet du système électronique requis\", \"category\": \"ELECTRONIQUE\", \"priority\": \"URGENT\", \"estimatedTime\": 90, \"requiredExpertise\": \"Électromécanicien\"}, {\"action\": \"Vérification des systèmes de sécurité\", \"category\": \"SECURITE\", \"priority\": \"NORMAL\", \"estimatedTime\": 67.5, \"requiredExpertise\": \"Technicien de sécurité\"}]}', 'Cher gérant,\n\nSuite à l\'analyse de votre réclamation #21, voici notre évaluation détaillée :\n\n1. Analyse Technique :\n   - URGENT: Dysfonctionnement du système de paiement (Confiance: 80.6%)\n   - Problème de débit (Confiance: 55%)\n   - Problème de ventilation (Confiance: 51.7%)\n\n2. Recommandations de Maintenance :\n   - POMPE: Inspection et maintenance préventive recommandée\n     Expert requis: Technicien spécialisé en pompes\n     Temps estimé: 120 minutes\n\n   - RESERVOIR: Contrôle de routine des jauges et des systèmes de ventilation\n     Expert requis: Expert en systèmes de stockage\n     Temps estimé: 180 minutes\n\n   - ELECTRONIQUE: Diagnostic complet du système électronique requis\n     Expert requis: Electromécanicien\n     Temps estimé: 90 minutes\n\n3. Plan d\'Action :\n   - Intervention immédiate requise pour le système de paiement\n   - Un électromécanicien sera envoyé en priorité\n   - Planification des maintenances préventives pour la pompe et le réservoir\n\nNous prenons en charge votre demande avec la plus grande attention. Notre équipe technique interviendra selon les priorités identifiées.\n\nCordialement,\nVotre Commercial', '2024-12-23 14:29:21', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
@@ -427,7 +350,6 @@ CREATE TABLE IF NOT EXISTS `reclamationanalytics` (
   PRIMARY KEY (`id`),
   KEY `idReclamation` (`idReclamation`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
--- --------------------------------------------------------
 
 --
 -- Structure de la table `stationservice`
@@ -458,48 +380,117 @@ INSERT INTO `stationservice` (`idStation`, `nom`, `adresse`, `ville`, `telephone
 (6, 'station  nabeul', '101 Rue ', 'nabeul', '2659375', 'stationnabeul.test@pfe.tn', 300),
 (7, 'station ben arous', '123 Rue Test\"', 'Tunis', '12345678', 'station.test@pfe.tn', 400);
 
--- --------------------------------------------------------
-
 --
--- Structure de la table `utilisateur`
+-- Structure de la table `commande`
 --
 
-DROP TABLE IF EXISTS `utilisateur`;
-CREATE TABLE IF NOT EXISTS `utilisateur` (
-  `identifiant` bigint(20) NOT NULL AUTO_INCREMENT,
-  `nom` varchar(255) NOT NULL,
-  `prenom` varchar(255) NOT NULL,
-  `telephone` varchar(255) NOT NULL,
-  `mail` varchar(255) NOT NULL,
-  `mot_de_passe` varchar(255) NOT NULL,
-  `matricule` bigint(20) NOT NULL,
-  `roles` varchar(255) NOT NULL,
-  PRIMARY KEY (`identifiant`),
-  UNIQUE KEY `mail` (`mail`),
-  UNIQUE KEY `matricule` (`matricule`)
-) ENGINE=MyISAM AUTO_INCREMENT=17 DEFAULT CHARSET=latin1;
+DROP TABLE IF EXISTS `commande`;
+CREATE TABLE IF NOT EXISTS `commande` (
+  `idCommande` bigint(20) NOT NULL AUTO_INCREMENT,
+  `montant` float NOT NULL,
+  `date` datetime NOT NULL,
+  `idProduit` bigint(20) DEFAULT NULL,
+  `idUtilisateur` bigint(20) DEFAULT NULL,
+  `etat` enum('En instance','En cours','Validée') NOT NULL DEFAULT 'En instance',
+  `RefCommande` varchar(50) NOT NULL,
+  `depot_id` int(11) DEFAULT NULL,
+  `note` text,
+  PRIMARY KEY (`idCommande`),
+  UNIQUE KEY `RefCommande` (`RefCommande`),
+  KEY `idProduit` (`idProduit`),
+  KEY `idUtilisateur` (`idUtilisateur`),
+  KEY `depot_id` (`depot_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=26 DEFAULT CHARSET=latin1;
 
 --
--- Déchargement des données de la table `utilisateur`
+-- Déchargement des données de la table `commande`
 --
 
-INSERT INTO `utilisateur` (`identifiant`, `nom`, `prenom`, `telephone`, `mail`, `mot_de_passe`, `matricule`, `roles`) VALUES
-(1, 'Admin', 'System', '21612345678', 'admin@pfe.tn', '$2a$10$2EZZzs0Gz9LCva1RU.3fDegZan0cQuLvMGr8zVEdypM6hz8UmcVVu', 9999, 'ADMIN'),
-(2, 'neder', 'boughanmi', '26593757', 'commercial@agil.com', '$2a$10$xL5pVQknFxWtfiEVr2R7leBYmZr18HCD11MWRM9PN20OrhgstXwge', 123456, 'COMMERCIAL'),
-(3, 'rodrigo', 'rodriguez', '23456781', 'gerant.test@station.com', '$2a$10$/IWjTxgiBry/8VIwuUsFu.2Bv0d.5uBIOCKgoNqRcdCHqb.CtpABC', 654321, 'GERANT'),
-(4, 'mouldi', 'aifa', '28456934', 'depot.test@gmail.com', '$2a$10$Or1XUqCJ8cPWlQqeeILsLOgrohixpnwiWK.w/FT5gGuUfx2hkWD/2', 9876554, 'DEPOT'),
-(5, 'brian', 'ruiz', '12365478', 'brian.depot@gmail.com', '$2a$10$qf9INIgYJsOKjLdhiArvA.VSQjme8M27UTumUcIsA1AGM9FBrSaUy', 471852, 'DEPOT'),
-(6, 'oussema', 'boughan', '25693784', 'boughanmi.commercial@agil.com', '$2a$10$7he4/mlhVcwDso6exKbQx.tUEoxeK5POd1gioUGXvD.l9UeDJulNi', 14455, 'COMMERCIAL'),
-(7, 'nidhal', 'boughanmi', '26593757', 'nidhal.boughanmi@gmail.com', '$2a$10$K2lK8692KeqV5LgHIC/YwOWiamSV/vNWpVPZ5Px723hM7BFmEHVU2', 213456, 'GERANT'),
-(8, 'nidhal', 'boughanmi', '26593757', 'nidhal.boughanmi22@gmail.com', '$2a$10$uO1Jb5kaQejIkt3136LnXeW6Nu16h1oOF7/3I5eBn7rV2go0aAgTe', 123455, 'GERANT'),
-(9, 'oussema', 'boughanmi', '25693757', 'oussema123@gmail.com', '$2a$10$/Fo0oONuwSRHlGz7tixR6.em9UsM/e.JLNB2Idbg2KJTiHVJaeNiG', 213654, 'COMMERCIAL'),
-(10, 'oussema', 'boughanmi', '26593775', 'oussema.boughanmni22@gmail.com', '$2a$10$S5qK.FakZso2Q0ncUq6tm.VjjhIBMB1dMLga0mIhMCXxscGa4EdW6', 124563, 'GERANT'),
-(11, 'oussema', 'boughanmi', '26593747', 'oussemaboughanmi@agil.com', '$2a$10$LgkAW6rBAsVO5RFtss/V3uEdrkZwziEB0tMMFZno0TF1T1fypVbVK', 124547, 'COMMERCIAL'),
-(12, 'boughanmi', 'nidhal', '21345679', 'boughanmi123@gmail.com', '$2a$10$Rrx3Wq1fumdpWAZGJc9VC.8YYddfLFLbqMbx9jTovnlEzSqtjKpjq', 987655, 'GERANT'),
-(13, 'boughanmi', 'oussema', '26593757', 'boughanmi.test@gmail.com', '$2a$10$YcUthi4NQzHvXJV5Lai.3u3vM5E7S6DEsacibV2YtyWSseLRwMS/e', 147852, 'DEPOT'),
-(14, 'aloui', 'omar', '26593757', 'omar.aloui@gmail.com', '$2a$10$aupiVTuZTBA9oHeLumJZNuNkgDdITRSgskCd5QEGooj/xElABOoHS', 254136, 'GERANT'),
-(15, 'neila', 'bouali', '28741367', 'neila.bou@gmail.com', '$2a$10$auBwaM4fBVH2IkVneNb40ui3JdbdhtIfHwFQBLAh1hgKcykesn/n2', 5468271, 'DEPOT'),
-(16, 'ameur', 'atef', '26593754', 'amer.atef@gmail.com', '$2a$10$Ggz7f7Nnatb9kWNhDV.8XOEHJmt53NwCd1HQOcNfA4nzaKn9MWY8W', 257413, 'GERANT');
-COMMIT;
--- Réactiver les contraintes de clés étrangères
+INSERT INTO `commande` (`idCommande`, `montant`, `date`, `idProduit`, `idUtilisateur`, `etat`, `RefCommande`, `depot_id`, `note`) VALUES
+(1, 2800, '2024-12-07 21:47:24', NULL, 3, 'En instance', 'CMD1733604444435', NULL, NULL),
+(2, 2800, '2024-12-07 21:47:58', NULL, 3, 'En instance', 'CMD1733604478485', NULL, NULL),
+(3, 2800, '2024-12-07 21:54:12', NULL, 3, 'En instance', 'CMD1733604852895', NULL, NULL),
+(4, 2800, '2024-12-07 22:03:49', NULL, 3, 'En cours', 'CMD1733605429409', NULL, NULL),
+(5, 5600, '2024-12-07 23:28:04', NULL, 3, 'En cours', 'CMD1733610484417', NULL, NULL),
+(6, 2800, '2024-12-07 23:31:46', NULL, 3, 'En cours', 'CMD1733610706353', NULL, NULL),
+(7, 2800, '2024-12-07 23:42:32', NULL, 3, 'En cours', 'CMD1733611352753', NULL, NULL),
+(8, 70000, '2024-12-08 13:29:48', NULL, 3, 'En cours', 'CMD1733660988368', NULL, NULL),
+(9, 2800, '2024-12-16 16:15:31', NULL, 3, 'En cours', 'CMD1734362131094', NULL, NULL),
+(10, 8400, '2024-12-18 14:15:03', NULL, 3, 'En instance', 'CMD1734527702994', NULL, NULL),
+(11, 140000, '2024-12-18 15:16:33', NULL, 3, 'En cours', 'CMD1734531393702', NULL, NULL),
+(12, 70000, '2024-12-18 23:08:36', NULL, 3, 'En cours', 'CMD1734559716626', NULL, NULL),
+(13, 2800, '2024-12-18 23:16:46', NULL, 3, 'En instance', 'CMD1734560206344', NULL, NULL),
+(14, 140000, '2024-12-18 23:38:33', NULL, 3, 'En instance', 'CMD1734561513804', NULL, NULL),
+(15, 156000, '2024-12-19 00:36:39', NULL, 3, 'En instance', 'CMD1734564999329', NULL, NULL),
+(16, 8400, '2024-12-19 12:25:52', NULL, 3, 'En instance', 'CMD1734607552720', NULL, NULL),
+(17, 11200, '2024-12-19 12:35:33', NULL, 3, 'En instance', 'CMD1734608133948', NULL, NULL),
+(18, 11200, '2024-12-19 14:57:51', NULL, 3, 'En instance', 'CMD1734616671389', NULL, NULL),
+(19, 14000, '2024-12-27 23:40:12', NULL, 3, 'En instance', 'CMD1735339212106', NULL, NULL),
+(20, 8400, '2024-12-27 23:42:27', NULL, 3, 'En instance', 'CMD1735339347614', NULL, NULL),
+(21, 2800, '2024-12-27 23:43:56', NULL, 3, 'En instance', 'CMD1735339436155', NULL, NULL),
+(22, 2800, '2024-12-27 23:47:39', NULL, 3, 'En instance', 'CMD1735339659784', NULL, NULL),
+(23, 2800, '2024-12-27 23:55:33', NULL, 3, 'En instance', 'CMD1735340133239', NULL, NULL),
+(24, 76400, '2024-12-30 10:31:08', NULL, 3, 'En instance', 'CMD1735551068135', NULL, NULL),
+(25, 16800, '2025-01-08 15:09:47', NULL, 3, 'En instance', 'CMD1736345387714', NULL, NULL);
+
+--
+-- Structure de la table `commandeproduit`
+--
+
+DROP TABLE IF EXISTS `commandeproduit`;
+CREATE TABLE IF NOT EXISTS `commandeproduit` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `idCommande` int(11) NOT NULL,
+  `idProduit` int(11) NOT NULL,
+  `quantite` int(11) NOT NULL,
+  `prix` decimal(10,2) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4;
+
+--
+-- Déchargement des données de la table `commandeproduit`
+--
+
+INSERT INTO `commandeproduit` (`id`, `idCommande`, `idProduit`, `quantite`, `prix`) VALUES
+(2, 4, 2, 1, '2800.00'),
+(3, 5, 2, 2, '2800.00'),
+(4, 6, 2, 1, '2800.00'),
+(5, 7, 2, 1, '2800.00'),
+(6, 8, 3, 1, '70000.00'),
+(7, 9, 2, 1, '2800.00'),
+(8, 10, 2, 3, '2800.00'),
+(9, 11, 3, 2, '70000.00'),
+(10, 12, 3, 1, '70000.00'),
+(11, 13, 2, 1, '2800.00'),
+(12, 14, 3, 2, '70000.00'),
+(13, 15, 7, 3, '52000.00'),
+(14, 16, 2, 3, '2800.00'),
+(15, 17, 2, 4, '2800.00'),
+(16, 18, 2, 4, '2800.00'),
+(21, 23, 2, 1, '2800.00'),
+(22, 24, 2, 3, '2800.00'),
+(23, 24, 5, 1, '68000.00'),
+(24, 25, 2, 6, '2800.00');
+
+--
+-- Structure de la table `equipmentsensors`
+--
+
+DROP TABLE IF EXISTS `equipmentsensors`;
+CREATE TABLE IF NOT EXISTS `equipmentsensors` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `equipment_id` int(11) DEFAULT NULL,
+  `temperature` float DEFAULT NULL,
+  `pressure` float DEFAULT NULL,
+  `vibration` float DEFAULT NULL,
+  `timestamp` datetime DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `equipment_id` (`equipment_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Activer les contraintes de clés étrangères
 SET FOREIGN_KEY_CHECKS = 1;
+
+COMMIT;
