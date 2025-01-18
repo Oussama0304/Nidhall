@@ -2,28 +2,11 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Installation des dépendances du système nécessaires
-RUN apk add --no-cache python3 make g++
-
-# Copier les fichiers de dépendances
 COPY package*.json ./
+RUN npm install
 
-# Installation des dépendances
-RUN npm ci
-
-# Copier le reste des fichiers
 COPY . .
 
-# Définir les variables d'environnement par défaut
-ENV NODE_ENV=production
-ENV PORT=3000
-ENV DB_HOST=db
-ENV DB_USER=root
-ENV DB_PASSWORD=root123
-ENV DB_NAME=ProjetPfeAgil
-
-# Exposer le port
 EXPOSE 3000
 
-# Attendre que la base de données soit prête avant de démarrer l'application
-CMD ["sh", "-c", "node server.js"]
+CMD ["node", "server.js"]
