@@ -8,6 +8,15 @@ TRUNCATE TABLE Produit;
 TRUNCATE TABLE Livraison;
 TRUNCATE TABLE MouvementStock;
 TRUNCATE TABLE Reclamation;
+TRUNCATE TABLE Utilisateur;
+
+-- Insertion des utilisateurs
+INSERT INTO Utilisateur (identifiant, nom, prenom, telephone, mail, mot_de_passe, matricule, roles) VALUES
+(1, 'Admin', 'System', '21612345678', 'admin@pfe.tn', '$2a$10$2EZZzs0Gz9LCva1RU.3fDegZan0cQuLvMGr8zVEdypM6hz8UmcVVu', 9999, 'ADMIN'),
+(2, 'Gerant', 'Test', '21612345679', 'gerant@pfe.tn', '$2a$10$2EZZzs0Gz9LCva1RU.3fDegZan0cQuLvMGr8zVEdypM6hz8UmcVVu', 1001, 'GERANT'),
+(3, 'Commercial', 'Test', '21612345680', 'commercial@pfe.tn', '$2a$10$2EZZzs0Gz9LCva1RU.3fDegZan0cQuLvMGr8zVEdypM6hz8UmcVVu', 1002, 'COMMERCIAL'),
+(4, 'Depot', 'Test', '21612345681', 'depot@pfe.tn', '$2a$10$2EZZzs0Gz9LCva1RU.3fDegZan0cQuLvMGr8zVEdypM6hz8UmcVVu', 1003, 'DEPOT'),
+(5, 'Technique', 'Test', '21612345682', 'technique@pfe.tn', '$2a$10$2EZZzs0Gz9LCva1RU.3fDegZan0cQuLvMGr8zVEdypM6hz8UmcVVu', 1004, 'TECHNIQUE');
 
 -- Insertion des données dans la table Produit
 INSERT INTO Produit (idProduit, nom, disponibilite, prix, CODPRD, LIBPRD, CODEMB, LIBEMB, TYPPRD, quantite, seuil_alerte) VALUES
