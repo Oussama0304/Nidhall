@@ -138,6 +138,41 @@ CREATE TABLE IF NOT EXISTS MouvementStock (
     FOREIGN KEY (idCommande) REFERENCES Commande(idCommande)
 );
 
+-- Create EquipmentSensors table
+CREATE TABLE IF NOT EXISTS EquipmentSensors (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    equipment_id BIGINT,
+    temperature FLOAT,
+    pressure FLOAT,
+    vibration FLOAT,
+    timestamp DATETIME,
+    location VARCHAR(255),
+    FOREIGN KEY (equipment_id) REFERENCES Material(idMaterial)
+);
+
+-- Create MaintenanceAnalytics table
+CREATE TABLE IF NOT EXISTS MaintenanceAnalytics (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    equipment_id BIGINT,
+    prediction_date DATETIME,
+    failure_probability FLOAT,
+    maintenance_recommendations TEXT,
+    severity_level ENUM('BASSE', 'MOYENNE', 'HAUTE'),
+    FOREIGN KEY (equipment_id) REFERENCES Material(idMaterial)
+);
+
+-- Create PerformanceMetrics table
+CREATE TABLE IF NOT EXISTS PerformanceMetrics (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    metric_date DATE DEFAULT NULL,
+    resolution_times JSON DEFAULT NULL,
+    satisfaction_rates JSON DEFAULT NULL,
+    issue_patterns JSON DEFAULT NULL,
+    cost_analysis JSON DEFAULT NULL,
+    efficiency_scores JSON DEFAULT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
 -- Création de l'administrateur permanent
 DELETE FROM Utilisateur WHERE mail = 'admin@pfe.tn';
 INSERT INTO Utilisateur (nom, prenom, telephone, mail, mot_de_passe, matricule, roles)
