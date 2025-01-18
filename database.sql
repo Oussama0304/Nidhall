@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS Depot (
 
 -- Create Commande table
 CREATE TABLE IF NOT EXISTS Commande (
-    idCommande BIGINT PRIMARY KEY AUTO_INCREMENT,
+    idCommande BIGINT AUTO_INCREMENT,
     montant FLOAT NOT NULL,
     date DATETIME NOT NULL,
     idProduit BIGINT,
@@ -69,11 +69,11 @@ CREATE TABLE IF NOT EXISTS Commande (
     RefCommande VARCHAR(50) NOT NULL,
     depot_id INT(11) DEFAULT NULL,
     note TEXT,
-    PRIMARY KEY (`idCommande`),
-    UNIQUE KEY `RefCommande` (`RefCommande`),
-    KEY `idProduit` (`idProduit`),
-    KEY `idUtilisateur` (`idUtilisateur`),
-    KEY `depot_id` (`depot_id`)
+    PRIMARY KEY (idCommande),
+    UNIQUE KEY RefCommande (RefCommande),
+    KEY idProduit (idProduit),
+    KEY idUtilisateur (idUtilisateur),
+    KEY depot_id (depot_id)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- Create Livraison table
