@@ -45,13 +45,17 @@ services:
       - MYSQL_USER=admin
       - MYSQL_PASSWORD=admin123
     volumes:
-      - ./database.sql:/docker-entrypoint-initdb.d/1-schema.sql
-      - ./sql/data.sql:/docker-entrypoint-initdb.d/2-data.sql
+      - ./sql:/docker-entrypoint-initdb.d
       - mysql_data:/var/lib/mysql
     ports:
       - "3306:3306"
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mysql_data:
