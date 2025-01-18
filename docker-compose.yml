@@ -21,6 +21,10 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - FRONTEND_URL=http://localhost:8098
+      - JWT_SECRET=${JWT_SECRET}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
     ports:
       - "3000:3000"
     depends_on:
