@@ -2,15 +2,15 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Réinitialiser les tables
-TRUNCATE TABLE commande;
-TRUNCATE TABLE commandeproduit;
-TRUNCATE TABLE produit;
-TRUNCATE TABLE livraison;
-TRUNCATE TABLE mouvementstock;
-TRUNCATE TABLE reclamation;
+TRUNCATE TABLE Commande;
+TRUNCATE TABLE CommandeProduit;
+TRUNCATE TABLE Produit;
+TRUNCATE TABLE Livraison;
+TRUNCATE TABLE MouvementStock;
+TRUNCATE TABLE Reclamation;
 
--- Insertion des données dans la table produit
-INSERT INTO produit (idProduit, nom, disponibilite, prix, CODPRD, LIBPRD, CODEMB, LIBEMB, TYPPRD, quantite, seuil_alerte) VALUES
+-- Insertion des données dans la table Produit
+INSERT INTO Produit (idProduit, nom, disponibilite, prix, CODPRD, LIBPRD, CODEMB, LIBEMB, TYPPRD, quantite, seuil_alerte) VALUES
 (1, 'sans plomb', 'non disponible', 2550, '', '', '', '', '', 100, 10),
 (2, 'gazoil 50', 'non disponible', 2800, '0101111', 'gazoil', '', '', 'CARBURANT', 65, 10),
 (3, 'castrol ', 'disponible', 70000, '0101112', 'huile', '', '', 'LUBRIFIANT', -6, 10),
@@ -24,8 +24,8 @@ INSERT INTO produit (idProduit, nom, disponibilite, prix, CODPRD, LIBPRD, CODEMB
 (11, 'castrol ', 'disponible', 70000, '0101112', 'huile', '', '', 'LUBRIFIANT', 0, 10),
 (12, 'castrol ', 'disponible', 70000, '0101112', 'huile', '', '', 'LUBRIFIANT', 0, 10);
 
--- Insertion des données dans la table commande
-INSERT INTO commande (idCommande, montant, date, idProduit, idUtilisateur, etat, RefCommande, depot_id, note) VALUES
+-- Insertion des données dans la table Commande
+INSERT INTO Commande (idCommande, montant, date, idProduit, idUtilisateur, etat, RefCommande, depot_id, note) VALUES
 (1, 2800, '2024-12-07 21:47:24', NULL, 3, 'En instance', 'CMD1733604444435', NULL, NULL),
 (2, 2800, '2024-12-07 21:47:58', NULL, 3, 'En instance', 'CMD1733604478485', NULL, NULL),
 (3, 2800, '2024-12-07 21:54:12', NULL, 3, 'En instance', 'CMD1733604852895', NULL, NULL),
@@ -52,8 +52,8 @@ INSERT INTO commande (idCommande, montant, date, idProduit, idUtilisateur, etat,
 (24, 76400, '2024-12-30 10:31:08', NULL, 3, 'En instance', 'CMD1735551068135', NULL, NULL),
 (25, 16800, '2025-01-08 15:09:47', NULL, 3, 'En instance', 'CMD1736345387714', NULL, NULL);
 
--- Insertion des données dans la table commandeproduit
-INSERT INTO commandeproduit (id, idCommande, idProduit, quantite, prix) VALUES
+-- Insertion des données dans la table CommandeProduit
+INSERT INTO CommandeProduit (id, idCommande, idProduit, quantite, prix) VALUES
 (2, 4, 2, 1, 2800.00),
 (3, 5, 2, 2, 2800.00),
 (4, 6, 2, 1, 2800.00),
@@ -74,8 +74,8 @@ INSERT INTO commandeproduit (id, idCommande, idProduit, quantite, prix) VALUES
 (23, 24, 5, 1, 68000.00),
 (24, 25, 2, 6, 2800.00);
 
--- Insertion des données dans la table livraison
-INSERT INTO livraison (idLivraison, idCommande, dateLivraison, numChauffeur, quantiteLv) VALUES
+-- Insertion des données dans la table Livraison
+INSERT INTO Livraison (idLivraison, idCommande, dateLivraison, numChauffeur, quantiteLv) VALUES
 (1, 4, '2024-12-18 15:40:42', 0, 0),
 (2, 4, '2024-12-19 00:39:35', 0, 0),
 (3, 6, '2024-12-19 00:39:46', 0, 0),
@@ -89,15 +89,15 @@ INSERT INTO livraison (idLivraison, idCommande, dateLivraison, numChauffeur, qua
 (11, 5, '2024-12-29 14:35:03', 0, 0),
 (12, 4, '2024-12-30 10:35:17', 0, 0);
 
--- Insertion des données dans la table mouvementstock
-INSERT INTO mouvementstock (id, idProduit, quantite, type_mouvement, date_mouvement, idCommande, raison) VALUES
+-- Insertion des données dans la table MouvementStock
+INSERT INTO MouvementStock (id, idProduit, quantite, type_mouvement, date_mouvement, idCommande, raison) VALUES
 (1, 4, 10, 'ENTREE', '2024-12-27 14:23:48', NULL, 'Réapprovisionnement'),
 (2, 5, 50, 'RETRAIT', '2024-12-27 14:25:43', NULL, 'Réapprovisionnement'),
 (3, 2, 3, 'RETRAIT', '2024-12-27 22:42:27', 20, NULL),
 (4, 2, 1, 'RETRAIT', '2024-12-27 22:43:56', 21, NULL);
 
--- Insertion des données dans la table reclamation
-INSERT INTO reclamation (idReclamation, idGerant, idCommercial, description, date, type, etat, material, image_url, priority, estimatedResolutionTime, actualResolutionTime, satisfaction, gravite, sentiment_score) VALUES
+-- Insertion des données dans la table Reclamation
+INSERT INTO Reclamation (idReclamation, idGerant, idCommercial, description, date, type, etat, material, image_url, priority, estimatedResolutionTime, actualResolutionTime, satisfaction, gravite, sentiment_score) VALUES
 (1, 3, NULL, 'hfhhfhfhhfh', '2024-12-08 23:53:39', 'COMMERCIALE', 'Validée', NULL, NULL, 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL),
 (2, 3, NULL, 'hvgfchxdgwsdxgcfhgvj', '2024-12-18 11:10:10', 'TECHNIQUE', 'En instance', NULL, NULL, 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL),
 (3, 3, NULL, 'lnbhgvfcxdxgchv', '2024-12-18 13:53:08', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1734526388342-images.png', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL);
