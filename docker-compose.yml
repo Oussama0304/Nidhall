@@ -11,7 +11,8 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./sql:/docker-entrypoint-initdb.d
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/1-init.sql
+      - ./sql/data.sql:/docker-entrypoint-initdb.d/2-data.sql
     networks:
       - app-network
     restart: always
@@ -28,9 +29,9 @@ services:
       - PORT=3000
       - FRONTEND_URL=http://localhost:8098
       - JWT_SECRET=your_jwt_secret_here
-      - HUGGINGFACE_API_KEY=your_huggingface_key_here
-      - EMAIL_USER=your_email_here
-      - EMAIL_PASSWORD=your_email_password_here
+      - HUGGINGFACE_API_KEY=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
+      - EMAIL_USER=nidhal.boughanmi@esprit.tn
+      - EMAIL_PASSWORD=Nidhalboughanmi123
     ports:
       - "3000:3000"
     volumes:
