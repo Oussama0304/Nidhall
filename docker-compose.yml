@@ -3,10 +3,18 @@ version: '3.8'
 services:
   db:
     image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --innodb-buffer-pool-size=256M
+      --max-allowed-packet=128M
+      --wait-timeout=28800
     environment:
       - MYSQL_ROOT_PASSWORD=root123
       - MYSQL_DATABASE=ProjetPfeAgil
+      - MYSQL_CHARSET=utf8mb4
+      - MYSQL_COLLATION=utf8mb4_unicode_ci
     ports:
       - "3306:3306"
     volumes:
@@ -64,6 +72,12 @@ services:
     networks:
       - app-network
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
 networks:
   app-network:
@@ -71,3 +85,4 @@ networks:
 
 volumes:
   mysql_data:
+    driver: local

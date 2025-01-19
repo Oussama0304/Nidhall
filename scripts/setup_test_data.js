@@ -17,7 +17,7 @@ async function setupTestData() {
         console.log('Création de la station test...');
         const stationResult = await new Promise((resolve, reject) => {
             const query = `
-                INSERT INTO StationService (idStation, nom, adresse)
+                INSERT INTO STATIONSERVICE (idStation, nom, adresse)
                 VALUES (?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                 nom = VALUES(nom),
@@ -42,7 +42,7 @@ async function setupTestData() {
         
         const userResult = await new Promise((resolve, reject) => {
             const query = `
-                INSERT INTO Utilisateur (nom, prenom, telephone, mail, mot_de_passe, matricule, roles)
+                INSERT INTO UTILISATEUR (nom, prenom, telephone, mail, mot_de_passe, matricule, roles)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                 nom = VALUES(nom),
@@ -73,7 +73,7 @@ async function setupTestData() {
         console.log('Création des informations du gérant...');
         await new Promise((resolve, reject) => {
             const query = `
-                INSERT INTO Gerant (idGerant, nom, prenom, matricule, numGerant, idStation)
+                INSERT INTO GERANT (idGerant, nom, prenom, matricule, numGerant, idStation)
                 VALUES (?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                 nom = VALUES(nom),

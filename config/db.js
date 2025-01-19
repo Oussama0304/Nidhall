@@ -24,7 +24,7 @@ const addUserIdColumn = () => {
             SELECT COUNT(*) as count 
             FROM information_schema.COLUMNS 
             WHERE TABLE_SCHEMA = ? 
-            AND TABLE_NAME = 'Commande' 
+            AND TABLE_NAME = 'COMMANDE' 
             AND COLUMN_NAME = 'idUtilisateur'
         `;
 
@@ -37,10 +37,10 @@ const addUserIdColumn = () => {
 
             if (results[0].count === 0) {
                 const alterTableQuery = `
-                    ALTER TABLE Commande
+                    ALTER TABLE COMMANDE
                     ADD COLUMN idUtilisateur BIGINT,
                     ADD CONSTRAINT fk_commande_utilisateur
-                    FOREIGN KEY (idUtilisateur) REFERENCES Utilisateur(identifiant)
+                    FOREIGN KEY (idUtilisateur) REFERENCES UTILISATEUR(identifiant)
                 `;
 
                 connection.query(alterTableQuery, (err) => {

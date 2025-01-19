@@ -10,9 +10,9 @@ router.use(auth);
 router.get('/', (req, res) => {
     const query = `
         SELECT c.*, p.LIBPRD as nomProduit, p.prix 
-        FROM Commande c 
-        LEFT JOIN CommandeProduit cp ON c.idCommande = cp.idCommande
-        LEFT JOIN Produit p ON cp.idProduit = p.idProduit
+        FROM COMMANDE c 
+        LEFT JOIN COMMANDEPRODUIT cp ON c.idCommande = cp.idCommande
+        LEFT JOIN PRODUIT p ON cp.idProduit = p.idProduit
     `;
     
     db.query(query, (err, results) => {
@@ -31,9 +31,9 @@ router.get('/user', (req, res) => {
     
     const query = `
         SELECT c.*, p.LIBPRD as nomProduit, p.prix 
-        FROM Commande c 
-        LEFT JOIN CommandeProduit cp ON c.idCommande = cp.idCommande
-        LEFT JOIN Produit p ON cp.idProduit = p.idProduit 
+        FROM COMMANDE c 
+        LEFT JOIN COMMANDEPRODUIT cp ON c.idCommande = cp.idCommande
+        LEFT JOIN PRODUIT p ON cp.idProduit = p.idProduit 
         WHERE c.idUtilisateur = ?
         ORDER BY c.date DESC
     `;
@@ -73,7 +73,7 @@ router.post('/', async (req, res) => {
                 // Créer la commande principale
                 const mainCommandeResult = await new Promise((resolve, reject) => {
                     const query = `
-                        INSERT INTO Commande (montant, date, etat, RefCommande, idUtilisateur) 
+                        INSERT INTO COMMANDE (montant, date, etat, RefCommande, idUtilisateur) 
                         VALUES (?, NOW(), ?, ?, ?)
                     `;
                     connection.query(query, [montant, etat, RefCommande, userId], (err, result) => {
@@ -90,7 +90,7 @@ router.post('/', async (req, res) => {
                 for (const produit of produits) {
                     await new Promise((resolve, reject) => {
                         const query = `
-                            INSERT INTO CommandeProduit (idCommande, idProduit, quantite, prix) 
+                            INSERT INTO COMMANDEPRODUIT (idCommande, idProduit, quantite, prix) 
                             VALUES (?, ?, ?, ?)
                         `;
                         connection.query(query, [idCommande, produit.idProduit, produit.quantite, produit.prix], (err, result) => {
@@ -103,7 +103,7 @@ router.post('/', async (req, res) => {
 
                     // Update product stock
                     await new Promise((resolve, reject) => {
-                        const updateStockQuery = 'UPDATE Produit SET quantite = quantite - ? WHERE idProduit = ?';
+                        const updateStockQuery = 'UPDATE PRODUIT SET quantite = quantite - ? WHERE idProduit = ?';
                         connection.query(updateStockQuery, [produit.quantite, produit.idProduit], (err) => {
                             if (err) reject(err);
                             else resolve();
@@ -154,10 +154,10 @@ router.get('/:id', (req, res) => {
     const userId = req.user.id;
     const query = `
         SELECT c.*, p.LIBPRD as nomProduit, cp.quantite, cp.prix
-        FROM Commande c
-        LEFT JOIN CommandeProduit cp ON c.idCommande = cp.idCommande
-        LEFT JOIN Produit p ON cp.idProduit = p.idProduit
-        WHERE c.idCommande = ? AND (c.idUtilisateur = ? OR ? IN (SELECT identifiant FROM Utilisateur WHERE roles = 'ADMIN'))
+        FROM COMMANDE c
+        LEFT JOIN COMMANDEPRODUIT cp ON c.idCommande = cp.idCommande
+        LEFT JOIN PRODUIT p ON cp.idProduit = p.idProduit
+        WHERE c.idCommande = ? AND (c.idUtilisateur = ? OR ? IN (SELECT identifiant FROM UTILISATEUR WHERE roles = 'ADMIN'))
     `;
     
     db.query(query, [req.params.id, userId, userId], (err, results) => {
@@ -178,8 +178,8 @@ router.put('/:id/status', (req, res) => {
     const userId = req.user.id;
     
     const checkQuery = `
-        SELECT * FROM Commande c 
-        WHERE c.idCommande = ? AND (c.idUtilisateur = ? OR ? IN (SELECT identifiant FROM Utilisateur WHERE roles = 'ADMIN'))
+        SELECT * FROM COMMANDE c 
+        WHERE c.idCommande = ? AND (c.idUtilisateur = ? OR ? IN (SELECT identifiant FROM UTILISATEUR WHERE roles = 'ADMIN'))
     `;
     
     db.query(checkQuery, [req.params.id, userId, userId], (err, results) => {
@@ -192,7 +192,7 @@ router.put('/:id/status', (req, res) => {
             return res.status(403).json({ error: "Non autorisé à modifier cette commande" });
         }
         
-        const updateQuery = 'UPDATE Commande SET etat = ? WHERE idCommande = ?';
+        const updateQuery = 'UPDATE COMMANDE SET etat = ? WHERE idCommande = ?';
         db.query(updateQuery, [etat, req.params.id], (err, result) => {
             if (err) {
                 console.error('Erreur SQL UPDATE status:', err);
@@ -213,10 +213,10 @@ router.post('/:id/livraison', (req, res) => {
 
     // Vérifier d'abord les permissions avec le rôle DEPOT
     const checkQuery = `
-        SELECT c.* FROM Commande c 
+        SELECT c.* FROM COMMANDE c 
         WHERE c.idCommande = ? 
         AND (c.idUtilisateur = ? 
-             OR ? IN (SELECT identifiant FROM Utilisateur WHERE roles IN ('ADMIN', 'DEPOT')))
+             OR ? IN (SELECT identifiant FROM UTILISATEUR WHERE roles IN ('ADMIN', 'DEPOT')))
     `;
     
     db.getConnection((err, connection) => {
@@ -247,7 +247,7 @@ router.post('/:id/livraison', (req, res) => {
 
                 // 1. Créer la livraison
                 const createLivraisonQuery = `
-                    INSERT INTO livraison (idCommande, dateLivraison, numChauffeur, quantiteLv)
+                    INSERT INTO LIVRAISON (idCommande, dateLivraison, numChauffeur, quantiteLv)
                     VALUES (?, NOW(), 0, 0)
                 `;
                 
@@ -266,7 +266,7 @@ router.post('/:id/livraison', (req, res) => {
 
                 // 2. Mettre à jour l'état de la commande
                 const updateCommandeQuery = `
-                    UPDATE Commande SET etat = 'En cours'
+                    UPDATE COMMANDE SET etat = 'En cours'
                     WHERE idCommande = ?
                 `;
 
@@ -311,7 +311,7 @@ router.post('/:id/livraison', (req, res) => {
 router.get('/products', (req, res) => {
     const query = `
         SELECT p.idProduit, p.nom, p.prix, p.quantite
-        FROM Produit p
+        FROM PRODUIT p
         ORDER BY p.nom ASC
     `;
     

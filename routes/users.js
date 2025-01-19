@@ -5,7 +5,7 @@ const db = require('../config/db');
 
 // Get all users
 router.get('/', (req, res) => {
-    const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur';
+    const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM UTILISATEUR';
     db.query(query, (err, results) => {
         if (err) {
             return res.status(500).json({ error: "Erreur lors de la récupération des utilisateurs" });
@@ -20,7 +20,7 @@ router.post('/', async (req, res) => {
 
     try {
         const hashedPassword = await bcrypt.hash(mot_de_passe, 10);
-        const query = 'INSERT INTO Utilisateur (nom, prenom, telephone, mail, mot_de_passe, matricule, roles) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        const query = 'INSERT INTO UTILISATEUR (nom, prenom, telephone, mail, mot_de_passe, matricule, roles) VALUES (?, ?, ?, ?, ?, ?, ?)';
         
         db.query(query, [nom, prenom, telephone, mail, hashedPassword, matricule, roles], (err, result) => {
             if (err) {
@@ -35,7 +35,7 @@ router.post('/', async (req, res) => {
 
 // Get user by ID
 router.get('/:id', (req, res) => {
-    const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?';
+    const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM UTILISATEUR WHERE identifiant = ?';
     db.query(query, [req.params.id], (err, results) => {
         if (err) {
             return res.status(500).json({ error: "Erreur lors de la récupération de l'utilisateur" });
@@ -50,7 +50,7 @@ router.get('/:id', (req, res) => {
 // Update user
 router.put('/:id', async (req, res) => {
     const { nom, prenom, telephone, mail, matricule, roles } = req.body;
-    const query = 'UPDATE Utilisateur SET nom = ?, prenom = ?, telephone = ?, mail = ?, matricule = ?, roles = ? WHERE identifiant = ?';
+    const query = 'UPDATE UTILISATEUR SET nom = ?, prenom = ?, telephone = ?, mail = ?, matricule = ?, roles = ? WHERE identifiant = ?';
     
     db.query(query, [nom, prenom, telephone, mail, matricule, roles, req.params.id], (err, result) => {
         if (err) {
@@ -62,7 +62,7 @@ router.put('/:id', async (req, res) => {
 
 // Get users by role
 router.get('/role/:role', (req, res) => {
-    const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE roles = ?';
+    const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM UTILISATEUR WHERE roles = ?';
     db.query(query, [req.params.role], (err, results) => {
         if (err) {
             return res.status(500).json({ error: "Erreur lors de la récupération des utilisateurs" });
@@ -76,7 +76,7 @@ router.get('/profile', (req, res) => {
     // Récupérer l'ID de l'utilisateur depuis le token JWT
     const userId = req.user.id; // Assurez-vous que votre middleware d'authentification ajoute user à req
 
-    const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?';
+    const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM UTILISATEUR WHERE identifiant = ?';
     db.query(query, [userId], (err, results) => {
         if (err) {
             return res.status(500).json({ error: "Erreur lors de la récupération du profil" });

@@ -11,7 +11,7 @@ router.get('/:reclamationId', auth, async (req, res) => {
         // Récupérer la réclamation
         const reclamation = await new Promise((resolve, reject) => {
             recommendationService.db.query(
-                'SELECT * FROM Reclamation WHERE idReclamation = ?',
+                'SELECT * FROM RECLAMATION WHERE idReclamation = ?',
                 [reclamationId],
                 (err, results) => {
                     if (err) reject(err);

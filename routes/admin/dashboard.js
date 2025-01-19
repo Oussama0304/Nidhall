@@ -24,7 +24,7 @@ router.get('/stats', auth, isAdmin, async (req, res) => {
         // Statistiques des utilisateurs par rôle
         const userQuery = `
             SELECT roles, COUNT(*) as count 
-            FROM Utilisateur 
+            FROM UTILISATEUR 
             GROUP BY roles
         `;
 
@@ -35,7 +35,7 @@ router.get('/stats', auth, isAdmin, async (req, res) => {
                 SUM(CASE WHEN etat = 'En instance' THEN 1 ELSE 0 END) as en_instance,
                 SUM(CASE WHEN etat = 'En cours' THEN 1 ELSE 0 END) as en_cours,
                 SUM(CASE WHEN etat = 'Validée' THEN 1 ELSE 0 END) as validees
-            FROM Commande
+            FROM COMMANDE
         `;
 
         // Statistiques des réclamations
@@ -46,7 +46,7 @@ router.get('/stats', auth, isAdmin, async (req, res) => {
                 SUM(CASE WHEN etat = 'En instance' THEN 1 ELSE 0 END) as en_instance,
                 SUM(CASE WHEN etat = 'En cours' THEN 1 ELSE 0 END) as en_cours,
                 SUM(CASE WHEN etat = 'Validée' THEN 1 ELSE 0 END) as validees
-            FROM Reclamation
+            FROM RECLAMATION
             GROUP BY type
         `;
 
@@ -95,7 +95,7 @@ router.get('/activities', auth, isAdmin, (req, res) => {
             idCommande as id,
             date as timestamp,
             CONCAT('Nouvelle commande - Ref: ', RefCommande) as description
-        FROM Commande
+        FROM COMMANDE
         ORDER BY date DESC
         LIMIT 5)
         UNION ALL
@@ -104,7 +104,7 @@ router.get('/activities', auth, isAdmin, (req, res) => {
             idReclamation as id,
             date as timestamp,
             CONCAT('Nouvelle réclamation - Type: ', type) as description
-        FROM Reclamation
+        FROM RECLAMATION
         ORDER BY date DESC
         LIMIT 5)
         ORDER BY timestamp DESC
@@ -144,7 +144,7 @@ router.get('/commandes/stats', auth, isAdmin, (req, res) => {
             SUM(montant) as montant_total,
             etat,
             DATE(date) as date
-        FROM Commande
+        FROM COMMANDE
         WHERE ${dateFilter}
         GROUP BY etat, DATE(date)
         ORDER BY date DESC
@@ -168,7 +168,7 @@ router.get('/reclamations/stats', auth, isAdmin, (req, res) => {
             SUM(CASE WHEN r.etat = 'En instance' THEN 1 ELSE 0 END) as en_instance,
             SUM(CASE WHEN r.etat = 'En cours' THEN 1 ELSE 0 END) as en_cours,
             SUM(CASE WHEN r.etat = 'Validée' THEN 1 ELSE 0 END) as validees
-        FROM Reclamation r
+        FROM RECLAMATION r
         JOIN Gerant g ON r.idGerant = g.idGerant
         JOIN StationService s ON g.idStation = s.idStation
         GROUP BY s.idStation, r.type

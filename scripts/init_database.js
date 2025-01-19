@@ -2,12 +2,34 @@ const mysql = require('mysql');
 const fs = require('fs');
 const path = require('path');
 
-// Première connexion sans sélectionner de base de données
+// Configuration de connexion pour le conteneur Docker
 const connection = mysql.createConnection({
-    host: 'localhost',
+    host: 'localhost', // Le port est mappé sur localhost
     user: 'root',
-    password: ''
+    password: 'root123',
+    port: 3306
 });
+
+async function executeSqlFile(filePath) {
+    console.log(`Exécution du fichier: ${filePath}`);
+    const sqlFile = fs.readFileSync(filePath, 'utf8');
+    const statements = sqlFile.split(';').filter(stmt => stmt.trim());
+
+    for (const statement of statements) {
+        if (statement.trim()) {
+            await new Promise((resolve, reject) => {
+                connection.query(statement, (err) => {
+                    if (err) {
+                        console.error(`Erreur lors de l'exécution de la requête: ${statement.slice(0, 150)}...`);
+                        reject(err);
+                    }
+                    else resolve();
+                });
+            });
+        }
+    }
+    console.log(`Fichier ${filePath} exécuté avec succès`);
+}
 
 async function initDatabase() {
     try {
@@ -30,28 +52,25 @@ async function initDatabase() {
         });
         console.log('Base de données sélectionnée');
 
-        // 3. Lire et exécuter le fichier database.sql
-        console.log('Création des tables...');
-        const sqlFile = fs.readFileSync(path.join(__dirname, '..', 'database.sql'), 'utf8');
-        const statements = sqlFile.split(';').filter(stmt => stmt.trim());
+        // 3. Exécuter les fichiers SQL dans l'ordre
+        const files = [
+            path.join(__dirname, '..', 'database.sql'),
+            path.join(__dirname, '..', 'sql_templates', 'data.sql'),
+            path.join(__dirname, '..', 'migrations', 'add_test_commercial.sql'),
+            path.join(__dirname, '..', 'migrations', 'add_test_gerant.sql'),
+            path.join(__dirname, '..', 'migrations', 'add_commande_detail.sql'),
+            path.join(__dirname, '..', 'migrations', 'add_image_url_to_reclamations.sql'),
+            path.join(__dirname, '..', 'migrations', 'add_user_to_commande.sql'),
+            path.join(__dirname, '..', 'migrations', 'update_reclamation_table.sql')
+        ];
 
-        for (const statement of statements) {
-            if (statement.trim()) {
-                await new Promise((resolve, reject) => {
-                    connection.query(statement, (err) => {
-                        if (err) reject(err);
-                        else resolve();
-                    });
-                });
-            }
+        for (const file of files) {
+            await executeSqlFile(file);
         }
-        console.log('Tables créées avec succès');
 
-        console.log('\nInitialisation de la base de données terminée!');
-        console.log('Vous pouvez maintenant exécuter le script setup_test_data.js');
-
+        console.log('\nInitialisation de la base de données terminée avec succès!');
     } catch (error) {
-        console.error('Erreur lors de l\'initialisation de la base de données:', error);
+        console.error('Erreur lors de l\'initialisation:', error);
     } finally {
         connection.end();
     }

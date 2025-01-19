@@ -109,7 +109,7 @@ class ImageAnalysisService {
         try {
             // Sauvegarder le résultat dans la base de données
             const query = `
-                INSERT INTO ReclamationAnalytics 
+                INSERT INTO RECLAMATIONANALYTICS 
                 (idReclamation, image_analysis)
                 VALUES (?, ?)
                 ON DUPLICATE KEY UPDATE

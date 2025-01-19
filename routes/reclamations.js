@@ -158,9 +158,9 @@ router.get('/', auth, (req, res) => {
         SELECT r.*, 
                u1.nom as nom_gerant, u1.prenom as prenom_gerant,
                u2.nom as nom_commercial, u2.prenom as prenom_commercial
-        FROM Reclamation r
-        LEFT JOIN Utilisateur u1 ON r.idGerant = u1.identifiant
-        LEFT JOIN Utilisateur u2 ON r.idCommercial = u2.identifiant
+        FROM RECLAMATION r
+        LEFT JOIN UTILISATEUR u1 ON r.idGerant = u1.identifiant
+        LEFT JOIN UTILISATEUR u2 ON r.idCommercial = u2.identifiant
     `;
     
     db.query(query, (err, results) => {
@@ -182,9 +182,9 @@ router.get('/user', auth, (req, res) => {
         SELECT r.*, 
                u1.nom as nom_gerant, u1.prenom as prenom_gerant,
                u2.nom as nom_commercial, u2.prenom as prenom_commercial
-        FROM Reclamation r
-        LEFT JOIN Utilisateur u1 ON r.idGerant = u1.identifiant
-        LEFT JOIN Utilisateur u2 ON r.idCommercial = u2.identifiant
+        FROM RECLAMATION r
+        LEFT JOIN UTILISATEUR u1 ON r.idGerant = u1.identifiant
+        LEFT JOIN UTILISATEUR u2 ON r.idCommercial = u2.identifiant
         WHERE 1=0
     `;
     
@@ -241,7 +241,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
         const finalType = imageAnalysis?.recommendedType || type;
 
         const query = `
-            INSERT INTO Reclamation 
+            INSERT INTO RECLAMATION 
             (description, type, idGerant, idCommercial, date, etat, image_url, 
              priority, satisfaction, gravite, sentiment_score, estimatedResolutionTime, image_analysis)
             VALUES (?, ?, ?, ?, NOW(), 'En instance', ?, ?, ?, ?, ?, ?, ?)
@@ -272,9 +272,9 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
                     SELECT r.*, 
                            u1.nom as nom_gerant, u1.prenom as prenom_gerant,
                            u2.nom as nom_commercial, u2.prenom as prenom_commercial
-                    FROM Reclamation r
-                    LEFT JOIN Utilisateur u1 ON r.idGerant = u1.identifiant
-                    LEFT JOIN Utilisateur u2 ON r.idCommercial = u2.identifiant
+                    FROM RECLAMATION r
+                    LEFT JOIN UTILISATEUR u1 ON r.idGerant = u1.identifiant
+                    LEFT JOIN UTILISATEUR u2 ON r.idCommercial = u2.identifiant
                     WHERE r.idReclamation = ?
                 `;
 
@@ -313,14 +313,14 @@ router.get('/:id', auth, (req, res) => {
         SELECT r.*, 
                u1.nom as nom_gerant, u1.prenom as prenom_gerant,
                u2.nom as nom_commercial, u2.prenom as prenom_commercial
-        FROM Reclamation r
-        LEFT JOIN Utilisateur u1 ON r.idGerant = u1.identifiant
-        LEFT JOIN Utilisateur u2 ON r.idCommercial = u2.identifiant
+        FROM RECLAMATION r
+        LEFT JOIN UTILISATEUR u1 ON r.idGerant = u1.identifiant
+        LEFT JOIN UTILISATEUR u2 ON r.idCommercial = u2.identifiant
         WHERE r.idReclamation = ? 
         AND (
             r.idGerant = ? 
             OR r.idCommercial = ? 
-            OR ? IN (SELECT identifiant FROM Utilisateur WHERE roles = 'ADMIN')
+            OR ? IN (SELECT identifiant FROM UTILISATEUR WHERE roles = 'ADMIN')
         )
     `;
     
@@ -350,13 +350,13 @@ router.put('/:id/status', auth, (req, res) => {
     
     // Vérifier les permissions
     const checkQuery = `
-        SELECT * FROM Reclamation 
+        SELECT * FROM RECLAMATION 
         WHERE idReclamation = ? 
         AND (
             idGerant = ? 
             OR idCommercial = ?
-            OR ? IN (SELECT identifiant FROM Utilisateur WHERE roles = 'ADMIN')
-            OR ? IN (SELECT identifiant FROM Utilisateur WHERE roles = 'COMMERCIAL')
+            OR ? IN (SELECT identifiant FROM UTILISATEUR WHERE roles = 'ADMIN')
+            OR ? IN (SELECT identifiant FROM UTILISATEUR WHERE roles = 'COMMERCIAL')
         )
     `;
     
@@ -370,7 +370,7 @@ router.put('/:id/status', auth, (req, res) => {
             return res.status(403).json({ error: "Non autorisé à modifier cette réclamation" });
         }
         
-        const updateQuery = 'UPDATE Reclamation SET etat = ? WHERE idReclamation = ?';
+        const updateQuery = 'UPDATE RECLAMATION SET etat = ? WHERE idReclamation = ?';
         db.query(updateQuery, [etat, req.params.id], (err, result) => {
             if (err) {
                 console.error('Erreur SQL UPDATE status:', err);

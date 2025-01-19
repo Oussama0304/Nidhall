@@ -4,7 +4,7 @@ const db = require('../config/db');
 
 // Get all stations
 router.get('/', (req, res) => {
-    const query = 'SELECT * FROM StationService';
+    const query = 'SELECT * FROM STATIONSERVICE';
     db.query(query, (err, results) => {
         if (err) {
             console.error('Erreur SQL GET all:', err);
@@ -25,7 +25,7 @@ router.post('/', (req, res) => {
     }
 
     const query = `
-        INSERT INTO StationService (nom, adresse, ville, telephone, email, capacite) 
+        INSERT INTO STATIONSERVICE (nom, adresse, ville, telephone, email, capacite) 
         VALUES (?, ?, ?, ?, ?, ?)
     `;
     console.log('Query:', query);
@@ -45,7 +45,7 @@ router.post('/', (req, res) => {
 
 // Get station by ID
 router.get('/:id', (req, res) => {
-    const query = 'SELECT * FROM StationService WHERE idStation = ?';
+    const query = 'SELECT * FROM STATIONSERVICE WHERE idStation = ?';
     db.query(query, [req.params.id], (err, results) => {
         if (err) {
             console.error('Erreur SQL GET by ID:', err);
@@ -74,7 +74,7 @@ router.put('/:id', (req, res) => {
 
     try {
         // First, check if the station exists
-        db.query('SELECT * FROM StationService WHERE idStation = ?', [req.params.id], (err, results) => {
+        db.query('SELECT * FROM STATIONSERVICE WHERE idStation = ?', [req.params.id], (err, results) => {
             if (err) {
                 console.error('Erreur lors de la vérification de la station:', err);
                 return res.status(500).json({ error: "Erreur lors de la vérification de la station" });
@@ -86,7 +86,7 @@ router.put('/:id', (req, res) => {
 
             // Station exists, proceed with update
             const query = `
-                UPDATE StationService 
+                UPDATE STATIONSERVICE 
                 SET nom = ?, adresse = ?, ville = ?, telephone = ?, email = ?, capacite = ?
                 WHERE idStation = ?
             `;
@@ -124,7 +124,7 @@ router.put('/:id', (req, res) => {
 
 // Delete station
 router.delete('/:id', (req, res) => {
-    const query = 'DELETE FROM StationService WHERE idStation = ?';
+    const query = 'DELETE FROM STATIONSERVICE WHERE idStation = ?';
     
     db.query(query, [req.params.id], (err, result) => {
         if (err) {

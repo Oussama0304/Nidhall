@@ -7,7 +7,7 @@ SET time_zone = "+00:00";
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Tables indépendantes d'abord
-CREATE TABLE IF NOT EXISTS `Utilisateur` (
+CREATE TABLE IF NOT EXISTS `UTILISATEUR` (
   `identifiant` bigint(20) NOT NULL AUTO_INCREMENT,
   `nom` varchar(255) NOT NULL,
   `prenom` varchar(255) NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS `Utilisateur` (
   UNIQUE KEY `matricule` (`matricule`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `Produit` (
+CREATE TABLE IF NOT EXISTS `PRODUIT` (
   `idProduit` bigint(20) NOT NULL AUTO_INCREMENT,
   `nom` varchar(100) NOT NULL,
   `disponibilite` varchar(50) DEFAULT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `Produit` (
   PRIMARY KEY (`idProduit`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `StationService` (
+CREATE TABLE IF NOT EXISTS `STATIONSERVICE` (
   `idStation` bigint(20) NOT NULL AUTO_INCREMENT,
   `nom` varchar(255) NOT NULL,
   `adresse` varchar(255) NOT NULL,
@@ -47,14 +47,14 @@ CREATE TABLE IF NOT EXISTS `StationService` (
   PRIMARY KEY (`idStation`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `Depot` (
+CREATE TABLE IF NOT EXISTS `DEPOT` (
   `idDepot` bigint(20) NOT NULL AUTO_INCREMENT,
   `nomDepot` varchar(100) NOT NULL,
   `adresse` text NOT NULL,
   PRIMARY KEY (`idDepot`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `Gerant` (
+CREATE TABLE IF NOT EXISTS `GERANT` (
   `idGerant` bigint(20) NOT NULL,
   `nom` varchar(100) NOT NULL,
   `prenom` varchar(100) NOT NULL,
@@ -65,10 +65,10 @@ CREATE TABLE IF NOT EXISTS `Gerant` (
   UNIQUE KEY `matricule` (`matricule`),
   UNIQUE KEY `numGerant` (`numGerant`),
   KEY `idStation` (`idStation`),
-  CONSTRAINT `gerant_ibfk_1` FOREIGN KEY (`idStation`) REFERENCES `StationService` (`idStation`) ON DELETE SET NULL
+  CONSTRAINT `gerant_ibfk_1` FOREIGN KEY (`idStation`) REFERENCES `STATIONSERVICE` (`idStation`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `Material` (
+CREATE TABLE IF NOT EXISTS `MATERIAL` (
   `idMaterial` bigint(20) NOT NULL AUTO_INCREMENT,
   `idStation` bigint(20) DEFAULT NULL,
   `Actif` varchar(50) NOT NULL,
@@ -77,11 +77,11 @@ CREATE TABLE IF NOT EXISTS `Material` (
   `status` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`idMaterial`),
   KEY `idStation` (`idStation`),
-  CONSTRAINT `material_ibfk_1` FOREIGN KEY (`idStation`) REFERENCES `StationService` (`idStation`) ON DELETE SET NULL
+  CONSTRAINT `material_ibfk_1` FOREIGN KEY (`idStation`) REFERENCES `STATIONSERVICE` (`idStation`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Tables avec dépendances ensuite
-CREATE TABLE IF NOT EXISTS `Commande` (
+CREATE TABLE IF NOT EXISTS `COMMANDE` (
   `idCommande` bigint(20) NOT NULL AUTO_INCREMENT,
   `montant` float NOT NULL,
   `date` datetime NOT NULL,
@@ -96,12 +96,12 @@ CREATE TABLE IF NOT EXISTS `Commande` (
   KEY `idProduit` (`idProduit`),
   KEY `idUtilisateur` (`idUtilisateur`),
   KEY `depot_id` (`depot_id`),
-  CONSTRAINT `commande_ibfk_1` FOREIGN KEY (`idProduit`) REFERENCES `Produit` (`idProduit`) ON DELETE SET NULL,
-  CONSTRAINT `commande_ibfk_2` FOREIGN KEY (`idUtilisateur`) REFERENCES `Utilisateur` (`identifiant`) ON DELETE SET NULL,
-  CONSTRAINT `commande_ibfk_3` FOREIGN KEY (`depot_id`) REFERENCES `Depot` (`idDepot`) ON DELETE SET NULL
+  CONSTRAINT `commande_ibfk_1` FOREIGN KEY (`idProduit`) REFERENCES `PRODUIT` (`idProduit`) ON DELETE SET NULL,
+  CONSTRAINT `commande_ibfk_2` FOREIGN KEY (`idUtilisateur`) REFERENCES `UTILISATEUR` (`identifiant`) ON DELETE SET NULL,
+  CONSTRAINT `commande_ibfk_3` FOREIGN KEY (`depot_id`) REFERENCES `DEPOT` (`idDepot`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `CommandeProduit` (
+CREATE TABLE IF NOT EXISTS `COMMANDEPRODUIT` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `idCommande` bigint(20) NOT NULL,
   `idProduit` bigint(20) NOT NULL,
@@ -110,11 +110,11 @@ CREATE TABLE IF NOT EXISTS `CommandeProduit` (
   PRIMARY KEY (`id`),
   KEY `idCommande` (`idCommande`),
   KEY `idProduit` (`idProduit`),
-  CONSTRAINT `commandeproduit_ibfk_1` FOREIGN KEY (`idCommande`) REFERENCES `Commande` (`idCommande`) ON DELETE CASCADE,
-  CONSTRAINT `commandeproduit_ibfk_2` FOREIGN KEY (`idProduit`) REFERENCES `Produit` (`idProduit`) ON DELETE CASCADE
+  CONSTRAINT `commandeproduit_ibfk_1` FOREIGN KEY (`idCommande`) REFERENCES `COMMANDE` (`idCommande`) ON DELETE CASCADE,
+  CONSTRAINT `commandeproduit_ibfk_2` FOREIGN KEY (`idProduit`) REFERENCES `PRODUIT` (`idProduit`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `Livraison` (
+CREATE TABLE IF NOT EXISTS `LIVRAISON` (
   `idLivraison` bigint(20) NOT NULL AUTO_INCREMENT,
   `idCommande` bigint(20) DEFAULT NULL,
   `dateLivraison` datetime NOT NULL,
@@ -122,10 +122,10 @@ CREATE TABLE IF NOT EXISTS `Livraison` (
   `quantiteLv` float NOT NULL,
   PRIMARY KEY (`idLivraison`),
   KEY `idCommande` (`idCommande`),
-  CONSTRAINT `livraison_ibfk_1` FOREIGN KEY (`idCommande`) REFERENCES `Commande` (`idCommande`) ON DELETE SET NULL
+  CONSTRAINT `livraison_ibfk_1` FOREIGN KEY (`idCommande`) REFERENCES `COMMANDE` (`idCommande`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `MouvementStock` (
+CREATE TABLE IF NOT EXISTS `MOUVEMENTSTOCK` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `idProduit` bigint(20) DEFAULT NULL,
   `quantite` int(11) DEFAULT NULL,
@@ -136,11 +136,11 @@ CREATE TABLE IF NOT EXISTS `MouvementStock` (
   PRIMARY KEY (`id`),
   KEY `idProduit` (`idProduit`),
   KEY `idCommande` (`idCommande`),
-  CONSTRAINT `mouvementstock_ibfk_1` FOREIGN KEY (`idProduit`) REFERENCES `Produit` (`idProduit`) ON DELETE SET NULL,
-  CONSTRAINT `mouvementstock_ibfk_2` FOREIGN KEY (`idCommande`) REFERENCES `Commande` (`idCommande`) ON DELETE SET NULL
+  CONSTRAINT `mouvementstock_ibfk_1` FOREIGN KEY (`idProduit`) REFERENCES `PRODUIT` (`idProduit`) ON DELETE SET NULL,
+  CONSTRAINT `mouvementstock_ibfk_2` FOREIGN KEY (`idCommande`) REFERENCES `COMMANDE` (`idCommande`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `Reclamation` (
+CREATE TABLE IF NOT EXISTS `RECLAMATION` (
   `idReclamation` bigint(20) NOT NULL AUTO_INCREMENT,
   `idGerant` bigint(20) DEFAULT NULL,
   `idCommercial` bigint(20) DEFAULT NULL,
@@ -173,11 +173,11 @@ CREATE TABLE IF NOT EXISTS `Reclamation` (
   PRIMARY KEY (`idReclamation`),
   KEY `idGerant` (`idGerant`),
   KEY `idCommercial` (`idCommercial`),
-  CONSTRAINT `reclamation_ibfk_1` FOREIGN KEY (`idGerant`) REFERENCES `Utilisateur` (`identifiant`) ON DELETE SET NULL,
-  CONSTRAINT `reclamation_ibfk_2` FOREIGN KEY (`idCommercial`) REFERENCES `Utilisateur` (`identifiant`) ON DELETE SET NULL
+  CONSTRAINT `reclamation_ibfk_1` FOREIGN KEY (`idGerant`) REFERENCES `UTILISATEUR` (`identifiant`) ON DELETE SET NULL,
+  CONSTRAINT `reclamation_ibfk_2` FOREIGN KEY (`idCommercial`) REFERENCES `UTILISATEUR` (`identifiant`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `ReclamationAnalytics` (
+CREATE TABLE IF NOT EXISTS `RECLAMATIONANALYTICS` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `idReclamation` bigint(20) DEFAULT NULL,
   `analysis_timestamp` datetime DEFAULT NULL,
@@ -188,10 +188,10 @@ CREATE TABLE IF NOT EXISTS `ReclamationAnalytics` (
   `maintenance_recommendations` json DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idReclamation` (`idReclamation`),
-  CONSTRAINT `reclamationanalytics_ibfk_1` FOREIGN KEY (`idReclamation`) REFERENCES `Reclamation` (`idReclamation`) ON DELETE CASCADE
+  CONSTRAINT `reclamationanalytics_ibfk_1` FOREIGN KEY (`idReclamation`) REFERENCES `RECLAMATION` (`idReclamation`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `EquipmentSensors` (
+CREATE TABLE IF NOT EXISTS `EQUIPMENTSSENSORS` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `equipment_id` bigint(20) DEFAULT NULL,
   `temperature` float DEFAULT NULL,
@@ -201,10 +201,10 @@ CREATE TABLE IF NOT EXISTS `EquipmentSensors` (
   `location` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `equipment_id` (`equipment_id`),
-  CONSTRAINT `equipmentsensors_ibfk_1` FOREIGN KEY (`equipment_id`) REFERENCES `Material` (`idMaterial`) ON DELETE SET NULL
+  CONSTRAINT `equipmentsensors_ibfk_1` FOREIGN KEY (`equipment_id`) REFERENCES `MATERIAL` (`idMaterial`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `MaintenanceAnalytics` (
+CREATE TABLE IF NOT EXISTS `MAINTENANCEANALYTICS` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `equipment_id` bigint(20) DEFAULT NULL,
   `prediction_date` datetime DEFAULT NULL,
@@ -215,10 +215,10 @@ CREATE TABLE IF NOT EXISTS `MaintenanceAnalytics` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `equipment_id` (`equipment_id`),
-  CONSTRAINT `maintenanceanalytics_ibfk_1` FOREIGN KEY (`equipment_id`) REFERENCES `Material` (`idMaterial`) ON DELETE SET NULL
+  CONSTRAINT `maintenanceanalytics_ibfk_1` FOREIGN KEY (`equipment_id`) REFERENCES `MATERIAL` (`idMaterial`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `PerformanceMetrics` (
+CREATE TABLE IF NOT EXISTS `PERFORMANCEMETRICS` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `metric_date` date DEFAULT NULL,
   `resolution_times` json DEFAULT NULL,

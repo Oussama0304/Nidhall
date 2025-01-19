@@ -1,5 +1,5 @@
 -- Insérer un utilisateur gérant de test
-INSERT INTO Utilisateur (nom, prenom, telephone, mail, mot_de_passe, matricule, roles)
+INSERT INTO UTILISATEUR (nom, prenom, telephone, mail, mot_de_passe, matricule, roles)
 VALUES (
     'Gérant',
     'Test',
@@ -13,8 +13,8 @@ VALUES (
 -- Récupérer l'ID de l'utilisateur créé
 SET @gerant_id = LAST_INSERT_ID();
 
--- Insérer les informations du gérant dans la table Gerant
-INSERT INTO Gerant (idGerant, nom, prenom, matricule, numGerant, idStation)
+-- Insérer les informations du gérant dans la table GERANT
+INSERT INTO GERANT (idGerant, nom, prenom, matricule, numGerant, idStation)
 VALUES (
     @gerant_id,
     'Gérant',

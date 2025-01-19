@@ -15,7 +15,7 @@ router.post('/login', async (req, res) => {
     }
 
     try {
-        const query = 'SELECT * FROM Utilisateur WHERE mail = ?';
+        const query = 'SELECT * FROM UTILISATEUR WHERE mail = ?';
         console.log('Executing query:', query.replace('?', `'${email}'`));
         
         db.query(query, [email], async (err, results) => {
@@ -94,7 +94,7 @@ router.post('/register', async (req, res) => {
 
     try {
         // Check if user already exists
-        const checkQuery = 'SELECT * FROM Utilisateur WHERE mail = ?';
+        const checkQuery = 'SELECT * FROM UTILISATEUR WHERE mail = ?';
         db.query(checkQuery, [email], async (err, results) => {
             if (err) {
                 console.error('Database error:', err);
@@ -111,7 +111,7 @@ router.post('/register', async (req, res) => {
 
             // Insert new user
             const insertQuery = `
-                INSERT INTO Utilisateur (nom, prenom, telephone, mail, mot_de_passe, matricule, roles)
+                INSERT INTO UTILISATEUR (nom, prenom, telephone, mail, mot_de_passe, matricule, roles)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             `;
 
@@ -136,7 +136,7 @@ router.post('/register', async (req, res) => {
 
 // Test route to check users
 router.get('/test-users', (req, res) => {
-    const query = 'SELECT identifiant, nom, prenom, mail, roles FROM Utilisateur';
+    const query = 'SELECT identifiant, nom, prenom, mail, roles FROM UTILISATEUR';
     db.query(query, (err, results) => {
         if (err) {
             console.error('Database error:', err);
@@ -148,7 +148,7 @@ router.get('/test-users', (req, res) => {
 
 // Route temporaire pour voir les utilisateurs
 router.get('/check-users', (req, res) => {
-    const query = 'SELECT identifiant, nom, prenom, mail, roles FROM Utilisateur';
+    const query = 'SELECT identifiant, nom, prenom, mail, roles FROM UTILISATEUR';
     db.query(query, (err, results) => {
         if (err) {
             console.error('Database error:', err);
@@ -160,7 +160,7 @@ router.get('/check-users', (req, res) => {
 
 // Route temporaire pour voir les utilisateurs
 router.get('/check-users', (req, res) => {
-    const query = 'SELECT identifiant, nom, prenom, mail, roles FROM Utilisateur';
+    const query = 'SELECT identifiant, nom, prenom, mail, roles FROM UTILISATEUR';
     db.query(query, (err, results) => {
         if (err) {
             console.error('Database error:', err);
@@ -201,7 +201,7 @@ router.get('/profile', async (req, res) => {
         const decodedToken = jwt.verify(token, 'your_jwt_secret');
         
         // Récupérer les informations de l'utilisateur
-        const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?';
+        const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM UTILISATEUR WHERE identifiant = ?';
         db.query(query, [decodedToken.userId], (err, results) => {
             if (err) {
                 console.error('Database error:', err);

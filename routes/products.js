@@ -4,7 +4,7 @@ const db = require('../config/db');
 
 // Get all products
 router.get('/', (req, res) => {
-    const query = 'SELECT * FROM Produit';
+    const query = 'SELECT * FROM PRODUIT';
     db.query(query, (err, results) => {
         if (err) {
             return res.status(500).json({ error: "Erreur lors de la récupération des produits" });
@@ -17,7 +17,7 @@ router.get('/', (req, res) => {
 router.post('/', (req, res) => {
     const { nom, disponibilite, prix, CODPRD, LIBPRD, CODEMB, LIBEMB, TYPPRD } = req.body;
     const query = `
-        INSERT INTO Produit (nom, disponibilite, prix, CODPRD, LIBPRD, CODEMB, LIBEMB, TYPPRD) 
+        INSERT INTO PRODUIT (nom, disponibilite, prix, CODPRD, LIBPRD, CODEMB, LIBEMB, TYPPRD) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
@@ -34,7 +34,7 @@ router.post('/', (req, res) => {
 
 // Get product by ID
 router.get('/:id', (req, res) => {
-    const query = 'SELECT * FROM Produit WHERE idProduit = ?';
+    const query = 'SELECT * FROM PRODUIT WHERE idProduit = ?';
     db.query(query, [req.params.id], (err, results) => {
         if (err) {
             return res.status(500).json({ error: "Erreur lors de la récupération du produit" });
@@ -50,7 +50,7 @@ router.get('/:id', (req, res) => {
 router.put('/:id', (req, res) => {
     const { nom, disponibilite, prix, CODPRD, LIBPRD, CODEMB, LIBEMB, TYPPRD } = req.body;
     const query = `
-        UPDATE Produit 
+        UPDATE PRODUIT 
         SET nom = ?, disponibilite = ?, prix = ?, 
             CODPRD = ?, LIBPRD = ?, CODEMB = ?, 
             LIBEMB = ?, TYPPRD = ?

@@ -227,7 +227,7 @@ class AnalysisService {
     async saveAnalysis(reclamationId, analysisData) {
         try {
             const query = `
-                INSERT INTO ReclamationAnalytics 
+                INSERT INTO RECLAMATIONANALYTICS 
                 (idReclamation, text_analysis, image_analysis, predictions, metadata)
                 VALUES (?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
@@ -247,7 +247,7 @@ class AnalysisService {
 
             // Mettre à jour la réclamation avec les nouvelles informations
             const updateQuery = `
-                UPDATE Reclamation
+                UPDATE RECLAMATION
                 SET 
                     sentiment_score = ?,
                     priority = ?,

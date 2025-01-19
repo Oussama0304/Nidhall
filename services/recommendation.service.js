@@ -23,8 +23,8 @@ const findSimilarCases = (description) => {
         const query = `
             SELECT r.*, 
                    u.nom as nom_commercial, u.prenom as prenom_commercial
-            FROM Reclamation r
-            LEFT JOIN Utilisateur u ON r.idCommercial = u.identifiant
+            FROM RECLAMATION r
+            LEFT JOIN UTILISATEUR u ON r.idCommercial = u.identifiant
             WHERE r.etat = 'Validée'
             AND r.description LIKE ?
             ORDER BY r.date DESC
@@ -53,8 +53,8 @@ const recommendCommercial = (reclamationType) => {
                 COUNT(r.idReclamation) as total_reclamations,
                 SUM(CASE WHEN r.etat = 'Validée' THEN 1 ELSE 0 END) as reclamations_resolues,
                 COUNT(CASE WHEN r.etat = 'Validée' THEN 1 END) / COUNT(r.idReclamation) * 100 as taux_resolution
-            FROM Utilisateur u
-            LEFT JOIN Reclamation r ON u.identifiant = r.idCommercial
+            FROM UTILISATEUR u
+            LEFT JOIN RECLAMATION r ON u.identifiant = r.idCommercial
             WHERE u.roles = 'COMMERCIAL'
             AND r.type = ?
             GROUP BY u.identifiant
@@ -78,7 +78,7 @@ const suggestPreventiveActions = (reclamationType) => {
                 type,
                 COUNT(*) as occurrence_count,
                 GROUP_CONCAT(description SEPARATOR ' | ') as descriptions
-            FROM Reclamation
+            FROM RECLAMATION
             WHERE type = ?
             GROUP BY type
             ORDER BY occurrence_count DESC

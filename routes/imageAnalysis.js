@@ -45,7 +45,7 @@ router.post('/analyze/:reclamationId', auth, async (req, res) => {
         }
 
         // Récupérer les détails de la réclamation depuis la base de données
-        const query = 'SELECT image_url FROM reclamation WHERE idReclamation = ?';
+        const query = 'SELECT image_url FROM RECLAMATION WHERE idReclamation = ?';
         
         db.query(query, [reclamationId], async (err, results) => {
             if (err) {
@@ -90,7 +90,7 @@ router.post('/analyze/:reclamationId', auth, async (req, res) => {
 
             // Mettre à jour la réclamation avec les résultats
             const updateQuery = `
-                UPDATE reclamation 
+                UPDATE RECLAMATION 
                 SET 
                     analysis_results = ?,
                     last_analyzed = CURRENT_TIMESTAMP
@@ -124,7 +124,7 @@ router.get('/history/:reclamationId', auth, (req, res) => {
             image_url,
             analysis_results,
             last_analyzed
-        FROM reclamation
+        FROM RECLAMATION
         WHERE idReclamation = ? AND analysis_results IS NOT NULL
     `;
 
