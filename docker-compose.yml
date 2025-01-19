@@ -1,16 +1,26 @@
 version: '3.8'
 
 services:
-  frontend:
-    image: oussama22444/frontend:latest
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=root123
+      - MYSQL_DATABASE=ProjetPfeAgil
     ports:
-      - "8098:80"
-    depends_on:
-      backend:
-        condition: service_healthy
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
     networks:
       - app-network
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: always
 
   backend:
     image: oussama22444/backend:latest
@@ -23,10 +33,10 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - FRONTEND_URL=http://localhost:8098
-      - JWT_SECRET=${JWT_SECRET}
-      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
-      - EMAIL_USER=${EMAIL_USER}
-      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - JWT_SECRET=your_jwt_secret_here
+      - HUGGINGFACE_API_KEY=your_huggingface_key_here
+      - EMAIL_USER=your_email_here
+      - EMAIL_PASSWORD=your_email_password_here
     ports:
       - "3000:3000"
     volumes:
@@ -36,43 +46,24 @@ services:
         condition: service_healthy
     networks:
       - app-network
-    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 40s
-
-  db:
-    image: mysql:8.0
-    command: >
-      --default-authentication-plugin=mysql_native_password
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --lower_case_table_names=1
-      --bind-address=0.0.0.0
-    cap_add:
-      - SYS_NICE
-    restart: always
-    environment:
-      - MYSQL_ROOT_PASSWORD=root123
-      - MYSQL_DATABASE=ProjetPfeAgil
-      - MYSQL_USER=admin
-      - MYSQL_PASSWORD=admin123
-    volumes:
-      - ./sql:/docker-entrypoint-initdb.d
-      - mysql_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
+    restart: unless-stopped
+
+  frontend:
+    image: oussama22444/frontend:latest
+    ports:
+      - "8098:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
 
 networks:
   app-network:

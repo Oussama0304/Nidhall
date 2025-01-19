@@ -16,6 +16,24 @@ const io = require('socket.io')(server, {
   }
 });
 
+// Health Check Endpoint
+app.get('/health', (req, res) => {
+  try {
+    // Vérifier la connexion à la base de données
+    db.query('SELECT 1', (err) => {
+      if (err) {
+        console.error('Database connection error:', err);
+        res.status(500).send('Database connection error');
+      } else {
+        res.status(200).send('OK');
+      }
+    });
+  } catch (error) {
+    console.error('Health check error:', error);
+    res.status(500).send('Health check failed');
+  }
+});
+
 // Middleware
 app.use(cors({
   origin: process.env.FRONTEND_URL || "http://localhost:8098",

@@ -2,17 +2,43 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install wget for health checks
-RUN apk add --no-cache wget
+# Installation des dépendances système nécessaires
+RUN apk add --no-cache curl
 
+# Installation des dépendances Node.js
 COPY package*.json ./
-RUN npm install
+RUN npm ci --only=production
 
+# Copie des fichiers du projet
 COPY . .
-
-# Add a health check endpoint
-RUN echo 'app.get("/health", (req, res) => res.status(200).send("OK"));' >> server.js
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+# Script de démarrage pour attendre MySQL
+COPY <<'EOF' /app/docker-entrypoint.sh
+#!/bin/sh
+set -e
+
+echo "Waiting for MySQL to be ready..."
+timeout=30
+while [ $timeout -gt 0 ]; do
+    if nc -z db 3306; then
+        echo "MySQL is ready!"
+        break
+    fi
+    echo "Waiting for MySQL... ($timeout seconds left)"
+    timeout=$((timeout-1))
+    sleep 1
+done
+
+if [ $timeout -eq 0 ]; then
+    echo "Timeout waiting for MySQL"
+    exit 1
+fi
+
+exec node server.js
+EOF
+
+RUN chmod +x /app/docker-entrypoint.sh
+
+CMD ["/app/docker-entrypoint.sh"]
