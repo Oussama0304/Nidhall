@@ -25,11 +25,11 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Structure de la table `commande`
+-- Structure de la table `Commande`
 --
 
-DROP TABLE IF EXISTS `commande`;
-CREATE TABLE IF NOT EXISTS `commande` (
+DROP TABLE IF EXISTS `Commande`;
+CREATE TABLE IF NOT EXISTS `Commande` (
   `idCommande` bigint(20) NOT NULL AUTO_INCREMENT,
   `montant` float NOT NULL,
   `date` datetime NOT NULL,
@@ -47,10 +47,10 @@ CREATE TABLE IF NOT EXISTS `commande` (
 ) ENGINE=MyISAM AUTO_INCREMENT=26 DEFAULT CHARSET=latin1;
 
 --
--- Déchargement des données de la table `commande`
+-- Déchargement des données de la table `Commande`
 --
 
-INSERT INTO `commande` (`idCommande`, `montant`, `date`, `idProduit`, `idUtilisateur`, `etat`, `RefCommande`, `depot_id`, `note`) VALUES
+INSERT INTO `Commande` (`idCommande`, `montant`, `date`, `idProduit`, `idUtilisateur`, `etat`, `RefCommande`, `depot_id`, `note`) VALUES
 (1, 2800, '2024-12-07 21:47:24', NULL, 3, 'En instance', 'CMD1733604444435', NULL, NULL),
 (2, 2800, '2024-12-07 21:47:58', NULL, 3, 'En instance', 'CMD1733604478485', NULL, NULL),
 (3, 2800, '2024-12-07 21:54:12', NULL, 3, 'En instance', 'CMD1733604852895', NULL, NULL),
@@ -80,11 +80,11 @@ INSERT INTO `commande` (`idCommande`, `montant`, `date`, `idProduit`, `idUtilisa
 -- --------------------------------------------------------
 
 --
--- Structure de la table `commandeproduit`
+-- Structure de la table `CommandeProduit`
 --
 
-DROP TABLE IF EXISTS `commandeproduit`;
-CREATE TABLE IF NOT EXISTS `commandeproduit` (
+DROP TABLE IF EXISTS `CommandeProduit`;
+CREATE TABLE IF NOT EXISTS `CommandeProduit` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `idCommande` int(11) NOT NULL,
   `idProduit` int(11) NOT NULL,
@@ -94,10 +94,10 @@ CREATE TABLE IF NOT EXISTS `commandeproduit` (
 ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4;
 
 --
--- Déchargement des données de la table `commandeproduit`
+-- Déchargement des données de la table `CommandeProduit`
 --
 
-INSERT INTO `commandeproduit` (`id`, `idCommande`, `idProduit`, `quantite`, `prix`) VALUES
+INSERT INTO `CommandeProduit` (`id`, `idCommande`, `idProduit`, `quantite`, `prix`) VALUES
 (2, 4, 2, 1, '2800.00'),
 (3, 5, 2, 2, '2800.00'),
 (4, 6, 2, 1, '2800.00'),
@@ -121,11 +121,11 @@ INSERT INTO `commandeproduit` (`id`, `idCommande`, `idProduit`, `quantite`, `pri
 -- --------------------------------------------------------
 
 --
--- Structure de la table `depot`
+-- Structure de la table `Depot`
 --
 
-DROP TABLE IF EXISTS `depot`;
-CREATE TABLE IF NOT EXISTS `depot` (
+DROP TABLE IF EXISTS `Depot`;
+CREATE TABLE IF NOT EXISTS `Depot` (
   `idDepot` bigint(20) NOT NULL AUTO_INCREMENT,
   `nomDepot` varchar(100) NOT NULL,
   `adresse` text NOT NULL,
@@ -135,11 +135,11 @@ CREATE TABLE IF NOT EXISTS `depot` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `equipmentsensors`
+-- Structure de la table `Equipmentsensors`
 --
 
-DROP TABLE IF EXISTS `equipmentsensors`;
-CREATE TABLE IF NOT EXISTS `equipmentsensors` (
+DROP TABLE IF EXISTS `Equipmentsensors`;
+CREATE TABLE IF NOT EXISTS `Equipmentsensors` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `equipment_id` int(11) DEFAULT NULL,
   `temperature` float DEFAULT NULL,
@@ -154,11 +154,11 @@ CREATE TABLE IF NOT EXISTS `equipmentsensors` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `gerant`
+-- Structure de la table `Gerant`
 --
 
-DROP TABLE IF EXISTS `gerant`;
-CREATE TABLE IF NOT EXISTS `gerant` (
+DROP TABLE IF EXISTS `Gerant`;
+CREATE TABLE IF NOT EXISTS `Gerant` (
   `idGerant` bigint(20) NOT NULL,
   `nom` varchar(100) NOT NULL,
   `prenom` varchar(100) NOT NULL,
@@ -174,11 +174,11 @@ CREATE TABLE IF NOT EXISTS `gerant` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `livraison`
+-- Structure de la table `Livraison`
 --
 
-DROP TABLE IF EXISTS `livraison`;
-CREATE TABLE IF NOT EXISTS `livraison` (
+DROP TABLE IF EXISTS `Livraison`;
+CREATE TABLE IF NOT EXISTS `Livraison` (
   `idLivraison` bigint(20) NOT NULL AUTO_INCREMENT,
   `idCommande` bigint(20) DEFAULT NULL,
   `dateLivraison` datetime NOT NULL,
@@ -189,10 +189,10 @@ CREATE TABLE IF NOT EXISTS `livraison` (
 ) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
 
 --
--- Déchargement des données de la table `livraison`
+-- Déchargement des données de la table `Livraison`
 --
 
-INSERT INTO `livraison` (`idLivraison`, `idCommande`, `dateLivraison`, `numChauffeur`, `quantiteLv`) VALUES
+INSERT INTO `Livraison` (`idLivraison`, `idCommande`, `dateLivraison`, `numChauffeur`, `quantiteLv`) VALUES
 (1, 4, '2024-12-18 15:40:42', 0, 0),
 (2, 4, '2024-12-19 00:39:35', 0, 0),
 (3, 6, '2024-12-19 00:39:46', 0, 0),
@@ -209,11 +209,11 @@ INSERT INTO `livraison` (`idLivraison`, `idCommande`, `dateLivraison`, `numChauf
 -- --------------------------------------------------------
 
 --
--- Structure de la table `maintenanceanalytics`
+-- Structure de la table `Maintenanceanalytics`
 --
 
-DROP TABLE IF EXISTS `maintenanceanalytics`;
-CREATE TABLE IF NOT EXISTS `maintenanceanalytics` (
+DROP TABLE IF EXISTS `Maintenanceanalytics`;
+CREATE TABLE IF NOT EXISTS `Maintenanceanalytics` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `equipment_id` int(11) DEFAULT NULL,
   `prediction_date` datetime DEFAULT NULL,
@@ -229,11 +229,11 @@ CREATE TABLE IF NOT EXISTS `maintenanceanalytics` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `material`
+-- Structure de la table `Material`
 --
 
-DROP TABLE IF EXISTS `material`;
-CREATE TABLE IF NOT EXISTS `material` (
+DROP TABLE IF EXISTS `Material`;
+CREATE TABLE IF NOT EXISTS `Material` (
   `idStation` bigint(20) DEFAULT NULL,
   `Actif` varchar(50) NOT NULL,
   `Description` text,
@@ -245,11 +245,11 @@ CREATE TABLE IF NOT EXISTS `material` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `mouvementstock`
+-- Structure de la table `Mouvementstock`
 --
 
-DROP TABLE IF EXISTS `mouvementstock`;
-CREATE TABLE IF NOT EXISTS `mouvementstock` (
+DROP TABLE IF EXISTS `Mouvementstock`;
+CREATE TABLE IF NOT EXISTS `Mouvementstock` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `idProduit` int(11) DEFAULT NULL,
   `quantite` int(11) DEFAULT NULL,
@@ -263,10 +263,10 @@ CREATE TABLE IF NOT EXISTS `mouvementstock` (
 ) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 
 --
--- Déchargement des données de la table `mouvementstock`
+-- Déchargement des données de la table `Mouvementstock`
 --
 
-INSERT INTO `mouvementstock` (`id`, `idProduit`, `quantite`, `type_mouvement`, `date_mouvement`, `idCommande`, `raison`) VALUES
+INSERT INTO `Mouvementstock` (`id`, `idProduit`, `quantite`, `type_mouvement`, `date_mouvement`, `idCommande`, `raison`) VALUES
 (1, 4, 10, 'ENTREE', '2024-12-27 14:23:48', NULL, 'Réapprovisionnement'),
 (2, 5, 50, 'RETRAIT', '2024-12-27 14:25:43', NULL, 'Réapprovisionnement'),
 (3, 2, 3, 'RETRAIT', '2024-12-27 22:42:27', 20, NULL),
@@ -275,11 +275,11 @@ INSERT INTO `mouvementstock` (`id`, `idProduit`, `quantite`, `type_mouvement`, `
 -- --------------------------------------------------------
 
 --
--- Structure de la table `performancemetrics`
+-- Structure de la table `Performancemetrics`
 --
 
-DROP TABLE IF EXISTS `performancemetrics`;
-CREATE TABLE IF NOT EXISTS `performancemetrics` (
+DROP TABLE IF EXISTS `Performancemetrics`;
+CREATE TABLE IF NOT EXISTS `Performancemetrics` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `metric_date` date DEFAULT NULL,
   `resolution_times` json DEFAULT NULL,
@@ -293,11 +293,11 @@ CREATE TABLE IF NOT EXISTS `performancemetrics` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `produit`
+-- Structure de la table `Produit`
 --
 
-DROP TABLE IF EXISTS `produit`;
-CREATE TABLE IF NOT EXISTS `produit` (
+DROP TABLE IF EXISTS `Produit`;
+CREATE TABLE IF NOT EXISTS `Produit` (
   `idProduit` bigint(20) NOT NULL AUTO_INCREMENT,
   `nom` varchar(100) NOT NULL,
   `disponibilite` varchar(50) DEFAULT NULL,
@@ -313,10 +313,10 @@ CREATE TABLE IF NOT EXISTS `produit` (
 ) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
 
 --
--- Déchargement des données de la table `produit`
+-- Déchargement des données de la table `Produit`
 --
 
-INSERT INTO `produit` (`idProduit`, `nom`, `disponibilite`, `prix`, `CODPRD`, `LIBPRD`, `CODEMB`, `LIBEMB`, `TYPPRD`, `quantite`, `seuil_alerte`) VALUES
+INSERT INTO `Produit` (`idProduit`, `nom`, `disponibilite`, `prix`, `CODPRD`, `LIBPRD`, `CODEMB`, `LIBEMB`, `TYPPRD`, `quantite`, `seuil_alerte`) VALUES
 (1, 'sans plomb', 'non disponible', 2550, '', '', '', '', '', 100, 10),
 (2, 'gazoil 50', 'non disponible', 2800, '0101111', 'gazoil', '', '', 'CARBURANT', 65, 10),
 (3, 'castrol ', 'disponible', 70000, '0101112', 'huile', '', '', 'LUBRIFIANT', -6, 10),
@@ -333,11 +333,11 @@ INSERT INTO `produit` (`idProduit`, `nom`, `disponibilite`, `prix`, `CODPRD`, `L
 -- --------------------------------------------------------
 
 --
--- Structure de la table `reclamation`
+-- Structure de la table `Reclamation`
 --
 
-DROP TABLE IF EXISTS `reclamation`;
-CREATE TABLE IF NOT EXISTS `reclamation` (
+DROP TABLE IF EXISTS `Reclamation`;
+CREATE TABLE IF NOT EXISTS `Reclamation` (
   `idReclamation` bigint(20) NOT NULL AUTO_INCREMENT,
   `idGerant` bigint(20) DEFAULT NULL,
   `idCommercial` bigint(20) DEFAULT NULL,
@@ -373,31 +373,31 @@ CREATE TABLE IF NOT EXISTS `reclamation` (
 ) ENGINE=MyISAM AUTO_INCREMENT=31 DEFAULT CHARSET=latin1;
 
 --
--- Déchargement des données de la table `reclamation`
+-- Déchargement des données de la table `Reclamation`
 --
 
-INSERT INTO `reclamation` (`idReclamation`, `idGerant`, `idCommercial`, `description`, `date`, `type`, `etat`, `material`, `image_url`, `priority`, `estimatedResolutionTime`, `actualResolutionTime`, `satisfaction`, `gravite`, `sentiment_score`, `suggestedActions`, `aiConfidence`, `image_analysis`, `reponse`, `date_reponse`, `categories`, `keywords`, `impact_score`, `related_issues`, `resolution_history`, `predicted_resolution_time`, `maintenance_cost`, `analysis_results`, `last_analyzed`) VALUES
-(1, 3, NULL, 'hfhhfhfhhfh', '2024-12-08 23:53:39', 'COMMERCIALE', 'Validée', NULL, NULL, 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(2, 3, NULL, 'hvgfchxdgwsdxgcfhgvj', '2024-12-18 11:10:10', 'TECHNIQUE', 'En instance', NULL, NULL, 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(3, 3, NULL, 'lnbhgvfcxdxgchv', '2024-12-18 13:53:08', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1734526388342-images.png', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(4, 3, NULL, 'panne', '2024-12-18 14:13:37', 'COMMERCIALE', 'En instance', NULL, '/uploads/reclamations/1734527617578-usecom.PNG', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(5, 3, NULL, 'panne com', '2024-12-18 23:17:57', 'COMMERCIALE', 'Validée', NULL, '/uploads/reclamations/1734560277307-dashger4.PNG', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(6, 3, NULL, 'probleme de commande', '2024-12-19 00:37:32', 'COMMERCIALE', 'Validée', NULL, '/uploads/reclamations/1734565052432-etat.PNG', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(7, 3, NULL, 'probleme de prix', '2024-12-19 12:26:25', 'COMMERCIALE', 'Validée', NULL, '/uploads/reclamations/1734607585169-liv.PNG', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(8, 3, NULL, 'probleme de prix', '2024-12-19 12:36:21', 'COMMERCIALE', 'Validée', NULL, '/uploads/reclamations/1734608181964-liv.PNG', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(9, 3, NULL, 'panne technique', '2024-12-19 14:57:08', 'COMMERCIALE', 'En cours', NULL, '/uploads/reclamations/1734616628308-liv.PNG', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(10, 3, NULL, '\"Retard de livraison de carburant, le délai habituel n\'a pas été respecté. Besoin d\'une solution rapidement.\"', '2024-12-20 14:28:05', 'COMMERCIALE', 'En cours', NULL, '/uploads/reclamations/1734701285247-str.PNG', 'MOYEN', 24, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(11, 3, NULL, '\"Panne urgente du système de pompage, équipement complètement arrêté ! Situation critique nécessitant une intervention immédiate.\"', '2024-12-20 14:41:34', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1734702094290-str.PNG', 'MOYEN', 48, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(12, 3, NULL, 'grave', '2024-12-20 21:26:20', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1734726380344-mern.jpg', 'MOYEN', 48, NULL, 'PEU_SATISFAIT', 'MOYENNE', -2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(13, 3, 2, 'URGENT ! Panne critique du système de distribution. Situation inacceptable, nous perdons des clients ! Intervention immédiate requise.', '2024-12-20 21:31:05', 'TECHNIQUE', 'En instance', NULL, NULL, 'URGENT', 24, NULL, 'INSATISFAIT', 'HAUTE', -3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(14, 3, NULL, 'panne grave', '2024-12-20 23:25:53', 'TECHNIQUE', 'En instance', NULL, NULL, 'MOYEN', 48, NULL, 'PEU_SATISFAIT', 'MOYENNE', -2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(15, 3, NULL, 'panne ', '2024-12-20 23:28:32', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1734733712207-OIP.jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+INSERT INTO `Reclamation` (`idReclamation`, `idGerant`, `idCommercial`, `description`, `date`, `type`, `etat`, `material`, `image_url`, `priority`, `estimatedResolutionTime`, `actualResolutionTime`, `satisfaction`, `gravite`, `sentiment_score`, `suggestedActions`, `aiConfidence`, `image_analysis`, `reponse`, `date_reponse`, `categories`, `keywords`, `impact_score`, `related_issues`, `resolution_history`, `predicted_resolution_time`, `maintenance_cost`, `analysis_results`, `last_analyzed`) VALUES
+(1, 3, NULL, 'hfhhfhfhhfh', '2024-12-08 23:53:39', 'COMMERCIALE', 'Validée', NULL, NULL, 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(2, 3, NULL, 'hvgfchxdgwsdxgcfhgvj', '2024-12-18 11:10:10', 'TECHNIQUE', 'En instance', NULL, NULL, 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(3, 3, NULL, 'lnbhgvfcxdxgchv', '2024-12-18 13:53:08', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1734526388342-images.png', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(4, 3, NULL, 'panne', '2024-12-18 14:13:37', 'COMMERCIALE', 'En instance', NULL, '/uploads/reclamations/1734527617578-usecom.PNG', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(5, 3, NULL, 'panne com', '2024-12-18 23:17:57', 'COMMERCIALE', 'Validée', NULL, '/uploads/reclamations/1734560277307-dashger4.PNG', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(6, 3, NULL, 'probleme de commande', '2024-12-19 00:37:32', 'COMMERCIALE', 'Validée', NULL, '/uploads/reclamations/1734565052432-etat.PNG', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(7, 3, NULL, 'probleme de prix', '2024-12-19 12:26:25', 'COMMERCIALE', 'Validée', NULL, '/uploads/reclamations/1734607585169-liv.PNG', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(8, 3, NULL, 'probleme de prix', '2024-12-19 12:36:21', 'COMMERCIALE', 'Validée', NULL, '/uploads/reclamations/1734608181964-liv.PNG', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(9, 3, NULL, 'panne technique', '2024-12-19 14:57:08', 'COMMERCIALE', 'En cours', NULL, '/uploads/reclamations/1734616628308-liv.PNG', 'NORMAL', NULL, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(10, 3, NULL, '\"Retard de livraison de carburant, le délai habituel n\'a pas été respecté. Besoin d\'une solution rapidement.\"', '2024-12-20 14:28:05', 'COMMERCIALE', 'En cours', NULL, '/uploads/reclamations/1734701285247-str.PNG', 'MOYEN', 24, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(11, 3, NULL, '\"Panne urgente du système de pompage, équipement complètement arrêté ! Situation critique nécessitant une intervention immédiate.\"', '2024-12-20 14:41:34', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1734702094290-str.PNG', 'MOYEN', 48, NULL, 'NEUTRE', 'FAIBLE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(12, 3, NULL, 'grave', '2024-12-20 21:26:20', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1734726380344-mern.jpg', 'MOYEN', 48, NULL, 'PEU_SATISFAIT', 'MOYENNE', -2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(13, 3, 2, 'URGENT ! Panne critique du système de distribution. Situation inacceptable, nous perdons des clients ! Intervention immédiate requise.', '2024-12-20 21:31:05', 'TECHNIQUE', 'En instance', NULL, NULL, 'URGENT', 24, NULL, 'INSATISFAIT', 'HAUTE', -3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(14, 3, NULL, 'panne grave', '2024-12-20 23:25:53', 'TECHNIQUE', 'En instance', NULL, NULL, 'MOYEN', 48, NULL, 'PEU_SATISFAIT', 'MOYENNE', -2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(15, 3, NULL, 'panne ', '2024-12-20 23:28:32', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1734733712207-OIP.jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (16, 3, NULL, 'panne urgente', '2024-12-20 23:33:16', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1734733996246-OIP.jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, '{\"analysis\": {\"quality\": \"Faible\", \"resolution\": \"Basse\"}, \"metadata\": {\"width\": 474, \"format\": \"jpeg\", \"height\": 632}, \"recommendedType\": \"TECHNIQUE\", \"technicalIssues\": [{\"type\": \"Qualité d\'image insuffisante\", \"confidence\": 0.8, \"description\": \"L\'image est de trop basse résolution pour une analyse détaillée\"}, {\"type\": \"Problème potentiel de pompe\", \"confidence\": 0.75, \"description\": \"Inspection visuelle recommandée\"}, {\"type\": \"Usure possible\", \"confidence\": 0.65, \"description\": \"Vérification de maintenance conseillée\"}]}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (17, 3, NULL, 'panne', '2024-12-20 23:44:49', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1734734689421-OIP.jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, '{\"metadata\": {\"width\": 474, \"format\": \"jpeg\", \"height\": 632}, \"severity\": {\"level\": \"HAUTE\", \"mediumCount\": 1, \"totalIssues\": 7, \"urgentCount\": 2}, \"imageQuality\": {\"format\": \"jpeg\", \"quality\": \"Faible\", \"isAdequate\": false, \"resolution\": \"474x632\"}, \"recommendedType\": \"TECHNIQUE\", \"technicalAnalysis\": {\"issues\": [{\"type\": \"Problème de ventilation\", \"priority\": \"NORMAL\", \"confidence\": 0.5279091883148068, \"detectedAt\": \"2024-12-20T22:44:49.455Z\"}, {\"type\": \"Corrosion visible\", \"priority\": \"URGENT\", \"confidence\": 0.8310498337596681, \"detectedAt\": \"2024-12-20T22:44:49.455Z\"}, {\"type\": \"Fuite dans la tuyauterie\", \"priority\": \"NORMAL\", \"confidence\": 0.5571135704859556, \"detectedAt\": \"2024-12-20T22:44:49.455Z\"}, {\"type\": \"Panne d\'affichage\", \"priority\": \"NORMAL\", \"confidence\": 0.5077171781428681, \"detectedAt\": \"2024-12-20T22:44:49.455Z\"}, {\"type\": \"Panne d\'affichage\", \"priority\": \"NORMAL\", \"confidence\": 0.5000565065701147, \"detectedAt\": \"2024-12-20T22:44:49.455Z\"}, {\"type\": \"Problème d\'arrêt d\'urgence\", \"priority\": \"MOYEN\", \"confidence\": 0.7599139904614581, \"detectedAt\": \"2024-12-20T22:44:49.455Z\"}, {\"type\": \"Problème d\'arrêt d\'urgence\", \"priority\": \"URGENT\", \"confidence\": 0.8200099595654305, \"detectedAt\": \"2024-12-20T22:44:49.455Z\"}], \"timestamp\": \"2024-12-20T22:44:49.455Z\", \"categories\": [\"RESERVOIR\", \"TUYAUTERIE\", \"ELECTRONIQUE\", \"SECURITE\"]}, \"maintenanceRecommendations\": [{\"action\": \"Contrôle de routine des jauges et des systèmes de ventilation\", \"category\": \"RESERVOIR\", \"priority\": \"NORMAL\", \"estimatedTime\": 180, \"requiredExpertise\": \"Expert en systèmes de stockage\"}, {\"action\": \"Inspection immédiate des conduites et remplacement si nécessaire\", \"category\": \"TUYAUTERIE\", \"priority\": \"URGENT\", \"estimatedTime\": 135, \"requiredExpertise\": \"Plombier industriel\"}, {\"action\": \"Test des systèmes et mise à jour si nécessaire\", \"category\": \"ELECTRONIQUE\", \"priority\": \"NORMAL\", \"estimatedTime\": 90, \"requiredExpertise\": \"Électromécanicien\"}, {\"action\": \"Intervention immédiate - Mise en sécurité requise\", \"category\": \"SECURITE\", \"priority\": \"URGENT\", \"estimatedTime\": 67.5, \"requiredExpertise\": \"Technicien de sécurité\"}]}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (18, 3, NULL, 'panne', '2024-12-21 15:12:36', 'COMMERCIALE', 'En instance', NULL, '/uploads/reclamations/1734790355781-OIP.jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, '{\"metadata\": {\"width\": 474, \"format\": \"jpeg\", \"height\": 632}, \"severity\": {\"level\": \"MOYENNE\", \"mediumCount\": 5, \"totalIssues\": 6, \"urgentCount\": 0}, \"imageQuality\": {\"format\": \"jpeg\", \"quality\": \"Faible\", \"isAdequate\": false, \"resolution\": \"474x632\"}, \"recommendedType\": \"COMMERCIALE\", \"technicalAnalysis\": {\"issues\": [{\"type\": \"Contamination possible\", \"priority\": \"MOYEN\", \"confidence\": 0.679424596885968, \"detectedAt\": \"2024-12-21T14:12:35.911Z\"}, {\"type\": \"Fuite potentielle\", \"priority\": \"MOYEN\", \"confidence\": 0.7078568999160919, \"detectedAt\": \"2024-12-21T14:12:35.911Z\"}, {\"type\": \"Corrosion visible\", \"priority\": \"MOYEN\", \"confidence\": 0.6999226818953832, \"detectedAt\": \"2024-12-21T14:12:35.911Z\"}, {\"type\": \"Problème de joint\", \"priority\": \"MOYEN\", \"confidence\": 0.7137187424789153, \"detectedAt\": \"2024-12-21T14:12:35.911Z\"}, {\"type\": \"Problème de mise à la terre\", \"priority\": \"NORMAL\", \"confidence\": 0.5180150915679863, \"detectedAt\": \"2024-12-21T14:12:35.911Z\"}, {\"type\": \"Dysfonctionnement des alarmes\", \"priority\": \"MOYEN\", \"confidence\": 0.6401280249160551, \"detectedAt\": \"2024-12-21T14:12:35.911Z\"}], \"timestamp\": \"2024-12-21T14:12:35.911Z\", \"categories\": [\"RESERVOIR\", \"TUYAUTERIE\", \"SECURITE\"]}, \"maintenanceRecommendations\": [{\"action\": \"Contrôle de routine des jauges et des systèmes de ventilation\", \"category\": \"RESERVOIR\", \"priority\": \"NORMAL\", \"estimatedTime\": 270, \"requiredExpertise\": \"Expert en systèmes de stockage\"}, {\"action\": \"Vérification des joints et de l\'état général\", \"category\": \"TUYAUTERIE\", \"priority\": \"NORMAL\", \"estimatedTime\": 135, \"requiredExpertise\": \"Plombier industriel\"}, {\"action\": \"Vérification des systèmes de sécurité\", \"category\": \"SECURITE\", \"priority\": \"NORMAL\", \"estimatedTime\": 67.5, \"requiredExpertise\": \"Technicien de sécurité\"}]}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (19, 3, NULL, 'panne grave urgente', '2024-12-22 12:18:36', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1734866315866-OIP.jpg', 'MOYEN', 48, NULL, 'PEU_SATISFAIT', 'MOYENNE', -2, NULL, NULL, '{\"metadata\": {\"width\": 474, \"format\": \"jpeg\", \"height\": 632}, \"severity\": {\"level\": \"HAUTE\", \"mediumCount\": 3, \"totalIssues\": 4, \"urgentCount\": 1}, \"imageQuality\": {\"format\": \"jpeg\", \"quality\": \"Faible\", \"isAdequate\": false, \"resolution\": \"474x632\"}, \"recommendedType\": \"TECHNIQUE\", \"technicalAnalysis\": {\"issues\": [{\"type\": \"Problème de ventilation\", \"priority\": \"MOYEN\", \"confidence\": 0.7814977847330855, \"detectedAt\": \"2024-12-22T11:18:35.949Z\"}, {\"type\": \"Problème de circuit électrique\", \"priority\": \"MOYEN\", \"confidence\": 0.7076271710865283, \"detectedAt\": \"2024-12-22T11:18:35.949Z\"}, {\"type\": \"Problème de circuit électrique\", \"priority\": \"MOYEN\", \"confidence\": 0.7644353313286147, \"detectedAt\": \"2024-12-22T11:18:35.949Z\"}, {\"type\": \"Signalisation défectueuse\", \"priority\": \"URGENT\", \"confidence\": 0.9628847727132398, \"detectedAt\": \"2024-12-22T11:18:35.950Z\"}], \"timestamp\": \"2024-12-22T11:18:35.950Z\", \"categories\": [\"RESERVOIR\", \"ELECTRONIQUE\", \"SECURITE\"]}, \"maintenanceRecommendations\": [{\"action\": \"Contrôle de routine des jauges et des systèmes de ventilation\", \"category\": \"RESERVOIR\", \"priority\": \"NORMAL\", \"estimatedTime\": 180, \"requiredExpertise\": \"Expert en systèmes de stockage\"}, {\"action\": \"Test des systèmes et mise à jour si nécessaire\", \"category\": \"ELECTRONIQUE\", \"priority\": \"NORMAL\", \"estimatedTime\": 90, \"requiredExpertise\": \"Électromécanicien\"}, {\"action\": \"Intervention immédiate - Mise en sécurité requise\", \"category\": \"SECURITE\", \"priority\": \"URGENT\", \"estimatedTime\": 45, \"requiredExpertise\": \"Technicien de sécurité\"}]}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (20, 3, 2, 'panne des pistolé', '2024-12-22 12:31:39', 'COMMERCIALE', 'En instance', NULL, '/uploads/reclamations/1734867098375-maxnewsfrthree.jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, '{\"metadata\": {\"width\": 5760, \"format\": \"jpeg\", \"height\": 3840}, \"severity\": {\"level\": \"MOYENNE\", \"mediumCount\": 3, \"totalIssues\": 5, \"urgentCount\": 0}, \"imageQuality\": {\"format\": \"jpeg\", \"quality\": \"Bonne\", \"isAdequate\": true, \"resolution\": \"5760x3840\"}, \"recommendedType\": \"COMMERCIALE\", \"technicalAnalysis\": {\"issues\": [{\"type\": \"Fuite potentielle\", \"priority\": \"MOYEN\", \"confidence\": 0.7178349890886876, \"detectedAt\": \"2024-12-22T11:31:38.784Z\"}, {\"type\": \"Problème de jauge\", \"priority\": \"MOYEN\", \"confidence\": 0.6402843834718142, \"detectedAt\": \"2024-12-22T11:31:38.784Z\"}, {\"type\": \"Problème de joint\", \"priority\": \"NORMAL\", \"confidence\": 0.5336765683338408, \"detectedAt\": \"2024-12-22T11:31:38.784Z\"}, {\"type\": \"Problème de joint\", \"priority\": \"NORMAL\", \"confidence\": 0.5829925898764249, \"detectedAt\": \"2024-12-22T11:31:38.784Z\"}, {\"type\": \"Signalisation défectueuse\", \"priority\": \"MOYEN\", \"confidence\": 0.7433062493593358, \"detectedAt\": \"2024-12-22T11:31:38.784Z\"}], \"timestamp\": \"2024-12-22T11:31:38.784Z\", \"categories\": [\"RESERVOIR\", \"TUYAUTERIE\", \"SECURITE\"]}, \"maintenanceRecommendations\": [{\"action\": \"Contrôle de routine des jauges et des systèmes de ventilation\", \"category\": \"RESERVOIR\", \"priority\": \"NORMAL\", \"estimatedTime\": 270, \"requiredExpertise\": \"Expert en systèmes de stockage\"}, {\"action\": \"Vérification des joints et de l\'état général\", \"category\": \"TUYAUTERIE\", \"priority\": \"NORMAL\", \"estimatedTime\": 135, \"requiredExpertise\": \"Plombier industriel\"}, {\"action\": \"Vérification des systèmes de sécurité\", \"category\": \"SECURITE\", \"priority\": \"NORMAL\", \"estimatedTime\": 45, \"requiredExpertise\": \"Technicien de sécurité\"}]}', 'ouiii', '2024-12-26 09:50:57', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(23, 3, NULL, 'panne grave', '2024-12-30 10:32:07', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1735551126749-gaz.jpg', 'MOYEN', 48, NULL, 'PEU_SATISFAIT', 'MOYENNE', -2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"raw\": {\"faultAnalysis\": [{\"label\": \"gas pump, gasoline pump, petrol pump, island dispenser\", \"score\": 0.9997554421424866}, {\"label\": \"pay-phone, pay-station\", \"score\": 0.000022879465177538805}, {\"label\": \"acoustic guitar\", \"score\": 0.000005061816409579478}, {\"label\": \"parking meter\", \"score\": 0.0000050613625717232935}, {\"label\": \"cash machine, cash dispenser, automated teller machine, automatic teller machine, automated teller, automatic teller, ATM\", \"score\": 0.000004366846951597836}], \"classification\": [{\"label\": \"gas pump, gasoline pump, petrol pump, island dispenser\", \"score\": 0.9967055916786194}, {\"label\": \"vending machine\", \"score\": 0.0004425408551469445}, {\"label\": \"cash machine, cash dispenser, automated teller machine, automatic teller machine, automated teller, automatic teller, ATM\", \"score\": 0.0003112129052169621}, {\"label\": \"cinema, movie theater, movie theatre, movie house, picture palace\", \"score\": 0.0002483577700331807}, {\"label\": \"pay-phone, pay-station\", \"score\": 0.00019211266771890223}], \"objectDetection\": [{\"box\": {\"xmax\": 463, \"xmin\": 41, \"ymax\": 606, \"ymin\": 418}, \"label\": \"car\", \"score\": 0.9991008043289183}]}, \"faultAnalysis\": {\"type\": \"pompe_defectueuse\", \"pieces\": [\"Pompe hydraulique\", \"Joint d\'étanchéité\", \"Roulement\"], \"gravite\": \"haute\", \"keywords\": [\"pump\", \"hydraulic\", \"water\", \"flow\"], \"solution\": \"Remplacer la pompe défectueuse et vérifier le circuit hydraulique\", \"confidence\": 0.272435766530841, \"maintenance\": {\"priority\": \"URGENT\", \"estimatedTime\": 120, \"requiredExpertise\": \"Technicien hydraulique\"}}, \"classification\": [{\"label\": \"gas pump, gasoline pump, petrol pump, island dispenser\", \"confidence\": 0.9967055916786194}, {\"label\": \"vending machine\", \"confidence\": 0.0004425408551469445}, {\"label\": \"cash machine, cash dispenser, automated teller machine, automatic teller machine, automated teller, automatic teller, ATM\", \"confidence\": 0.0003112129052169621}, {\"label\": \"cinema, movie theater, movie theatre, movie house, picture palace\", \"confidence\": 0.0002483577700331807}, {\"label\": \"pay-phone, pay-station\", \"confidence\": 0.00019211266771890223}], \"detectedObjects\": [{\"box\": {\"xmax\": 463, \"xmin\": 41, \"ymax\": 606, \"ymin\": 418}, \"label\": \"car\", \"confidence\": 0.9991008043289183}]}', '2025-01-16 21:02:09'),
+(23, 3, NULL, 'panne grave', '2024-12-30 10:32:07', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1735551126749-gaz.jpg', 'MOYEN', 48, NULL, 'PEU_SATISFAIT', 'MOYENNE', -2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"raw\": {\"faultAnalysis\": [{\"label\": \"gas pump, gasoline pump, petrol pump, island dispenser\", \"score\": 0.9997554421424866}, {\"label\": \"pay-phone, pay-station\", \"score\": 0.000022879465177538805}, {\"label\": \"acoustic guitar\", \"score\": 0.000005061816409579478}, {\"label\": \"parking meter\", \"score\": 0.0000050613625717232935}, {\"label\": \"cash machine, cash dispenser, automated teller machine, automatic teller machine, automated teller, automatic teller, ATM\", \"score\": 0.000004366846951597836}], \"classification\": [{\"label\": \"gas pump, gasoline pump, petrol pump, island dispenser\", \"score\": 0.9967055916786194}, {\"label\": \"vending machine\", \"score\": 0.0004425408551469445}, {\"label\": \"cash machine, cash dispenser, automated teller machine, automatic teller machine, automated teller, automatic teller, ATM\", \"score\": 0.0003112129052169621}, {\"label\": \"cinema, movie theater, movie theatre, movie house, picture palace\", \"score\": 0.0002483577700331807}, {\"label\": \"pay-phone, pay-station\", \"score\": 0.00019211266771890223}], \"objectDetection\": [{\"box\": {\"xmax\": 463, \"xmin\": 41, \"ymax\": 606, \"ymin\": 418}, \"label\": \"car\", \"score\": 0.9991008043289183}]}, \"faultAnalysis\": {\"type\": \"pompe_defectueuse\", \"pieces\": [\"Pompe hydraulique\", \"Joint d\'étanchéité\", \"Roulement\"], \"gravite\": \"haute\", \"keywords\": [\"pump\", \"hydraulic\", \"water\", \"flow\"], \"solution\": \"Remplacer la pompe défectueuse et vérifier le circuit hydraulique\", \"confidence\": 0.272435766530841, \"maintenance\": {\"priority\": \"URGENT\", \"estimatedTime\": 120, \"requiredExpertise\": \"Technicien hydraulique\"}}, \"classification\": [{\"label\": \"gas pump, gasoline pump, petrol pump, island dispenser\", \"confidence\": 0.9967055916786194}, {\"label\": \"vending machine\", \"confidence\": 0.0004425408551469445}, {\"label\": \"cash machine, cash dispenser, automated teller machine, automatic teller machine, automated teller, automatic teller, ATM\", \"confidence\": 0.0003112129052169621}, {\"label\": \"cinema, movie theater, movie theatre, movie house, picture palace\", \"score\": 0.0002483577700331807}, {\"label\": \"pay-phone, pay-station\", \"confidence\": 0.00019211266771890223}], \"detectedObjects\": [{\"box\": {\"xmax\": 463, \"xmin\": 41, \"ymax\": 606, \"ymin\": 418}, \"label\": \"car\", \"confidence\": 0.9991008043289183}]}', '2025-01-16 21:02:09'),
 (24, 1, NULL, 'panne de paiment ', '2025-01-08 23:40:29', 'COMMERCIALE', 'En instance', NULL, '/uploads/reclamations/1736376024636-OIP (2).jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '{\"raw\": {\"faultAnalysis\": [{\"label\": \"solar dish, solar collector, solar furnace\", \"score\": 0.558073878288269}, {\"label\": \"electric fan, blower\", \"score\": 0.2003784477710724}, {\"label\": \"space shuttle\", \"score\": 0.030233291909098625}, {\"label\": \"lampshade, lamp shade\", \"score\": 0.015254564583301544}, {\"label\": \"bolo tie, bolo, bola tie, bola\", \"score\": 0.013289186172187328}], \"classification\": [{\"label\": \"switch, electric switch, electrical switch\", \"score\": 0.3936117887496948}, {\"label\": \"spotlight, spot\", \"score\": 0.0951634868979454}, {\"label\": \"oscilloscope, scope, cathode-ray oscilloscope, CRO\", \"score\": 0.09016034752130508}, {\"label\": \"modem\", \"score\": 0.06443137675523758}, {\"label\": \"projector\", \"score\": 0.06130140274763107}], \"objectDetection\": [{\"box\": {\"xmax\": 197, \"xmin\": 71, \"ymax\": 157, \"ymin\": 54}, \"label\": \"clock\", \"score\": 0.5825058817863464}, {\"box\": {\"xmax\": 154, \"xmin\": 71, \"ymax\": 152, \"ymin\": 55}, \"label\": \"clock\", \"score\": 0.6265724897384644}]}, \"faultAnalysis\": {\"type\": \"probleme_electrique\", \"pieces\": [\"Capteur\", \"Câblage\", \"Relais\"], \"gravite\": \"haute\", \"keywords\": [\"electric\", \"wire\", \"circuit\", \"power\", \"connection\"], \"solution\": \"Vérifier le circuit électrique et remplacer les composants défectueux\", \"confidence\": 0.22758134524337947, \"maintenance\": {\"priority\": \"URGENT\", \"estimatedTime\": 45, \"requiredExpertise\": \"Électricien\"}}, \"classification\": [{\"label\": \"switch, electric switch, electrical switch\", \"confidence\": 0.3936117887496948}, {\"label\": \"spotlight, spot\", \"confidence\": 0.0951634868979454}, {\"label\": \"oscilloscope, scope, cathode-ray oscilloscope, CRO\", \"confidence\": 0.09016034752130508}, {\"label\": \"modem\", \"confidence\": 0.06443137675523758}, {\"label\": \"projector\", \"confidence\": 0.06130140274763107}], \"detectedObjects\": [{\"box\": {\"xmax\": 197, \"xmin\": 71, \"ymax\": 157, \"ymin\": 54}, \"label\": \"clock\", \"confidence\": 0.5825058817863464}, {\"box\": {\"xmax\": 154, \"xmin\": 71, \"ymax\": 152, \"ymin\": 55}, \"label\": \"clock\", \"confidence\": 0.6265724897384644}]}', '2025-01-16 19:08:39'),
 (21, 2, NULL, 'panne de jauge d essence ', '2024-12-22 12:49:42', 'TECHNIQUE', 'Validée', NULL, '/uploads/reclamations/1734868182053-maxnewsfrthree.jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, '{\"metadata\": {\"width\": 5760, \"format\": \"jpeg\", \"height\": 3840}, \"severity\": {\"level\": \"HAUTE\", \"mediumCount\": 2, \"totalIssues\": 8, \"urgentCount\": 4}, \"imageQuality\": {\"format\": \"jpeg\", \"quality\": \"Bonne\", \"isAdequate\": true, \"resolution\": \"5760x3840\"}, \"recommendedType\": \"TECHNIQUE\", \"technicalAnalysis\": {\"issues\": [{\"type\": \"Contamination possible\", \"priority\": \"MOYEN\", \"confidence\": 0.79377502132514, \"detectedAt\": \"2024-12-22T11:49:42.296Z\"}, {\"type\": \"Problème de jauge\", \"priority\": \"URGENT\", \"confidence\": 0.8689189133200741, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Corrosion visible\", \"priority\": \"URGENT\", \"confidence\": 0.8722830761041439, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Problème de joint\", \"priority\": \"URGENT\", \"confidence\": 0.9128138973683616, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Problème de circuit électrique\", \"priority\": \"URGENT\", \"confidence\": 0.8751091026155587, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Erreur de communication\", \"priority\": \"NORMAL\", \"confidence\": 0.5681755085616752, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Problème d\'arrêt d\'urgence\", \"priority\": \"NORMAL\", \"confidence\": 0.5799126020173094, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}, {\"type\": \"Signalisation défectueuse\", \"priority\": \"MOYEN\", \"confidence\": 0.6674826054094176, \"detectedAt\": \"2024-12-22T11:49:42.297Z\"}], \"timestamp\": \"2024-12-22T11:49:42.297Z\", \"categories\": [\"RESERVOIR\", \"TUYAUTERIE\", \"ELECTRONIQUE\", \"SECURITE\"]}, \"maintenanceRecommendations\": [{\"action\": \"Vérification immédiate de l\'étanchéité et des niveaux\", \"category\": \"RESERVOIR\", \"priority\": \"URGENT\", \"estimatedTime\": 270, \"requiredExpertise\": \"Expert en systèmes de stockage\"}, {\"action\": \"Inspection immédiate des conduites et remplacement si nécessaire\", \"category\": \"TUYAUTERIE\", \"priority\": \"URGENT\", \"estimatedTime\": 135, \"requiredExpertise\": \"Plombier industriel\"}, {\"action\": \"Diagnostic complet du système électronique requis\", \"category\": \"ELECTRONIQUE\", \"priority\": \"URGENT\", \"estimatedTime\": 90, \"requiredExpertise\": \"Électromécanicien\"}, {\"action\": \"Vérification des systèmes de sécurité\", \"category\": \"SECURITE\", \"priority\": \"NORMAL\", \"estimatedTime\": 67.5, \"requiredExpertise\": \"Technicien de sécurité\"}]}', 'Cher gérant,\n\nSuite à l\'analyse de votre réclamation #21, voici notre évaluation détaillée :\n\n1. Analyse Technique :\n   - URGENT: Dysfonctionnement du système de paiement (Confiance: 80.6%)\n   - Problème de débit (Confiance: 55%)\n   - Problème de ventilation (Confiance: 51.7%)\n\n2. Recommandations de Maintenance :\n   - POMPE: Inspection et maintenance préventive recommandée\n     Expert requis: Technicien spécialisé en pompes\n     Temps estimé: 120 minutes\n\n   - RESERVOIR: Contrôle de routine des jauges et des systèmes de ventilation\n     Expert requis: Expert en systèmes de stockage\n     Temps estimé: 180 minutes\n\n   - ELECTRONIQUE: Diagnostic complet du système électronique requis\n     Expert requis: Electromécanicien\n     Temps estimé: 90 minutes\n\n3. Plan d\'Action :\n   - Intervention immédiate requise pour le système de paiement\n   - Un électromécanicien sera envoyé en priorité\n   - Planification des maintenances préventives pour la pompe et le réservoir\n\nNous prenons en charge votre demande avec la plus grande attention. Notre équipe technique interviendra selon les priorités identifiées.\n\nCordialement,\nVotre Commercial', '2024-12-23 14:29:21', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (22, 2, NULL, 'panne commercial', '2024-12-22 12:59:06', 'TECHNIQUE', 'Validée', NULL, '/uploads/reclamations/1734868745738-OIP (1).jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, '{\"metadata\": {\"width\": 474, \"format\": \"jpeg\", \"height\": 348}, \"severity\": {\"level\": \"HAUTE\", \"mediumCount\": 0, \"totalIssues\": 4, \"urgentCount\": 2}, \"imageQuality\": {\"format\": \"jpeg\", \"quality\": \"Faible\", \"isAdequate\": false, \"resolution\": \"474x348\"}, \"recommendedType\": \"TECHNIQUE\", \"technicalAnalysis\": {\"issues\": [{\"type\": \"Problème de débit\", \"priority\": \"NORMAL\", \"confidence\": 0.5496144200480843, \"detectedAt\": \"2024-12-22T11:59:05.820Z\"}, {\"type\": \"Problème de ventilation\", \"priority\": \"NORMAL\", \"confidence\": 0.5165086574548072, \"detectedAt\": \"2024-12-22T11:59:05.820Z\"}, {\"type\": \"Dysfonctionnement du système de paiement\", \"priority\": \"URGENT\", \"confidence\": 0.8056839099650854, \"detectedAt\": \"2024-12-22T11:59:05.820Z\"}, {\"type\": \"Dysfonctionnement du système de paiement\", \"priority\": \"URGENT\", \"confidence\": 0.8498449122556069, \"detectedAt\": \"2024-12-22T11:59:05.820Z\"}], \"timestamp\": \"2024-12-22T11:59:05.820Z\", \"categories\": [\"POMPE\", \"RESERVOIR\", \"ELECTRONIQUE\"]}, \"maintenanceRecommendations\": [{\"action\": \"Inspection et maintenance préventive recommandée\", \"category\": \"POMPE\", \"priority\": \"NORMAL\", \"estimatedTime\": 120, \"requiredExpertise\": \"Technicien spécialisé en pompes\"}, {\"action\": \"Contrôle de routine des jauges et des systèmes de ventilation\", \"category\": \"RESERVOIR\", \"priority\": \"NORMAL\", \"estimatedTime\": 180, \"requiredExpertise\": \"Expert en systèmes de stockage\"}, {\"action\": \"Diagnostic complet du système électronique requis\", \"category\": \"ELECTRONIQUE\", \"priority\": \"URGENT\", \"estimatedTime\": 90, \"requiredExpertise\": \"Électromécanicien\"}]}', 'traité', '2024-12-24 14:29:46', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
@@ -411,11 +411,11 @@ INSERT INTO `reclamation` (`idReclamation`, `idGerant`, `idCommercial`, `descrip
 -- --------------------------------------------------------
 
 --
--- Structure de la table `reclamationanalytics`
+-- Structure de la table `Reclamationanalytics`
 --
 
-DROP TABLE IF EXISTS `reclamationanalytics`;
-CREATE TABLE IF NOT EXISTS `reclamationanalytics` (
+DROP TABLE IF EXISTS `Reclamationanalytics`;
+CREATE TABLE IF NOT EXISTS `Reclamationanalytics` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `idReclamation` bigint(20) DEFAULT NULL,
   `analysis_timestamp` datetime DEFAULT NULL,
@@ -431,11 +431,11 @@ CREATE TABLE IF NOT EXISTS `reclamationanalytics` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `stationservice`
+-- Structure de la table `StationService`
 --
 
-DROP TABLE IF EXISTS `stationservice`;
-CREATE TABLE IF NOT EXISTS `stationservice` (
+DROP TABLE IF EXISTS `StationService`;
+CREATE TABLE IF NOT EXISTS `StationService` (
   `idStation` bigint(20) NOT NULL AUTO_INCREMENT,
   `nom` varchar(100) NOT NULL,
   `adresse` text NOT NULL,
@@ -447,10 +447,10 @@ CREATE TABLE IF NOT EXISTS `stationservice` (
 ) ENGINE=MyISAM AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
 
 --
--- Déchargement des données de la table `stationservice`
+-- Déchargement des données de la table `StationService`
 --
 
-INSERT INTO `stationservice` (`idStation`, `nom`, `adresse`, `ville`, `telephone`, `email`, `capacite`) VALUES
+INSERT INTO `StationService` (`idStation`, `nom`, `adresse`, `ville`, `telephone`, `email`, `capacite`) VALUES
 (1, 'Station Test', '123 Rue Test\"', NULL, NULL, NULL, NULL),
 (2, 'station bardo', '124 Rue ', NULL, NULL, NULL, NULL),
 (3, 'station ariana', '124 Rue ', 'ariana', '1478526', 'station.test@pfe.tn', 500),
@@ -462,11 +462,11 @@ INSERT INTO `stationservice` (`idStation`, `nom`, `adresse`, `ville`, `telephone
 -- --------------------------------------------------------
 
 --
--- Structure de la table `utilisateur`
+-- Structure de la table `Utilisateur`
 --
 
-DROP TABLE IF EXISTS `utilisateur`;
-CREATE TABLE IF NOT EXISTS `utilisateur` (
+DROP TABLE IF EXISTS `Utilisateur`;
+CREATE TABLE IF NOT EXISTS `Utilisateur` (
   `identifiant` bigint(20) NOT NULL AUTO_INCREMENT,
   `nom` varchar(100) NOT NULL,
   `prenom` varchar(100) NOT NULL,
@@ -481,10 +481,10 @@ CREATE TABLE IF NOT EXISTS `utilisateur` (
 ) ENGINE=MyISAM AUTO_INCREMENT=17 DEFAULT CHARSET=latin1;
 
 --
--- Déchargement des données de la table `utilisateur`
+-- Déchargement des données de la table `Utilisateur`
 --
 
-INSERT INTO `utilisateur` (`identifiant`, `nom`, `prenom`, `telephone`, `mail`, `mot_de_passe`, `matricule`, `roles`) VALUES
+INSERT INTO `Utilisateur` (`identifiant`, `nom`, `prenom`, `telephone`, `mail`, `mot_de_passe`, `matricule`, `roles`) VALUES
 (1, 'Admin', 'System', '21612345678', 'admin@pfe.tn', '$2a$10$2EZZzs0Gz9LCva1RU.3fDegZan0cQuLvMGr8zVEdypM6hz8UmcVVu', 9999, 'ADMIN'),
 (2, 'neder', 'boughanmi', '26593757', 'commercial@agil.com', '$2a$10$xL5pVQknFxWtfiEVr2R7leBYmZr18HCD11MWRM9PN20OrhgstXwge', 123456, 'COMMERCIAL'),
 (3, 'rodrigo', 'rodriguez', '23456781', 'gerant.test@station.com', '$2a$10$/IWjTxgiBry/8VIwuUsFu.2Bv0d.5uBIOCKgoNqRcdCHqb.CtpABC', 654321, 'GERANT'),
@@ -501,6 +501,7 @@ INSERT INTO `utilisateur` (`identifiant`, `nom`, `prenom`, `telephone`, `mail`, 
 (14, 'aloui', 'omar', '26593757', 'omar.aloui@gmail.com', '$2a$10$aupiVTuZTBA9oHeLumJZNuNkgDdITRSgskCd5QEGooj/xElABOoHS', 254136, 'GERANT'),
 (15, 'neila', 'bouali', '28741367', 'neila.bou@gmail.com', '$2a$10$auBwaM4fBVH2IkVneNb40ui3JdbdhtIfHwFQBLAh1hgKcykesn/n2', 5468271, 'DEPOT'),
 (16, 'ameur', 'atef', '26593754', 'amer.atef@gmail.com', '$2a$10$Ggz7f7Nnatb9kWNhDV.8XOEHJmt53NwCd1HQOcNfA4nzaKn9MWY8W', 257413, 'GERANT');
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
