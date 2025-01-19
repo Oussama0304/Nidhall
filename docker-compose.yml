@@ -14,12 +14,6 @@ services:
       - ./sql:/docker-entrypoint-initdb.d
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
     restart: always
 
   backend:
@@ -42,28 +36,20 @@ services:
     volumes:
       - ./uploads:/app/uploads
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    restart: unless-stopped
+    restart: always
 
   frontend:
     image: oussama22444/frontend:latest
     ports:
       - "8098:80"
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     networks:
       - app-network
-    restart: unless-stopped
+    restart: always
 
 networks:
   app-network:

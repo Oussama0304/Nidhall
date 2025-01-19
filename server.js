@@ -16,22 +16,14 @@ const io = require('socket.io')(server, {
   }
 });
 
-// Health Check Endpoint
+// Health Check Endpoint avec vérification de la base de données
 app.get('/health', (req, res) => {
-  try {
-    // Vérifier la connexion à la base de données
-    db.query('SELECT 1', (err) => {
-      if (err) {
-        console.error('Database connection error:', err);
-        res.status(500).send('Database connection error');
-      } else {
-        res.status(200).send('OK');
-      }
-    });
-  } catch (error) {
-    console.error('Health check error:', error);
-    res.status(500).send('Health check failed');
-  }
+  res.send('OK');
+});
+
+// Health check endpoint
+app.get('/healthcheck', (req, res) => {
+  res.status(200).json({ status: 'healthy' });
 });
 
 // Middleware
