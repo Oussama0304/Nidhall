@@ -3,7 +3,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Installation des dépendances système nécessaires
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl netcat-openbsd
 
 # Installation des dépendances Node.js
 COPY package*.json ./
@@ -12,33 +12,27 @@ RUN npm ci --only=production
 # Copie des fichiers du projet
 COPY . .
 
+# Créer le script d'entrée
+RUN echo '#!/bin/sh' > /app/docker-entrypoint.sh && \
+    echo 'set -e' >> /app/docker-entrypoint.sh && \
+    echo 'echo "Waiting for MySQL to be ready..."' >> /app/docker-entrypoint.sh && \
+    echo 'timeout=30' >> /app/docker-entrypoint.sh && \
+    echo 'while [ $timeout -gt 0 ]; do' >> /app/docker-entrypoint.sh && \
+    echo '    if nc -z db 3306; then' >> /app/docker-entrypoint.sh && \
+    echo '        echo "MySQL is ready!"' >> /app/docker-entrypoint.sh && \
+    echo '        break' >> /app/docker-entrypoint.sh && \
+    echo '    fi' >> /app/docker-entrypoint.sh && \
+    echo '    echo "Waiting for MySQL... ($timeout seconds left)"' >> /app/docker-entrypoint.sh && \
+    echo '    timeout=$((timeout-1))' >> /app/docker-entrypoint.sh && \
+    echo '    sleep 1' >> /app/docker-entrypoint.sh && \
+    echo 'done' >> /app/docker-entrypoint.sh && \
+    echo 'if [ $timeout -eq 0 ]; then' >> /app/docker-entrypoint.sh && \
+    echo '    echo "Timeout waiting for MySQL"' >> /app/docker-entrypoint.sh && \
+    echo '    exit 1' >> /app/docker-entrypoint.sh && \
+    echo 'fi' >> /app/docker-entrypoint.sh && \
+    echo 'exec node server.js' >> /app/docker-entrypoint.sh && \
+    chmod +x /app/docker-entrypoint.sh
+
 EXPOSE 3000
-
-# Script de démarrage pour attendre MySQL
-COPY <<'EOF' /app/docker-entrypoint.sh
-#!/bin/sh
-set -e
-
-echo "Waiting for MySQL to be ready..."
-timeout=30
-while [ $timeout -gt 0 ]; do
-    if nc -z db 3306; then
-        echo "MySQL is ready!"
-        break
-    fi
-    echo "Waiting for MySQL... ($timeout seconds left)"
-    timeout=$((timeout-1))
-    sleep 1
-done
-
-if [ $timeout -eq 0 ]; then
-    echo "Timeout waiting for MySQL"
-    exit 1
-fi
-
-exec node server.js
-EOF
-
-RUN chmod +x /app/docker-entrypoint.sh
 
 CMD ["/app/docker-entrypoint.sh"]
