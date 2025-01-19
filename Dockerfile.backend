@@ -2,10 +2,16 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install wget for health checks
+RUN apk add --no-cache wget
+
 COPY package*.json ./
 RUN npm install
 
 COPY . .
+
+# Add a health check endpoint
+RUN echo 'app.get("/health", (req, res) => res.status(200).send("OK"));' >> server.js
 
 EXPOSE 3000
 
