@@ -18,6 +18,7 @@ services:
       - DB_USER=root
       - DB_PASSWORD=root123
       - DB_NAME=ProjetPfeAgil
+      - DB_PORT=3306
       - NODE_ENV=production
       - PORT=3000
       - FRONTEND_URL=http://localhost:8098
@@ -30,14 +31,22 @@ services:
     volumes:
       - ./uploads:/app/uploads
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app-network
     restart: unless-stopped
 
   db:
     image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --lower_case_table_names=1
+      --bind-address=0.0.0.0
+    cap_add:
+      - SYS_NICE
     restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=root123
@@ -57,10 +66,9 @@ services:
       timeout: 5s
       retries: 5
 
-volumes:
-  mysql_data:
-    name: pfe_mysql_data
-
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  mysql_data:
