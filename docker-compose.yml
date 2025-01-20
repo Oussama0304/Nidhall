@@ -18,13 +18,7 @@ services:
       - db_data:/var/lib/mysql
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 80s
-    restart: unless-stopped
+    restart: always
 
   backend:
     build:
@@ -44,17 +38,10 @@ services:
       EMAIL_USER: ${EMAIL_USER}
       EMAIL_PASS: ${EMAIL_PASS}
     depends_on:
-      db:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5000/api/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+      - db
     networks:
       - app-network
-    restart: unless-stopped
+    restart: always
 
   frontend:
     build:
@@ -65,19 +52,13 @@ services:
     environment:
       REACT_APP_API_URL: http://localhost:5000
       NODE_ENV: production
-      GENERATE_SOURCEMAP: "false"
-    volumes:
-      - ./pfe-project-front:/app
-      - /app/node_modules
-    depends_on:
-      - backend
     networks:
       - app-network
-    restart: unless-stopped
-
-volumes:
-  db_data:
+    restart: always
 
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  db_data:

@@ -1,76 +1,58 @@
 require('dotenv').config();
-const mysql = require('mysql');
+const mysql = require('mysql2/promise');
 
 const db = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'root',
-    database: process.env.DB_NAME || 'projetpfeagil',
-    connectionLimit: 10
+  host: process.env.DB_HOST || 'db',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || 'root',
+  database: process.env.DB_NAME || 'projetpfeagil',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0
 });
 
-// Tester la connexion au démarrage
-db.getConnection((err, connection) => {
-    if (err) {
-        console.error('Erreur de connexion initiale à la base de données:', err);
-        return;
+// Test the connection and create table if it doesn't exist
+const initializeDatabase = async () => {
+  try {
+    const connection = await db.getConnection();
+    console.log('Database connection established');
+
+    // Check if Commande table exists and has idUtilisateur column
+    const [tables] = await connection.query('SHOW TABLES LIKE "Commande"');
+    if (tables.length === 0) {
+      console.log('Creating Commande table...');
+      await connection.query(`
+        CREATE TABLE Commande (
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          title VARCHAR(255) NOT NULL,
+          description TEXT,
+          status VARCHAR(50) DEFAULT 'pending',
+          idUtilisateur INT,
+          createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      console.log('Commande table created successfully');
+    } else {
+      // Check if idUtilisateur column exists
+      const [columns] = await connection.query('SHOW COLUMNS FROM Commande LIKE "idUtilisateur"');
+      if (columns.length === 0) {
+        console.log('Adding idUtilisateur column to Commande table...');
+        await connection.query('ALTER TABLE Commande ADD COLUMN idUtilisateur INT');
+        console.log('Column added successfully');
+      }
     }
-    console.log('Connecté avec succès à la base de données MySQL');
+
     connection.release();
-});
-
-// Ajouter la colonne idUtilisateur si elle n'existe pas
-const addUserIdColumn = () => {
-    db.getConnection((err, connection) => {
-        if (err) {
-            console.error('Erreur de connexion à la base de données:', err);
-            return;
-        }
-
-        const checkColumnQuery = `
-            SELECT COUNT(*) as count 
-            FROM information_schema.COLUMNS 
-            WHERE TABLE_SCHEMA = '${process.env.DB_NAME || 'projetpfeagil'}' 
-            AND TABLE_NAME = 'Commande' 
-            AND COLUMN_NAME = 'idUtilisateur'
-        `;
-
-        connection.query(checkColumnQuery, (err, results) => {
-            connection.release();
-            if (err) {
-                console.error('Erreur lors de la vérification de la colonne:', err);
-                return;
-            }
-
-            if (results[0].count === 0) {
-                const alterTableQuery = `
-                    ALTER TABLE Commande
-                    ADD COLUMN idUtilisateur BIGINT,
-                    ADD CONSTRAINT fk_commande_utilisateur
-                    FOREIGN KEY (idUtilisateur) REFERENCES Utilisateur(identifiant)
-                `;
-
-                db.query(alterTableQuery, (err) => {
-                    if (err) {
-                        console.error('Erreur lors de l\'ajout de la colonne:', err);
-                    } else {
-                        console.log('Colonne idUtilisateur ajoutée avec succès');
-                    }
-                });
-            }
-        });
-    });
+    return true;
+  } catch (error) {
+    console.error('Database initialization error:', error);
+    return false;
+  }
 };
 
-// Vérifier la connexion
-db.getConnection((err, connection) => {
-    if (err) {
-        console.error('Erreur de connexion à la base de données:', err);
-        return;
-    }
-    console.log('Connecté à la base de données MySQL');
-    connection.release();
-    addUserIdColumn();
-});
+// Initialize the database when this module is imported
+initializeDatabase().catch(console.error);
 
 module.exports = db;
