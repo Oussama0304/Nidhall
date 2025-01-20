@@ -20,12 +20,12 @@ ENV DB_PORT=3306
 ENV DB_USER=root
 ENV DB_NAME=projetpfeagil
 
-# Add wait-for-it script
-RUN apk add --no-cache bash
+# Add wait-for-it script and required tools
+RUN apk add --no-cache bash wget
 COPY wait-for-it.sh /wait-for-it.sh
 RUN chmod +x /wait-for-it.sh
 
 EXPOSE 5000
 
 # Wait for database then start
-CMD ["/bin/bash", "-c", "/wait-for-it.sh db:3306 -t 60 -- node server.js"]
+CMD ["/bin/bash", "-c", "/wait-for-it.sh db:3306 -t 120 -- node server.js"]
