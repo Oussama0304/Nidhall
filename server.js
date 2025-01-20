@@ -11,7 +11,7 @@ const app = express();
 const server = http.createServer(app);
 const io = require('socket.io')(server, {
   cors: {
-    origin: "http://localhost:3001",
+    origin: process.env.REACT_APP_API_URL || "http://localhost:3000",
     methods: ["GET", "POST"]
   }
 });
@@ -117,7 +117,7 @@ app.use((err, req, res, next) => {
 // Export pour utilisation dans d'autres fichiers
 app.set('io', io);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

@@ -1,16 +1,29 @@
+require('dotenv').config();
 const mysql = require('mysql');
 
 const db = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'ProjetPfeAgil',
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'root',
+    database: process.env.DB_NAME || 'projetpfeagil',
+    port: process.env.DB_PORT || 3306,
     connectionLimit: 10,
     connectTimeout: 20000,
     acquireTimeout: 20000,
     timeout: 20000,
     waitForConnections: true,
-    queueLimit: 0
+    queueLimit: 0,
+    insecureAuth: true
+});
+
+// Tester la connexion au démarrage
+db.getConnection((err, connection) => {
+    if (err) {
+        console.error('Erreur de connexion initiale à la base de données:', err);
+        return;
+    }
+    console.log('Connecté avec succès à la base de données MySQL');
+    connection.release();
 });
 
 // Ajouter la colonne idUtilisateur si elle n'existe pas
@@ -24,7 +37,7 @@ const addUserIdColumn = () => {
         const checkColumnQuery = `
             SELECT COUNT(*) as count 
             FROM information_schema.COLUMNS 
-            WHERE TABLE_SCHEMA = 'ProjetPfeAgil' 
+            WHERE TABLE_SCHEMA = '${process.env.DB_NAME || 'projetpfeagil'}' 
             AND TABLE_NAME = 'Commande' 
             AND COLUMN_NAME = 'idUtilisateur'
         `;
@@ -56,15 +69,6 @@ const addUserIdColumn = () => {
     });
 };
 
-// Vérifier la connexion
-db.getConnection((err, connection) => {
-    if (err) {
-        console.error('Erreur de connexion à la base de données:', err);
-        return;
-    }
-    console.log('Connecté à la base de données MySQL');
-    connection.release();
-    addUserIdColumn();
-});
+addUserIdColumn();
 
 module.exports = db;
