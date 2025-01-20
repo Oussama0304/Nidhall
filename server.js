@@ -57,6 +57,11 @@ app.get('/', (req, res) => {
     });
 });
 
+// Add health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' });
+});
+
 // Protected routes
 app.use('/api/commandes', auth, commandeRoutes);
 app.use('/api/reclamations', auth, reclamationRoutes);

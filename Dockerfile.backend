@@ -2,12 +2,15 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install wget for healthcheck
+RUN apk add --no-cache wget
+
 COPY package*.json ./
 RUN npm install --production
 
 COPY . .
 
-# Créer le dossier uploads s'il n'existe pas
+# Create uploads directory if it doesn't exist
 RUN mkdir -p uploads/reclamations
 
 EXPOSE 5000
