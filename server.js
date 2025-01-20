@@ -138,7 +138,7 @@ const connectToDatabase = async (maxRetries = 10) => {
 };
 
 // Start server with proper error handling
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
@@ -150,14 +150,17 @@ const startServer = async () => {
       process.exit(1);
     }
 
-    server.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server is running on port ${PORT}`);
-      console.log(`Database host: ${process.env.DB_HOST}`);
-      console.log(`Environment: ${process.env.NODE_ENV}`);
+      console.log('Database configuration:', {
+        host: process.env.DB_HOST || 'db',
+        database: process.env.DB_NAME || 'projetpfeagil',
+        port: process.env.DB_PORT || 3306
+      });
     });
 
     // Handle server errors
-    server.on('error', (error) => {
+    app.on('error', (error) => {
       console.error('Server error:', error);
       process.exit(1);
     });
