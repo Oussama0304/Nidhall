@@ -1,23 +1,28 @@
+# Build stage
+FROM node:20-alpine as builder
+WORKDIR /app
+
+# Installation des dépendances de build
+RUN apk add --no-cache python3 make g++
+
+# Installation des dépendances
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Production stage
 FROM node:20-alpine
 WORKDIR /app
 
-# Installation des dépendances nécessaires
-RUN apk add --no-cache python3 make g++
-
-# Copie des fichiers package.json et installation des dépendances
-COPY package*.json ./
-RUN npm install
+# Copie des dépendances depuis le builder
+COPY --from=builder /app/node_modules ./node_modules
 
 # Création des dossiers nécessaires
-RUN mkdir -p uploads/reclamations
-RUN mkdir -p public
+RUN mkdir -p uploads/reclamations public && \
+    chown -R node:node /app
 
-# Copie du reste des fichiers
+# Copie des fichiers sources
 COPY . .
 
-# Configuration des permissions
-RUN chown -R node:node /app
 USER node
-
 EXPOSE 3000
 CMD ["node", "server.js"]
