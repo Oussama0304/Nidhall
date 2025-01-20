@@ -1,7 +1,7 @@
-require('dotenv').config();
 const mysql = require('mysql2/promise');
+require('dotenv').config();
 
-const db = mysql.createPool({
+const pool = mysql.createPool({
   host: process.env.DB_HOST || 'db',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || 'root',
@@ -10,49 +10,56 @@ const db = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   enableKeepAlive: true,
-  keepAliveInitialDelay: 0
+  keepAliveInitialDelay: 0,
+  connectTimeout: 60000, // Increased timeout
+  acquireTimeout: 60000,
 });
 
 // Test the connection and create table if it doesn't exist
 const initializeDatabase = async () => {
-  try {
-    const connection = await db.getConnection();
-    console.log('Database connection established');
+  let retries = 10;
+  const retryInterval = 5000; // 5 seconds
 
-    // Check if Commande table exists and has idUtilisateur column
-    const [tables] = await connection.query('SHOW TABLES LIKE "Commande"');
-    if (tables.length === 0) {
-      console.log('Creating Commande table...');
-      await connection.query(`
-        CREATE TABLE Commande (
-          id INT PRIMARY KEY AUTO_INCREMENT,
-          title VARCHAR(255) NOT NULL,
-          description TEXT,
-          status VARCHAR(50) DEFAULT 'pending',
-          idUtilisateur INT,
-          createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      console.log('Commande table created successfully');
-    } else {
-      // Check if idUtilisateur column exists
-      const [columns] = await connection.query('SHOW COLUMNS FROM Commande LIKE "idUtilisateur"');
-      if (columns.length === 0) {
-        console.log('Adding idUtilisateur column to Commande table...');
-        await connection.query('ALTER TABLE Commande ADD COLUMN idUtilisateur INT');
-        console.log('Column added successfully');
+  while (retries > 0) {
+    try {
+      const connection = await pool.getConnection();
+      console.log('Successfully connected to database');
+
+      // Check if Commande table exists
+      const [tables] = await connection.query('SHOW TABLES LIKE "Commande"');
+      if (tables.length === 0) {
+        console.log('Creating Commande table...');
+        await connection.query(`
+          CREATE TABLE IF NOT EXISTS Commande (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            title VARCHAR(255) NOT NULL,
+            description TEXT,
+            status VARCHAR(50) DEFAULT 'pending',
+            idUtilisateur INT,
+            createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+        console.log('Commande table created successfully');
       }
-    }
 
-    connection.release();
-    return true;
-  } catch (error) {
-    console.error('Database initialization error:', error);
-    return false;
+      connection.release();
+      return true;
+    } catch (error) {
+      console.error(`Database connection attempt failed (${retries} retries left):`, error.message);
+      retries--;
+      if (retries === 0) {
+        console.error('Max retries reached. Could not connect to database.');
+        throw error;
+      }
+      await new Promise(resolve => setTimeout(resolve, retryInterval));
+    }
   }
 };
 
 // Initialize the database when this module is imported
-initializeDatabase().catch(console.error);
+initializeDatabase().catch(error => {
+  console.error('Failed to initialize database:', error);
+  process.exit(1); // Exit if database initialization fails
+});
 
-module.exports = db;
+module.exports = pool;

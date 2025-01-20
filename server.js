@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const mysql = require('mysql');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const auth = require('./middleware/auth');
@@ -12,7 +11,7 @@ const app = express();
 const server = http.createServer(app);
 const io = require('socket.io')(server, {
   cors: {
-    origin: process.env.REACT_APP_API_URL || "http://localhost:3000",
+    origin: "*",
     methods: ["GET", "POST"]
   }
 });
@@ -23,11 +22,15 @@ app.get('/api/health', (req, res) => {
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Servir les fichiers statiques
+// Serve static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Import routes
@@ -99,42 +102,83 @@ app.use((err, req, res, next) => {
 // Export pour utilisation dans d'autres fichiers
 app.set('io', io);
 
-// Function to attempt database connection
-const connectToDatabase = async (retries = 5) => {
-  while (retries > 0) {
+// Function to attempt database connection with exponential backoff
+const connectToDatabase = async (maxRetries = 10) => {
+  let retries = 0;
+  const maxDelay = 30000; // Maximum delay of 30 seconds
+
+  while (retries < maxRetries) {
     try {
+      console.log(`Attempting database connection (attempt ${retries + 1}/${maxRetries})...`);
       const connection = await pool.getConnection();
       console.log('Successfully connected to the database.');
+      
+      // Test the connection with a simple query
+      await connection.query('SELECT 1');
+      console.log('Database connection verified with test query.');
+      
       connection.release();
       return true;
     } catch (err) {
-      console.log(`Failed to connect to database. Retries left: ${retries - 1}`);
-      retries--;
-      if (retries === 0) {
-        console.error('Could not connect to database after multiple attempts:', err);
+      retries++;
+      console.error(`Database connection attempt ${retries} failed:`, err.message);
+      
+      if (retries === maxRetries) {
+        console.error('Max retries reached. Could not connect to database.');
         return false;
       }
-      // Wait for 5 seconds before retrying
-      await new Promise(resolve => setTimeout(resolve, 5000));
+
+      // Calculate delay with exponential backoff (1s, 2s, 4s, 8s, etc.)
+      const delay = Math.min(1000 * Math.pow(2, retries - 1), maxDelay);
+      console.log(`Waiting ${delay/1000} seconds before next attempt...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
   return false;
 };
 
-// Start server only after attempting database connection
+// Start server with proper error handling
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
-  const dbConnected = await connectToDatabase();
-  if (dbConnected) {
+  try {
+    console.log('Starting server initialization...');
+    const dbConnected = await connectToDatabase();
+    
+    if (!dbConnected) {
+      console.error('Failed to connect to database after all retries. Exiting...');
+      process.exit(1);
+    }
+
     server.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
+      console.log(`Database host: ${process.env.DB_HOST}`);
+      console.log(`Environment: ${process.env.NODE_ENV}`);
     });
-  } else {
-    console.error('Could not start server due to database connection issues');
+
+    // Handle server errors
+    server.on('error', (error) => {
+      console.error('Server error:', error);
+      process.exit(1);
+    });
+
+  } catch (error) {
+    console.error('Fatal error during server startup:', error);
     process.exit(1);
   }
 };
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
 
 startServer();
 

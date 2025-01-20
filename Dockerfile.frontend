@@ -1,17 +1,30 @@
+# Build stage
 FROM node:20-alpine as build
 
 WORKDIR /app
 
+# Copy package files
 COPY pfe-project-front/package*.json ./
 
+# Install dependencies
 RUN npm install --legacy-peer-deps
 
+# Copy source code
 COPY pfe-project-front/ .
 
+# Set environment variables
+ENV REACT_APP_API_URL=http://localhost:5000
+ENV NODE_ENV=production
+ENV CI=false
+ENV GENERATE_SOURCEMAP=false
+
+# Build the app
 RUN npm run build
 
+# Production stage
 FROM nginx:alpine
-COPY --from=build /app/build /usr/share/nginx/html
+
+# Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Remove default nginx static assets
@@ -20,7 +33,8 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copy static assets from builder
 COPY --from=build /app/build /usr/share/nginx/html/
 
-# Expose the port we need
+# Expose port 8097
 EXPOSE 8097
 
+# Start nginx
 CMD ["nginx", "-g", "daemon off;"]

@@ -15,8 +15,17 @@ RUN mkdir -p uploads/reclamations
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=5000
+ENV DB_HOST=db
+ENV DB_PORT=3306
+ENV DB_USER=root
+ENV DB_NAME=projetpfeagil
+
+# Add wait-for-it script
+RUN apk add --no-cache bash
+COPY wait-for-it.sh /wait-for-it.sh
+RUN chmod +x /wait-for-it.sh
 
 EXPOSE 5000
 
-# Start the server
-CMD ["node", "server.js"]
+# Wait for database then start
+CMD ["/bin/bash", "-c", "/wait-for-it.sh db:3306 -t 60 -- node server.js"]
