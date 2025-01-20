@@ -40,6 +40,23 @@ const imageAnalysisRoutes = require('./routes/imageAnalysis');
 // Public routes
 app.use('/api/auth', authRoutes);
 
+// Root route
+app.get('/', (req, res) => {
+    res.json({
+        status: 'success',
+        message: 'PFE Job API is running',
+        version: '1.0.0',
+        endpoints: {
+            auth: '/api/auth',
+            commandes: '/api/commandes',
+            reclamations: '/api/reclamations',
+            users: '/api/users',
+            stations: '/api/stations',
+            products: '/api/products'
+        }
+    });
+});
+
 // Protected routes
 app.use('/api/commandes', auth, commandeRoutes);
 app.use('/api/reclamations', auth, reclamationRoutes);
@@ -50,7 +67,7 @@ app.use('/api/admin/dashboard', auth, dashboardRoutes);
 app.use('/api', auth, exportRoutes);  
 app.use('/api/recommendations', auth, recommendationRoutes);
 app.use('/api/analysis', auth, analysisRoutes);
-app.use('/api/analysis/image', imageAnalysisRoutes);
+app.use('/api/image-analysis', auth, imageAnalysisRoutes);
 
 // Log all requests
 app.use((req, res, next) => {
@@ -66,47 +83,6 @@ io.on('connection', (socket) => {
     console.log('Un client est déconnecté');
   });
 });
-
-// Fonction pour créer une connexion à la base de données
-function createConnection() {
-    const connection = mysql.createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME
-    });
-
-    // Gérer la reconnexion
-    connection.on('error', function(err) {
-        console.error('Erreur de base de données:', err);
-        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-            console.log('Tentative de reconnexion à la base de données...');
-            handleDisconnect();
-        } else {
-            throw err;
-        }
-    });
-
-    connection.connect(function(err) {
-        if (err) {
-            console.error('Erreur lors de la connexion à la base de données:', err);
-            setTimeout(handleDisconnect, 2000);
-        } else {
-            console.log('Connecté à la base de données MySQL');
-        }
-    });
-
-    return connection;
-}
-
-// Fonction pour gérer la déconnexion
-function handleDisconnect() {
-    console.log('Tentative de reconnexion à la base de données...');
-    db = createConnection();
-}
-
-// Créer la connexion initiale
-let db = createConnection();
 
 // Error handling middleware
 app.use((err, req, res, next) => {

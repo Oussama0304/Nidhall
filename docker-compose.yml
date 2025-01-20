@@ -7,17 +7,22 @@ services:
       dockerfile: Dockerfile.db
     ports:
       - "${DB_PORT}:3306"
-    env_file:
-      - .env
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_ROOT_HOST: '%'
     command: --default-authentication-plugin=mysql_native_password
     volumes:
       - db_data:/var/lib/mysql
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: always
 
   backend:
@@ -26,18 +31,20 @@ services:
       dockerfile: Dockerfile.backend
     ports:
       - "${PORT}:5000"
-    env_file:
-      - .env
     environment:
       DB_HOST: db
-      DB_USER: root
+      DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
+      DB_PORT: 3306
       NODE_ENV: ${NODE_ENV}
       JWT_SECRET: ${JWT_SECRET}
       HUGGINGFACE_API_KEY: ${HUGGINGFACE_API_KEY}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app-network
     restart: always
@@ -47,11 +54,14 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
     ports:
-      - "3000:3000"
-    env_file:
-      - .env
+      - "8097:8097"
     environment:
-      REACT_APP_API_URL: ${REACT_APP_API_URL}
+      REACT_APP_API_URL: http://localhost:5000
+      NODE_ENV: production
+      GENERATE_SOURCEMAP: "false"
+    volumes:
+      - ./pfe-project-front:/app
+      - /app/node_modules
     depends_on:
       - backend
     networks:
