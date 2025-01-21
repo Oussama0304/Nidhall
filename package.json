@@ -8,32 +8,37 @@
     "dev": "nodemon server.js",
     "init-db": "node config/initDb.js"
   },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "dependencies": {
-    "@huggingface/inference": "^2.8.1",
-    "bcryptjs": "^2.4.3",
-    "body-parser": "^1.19.0",
-    "compression": "^1.7.5",
-    "cors": "^2.8.5",
-    "date-fns": "^4.1.0",
-    "dotenv": "^16.4.7",
-    "exceljs": "^4.4.0",
-    "express": "^4.17.1",
-    "express-rate-limit": "^7.5.0",
-    "helmet": "^8.0.0",
-    "jsonwebtoken": "^8.5.1",
-    "multer": "^1.4.4",
-    "mysql": "^2.18.1",
-    "natural": "^6.10.0",
-    "node-fetch": "^2.6.7",
-    "openai": "^4.24.1",
-    "pdfkit": "^0.15.1",
-    "sentiment": "^5.0.2",
-    "sharp": "^0.33.5",
-    "socket.io": "^4.8.1",
-    "stopword": "^2.0.8",
-    "ws": "^8.18.0"
+    "@huggingface/inference": "2.8.1",
+    "bcryptjs": "2.4.3",
+    "body-parser": "1.19.0",
+    "compression": "1.7.5",
+    "cors": "2.8.5",
+    "date-fns": "2.30.0",
+    "dotenv": "16.4.7",
+    "exceljs": "4.4.0",
+    "express": "4.17.1",
+    "express-rate-limit": "7.5.0",
+    "helmet": "8.0.0",
+    "jsonwebtoken": "8.5.1",
+    "multer": "1.4.4-lts.1",
+    "mysql2": "3.6.5",
+    "natural": "6.10.0",
+    "node-fetch": "2.6.7",
+    "openai": "4.24.1",
+    "pdfkit": "0.15.1",
+    "rimraf": "5.0.5",
+    "sentiment": "5.0.2",
+    "sharp": "0.33.5",
+    "socket.io": "4.8.1",
+    "stopword": "2.0.8",
+    "ws": "8.18.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.7"
+    "nodemon": "3.0.2"
   }
 }

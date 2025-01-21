@@ -2,6 +2,10 @@
 CREATE DATABASE IF NOT EXISTS ProjetPfeAgil;
 USE ProjetPfeAgil;
 
+-- Configure l'authentification MySQL
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'ProjectPfeAgil';
+FLUSH PRIVILEGES;
+
 -- Create Utilisateur table
 CREATE TABLE IF NOT EXISTS Utilisateur (
     identifiant BIGINT PRIMARY KEY AUTO_INCREMENT,

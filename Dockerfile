@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-alpine as builder
+FROM node:18-alpine as builder
 WORKDIR /app
 
 # Installation des dépendances de build
@@ -10,7 +10,7 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 # Production stage
-FROM node:20-alpine
+FROM node:18-alpine
 WORKDIR /app
 
 # Copie des dépendances depuis le builder
@@ -20,9 +20,14 @@ COPY --from=builder /app/node_modules ./node_modules
 RUN mkdir -p uploads/reclamations public && \
     chown -R node:node /app
 
-# Copie des fichiers sources
+# Copie des fichiers du projet
 COPY . .
 
+# Utilisateur non-root
 USER node
+
+# Exposition du port
 EXPOSE 3000
-CMD ["node", "server.js"]
+
+# Commande de démarrage
+CMD ["npm", "start"]
