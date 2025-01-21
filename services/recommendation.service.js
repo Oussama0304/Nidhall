@@ -1,20 +1,31 @@
-const mysql = require('mysql');
+const mysql = require('mysql2/promise');
+
+let db = null;
 
 // Database connection
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'ProjetPfeAgil'
-});
-
-db.connect((err) => {
-    if (err) {
+async function initializeDatabase() {
+    try {
+        db = await mysql.createConnection({
+            host: process.env.DB_HOST || 'localhost',
+            user: process.env.DB_USER || 'root',
+            password: process.env.DB_PASSWORD || '',
+            database: process.env.DB_NAME || 'ProjetPfeAgil',
+            // Proper configuration options for MySQL2
+            waitForConnections: true,
+            connectionLimit: 10,
+            maxIdle: 10,
+            idleTimeout: 60000,
+            queueLimit: 0
+        });
+        console.log('Connected to MySQL database for recommendations');
+    } catch (err) {
         console.error('Error connecting to database:', err);
-        return;
+        throw err;
     }
-    console.log('Connected to MySQL database for recommendations');
-});
+}
+
+// Initialize database connection
+initializeDatabase();
 
 // Fonction pour trouver des cas similaires
 const findSimilarCases = (description) => {

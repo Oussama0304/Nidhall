@@ -34,7 +34,8 @@ services:
       - ./uploads:/app/uploads
       - ./public:/app/public
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     networks:
       - app-network
     restart: unless-stopped
@@ -49,9 +50,15 @@ services:
       - MYSQL_ROOT_HOST=%
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./database.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./migrations/fix_reclamation_data.sql:/docker-entrypoint-initdb.d/02-fix-data.sql
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pProjectPfeAgil"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     command: --default-authentication-plugin=mysql_native_password
     restart: unless-stopped
 
