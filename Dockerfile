@@ -13,6 +13,9 @@ RUN npm ci --only=production
 FROM node:18-alpine
 WORKDIR /app
 
+# Installation de curl pour le healthcheck
+RUN apk add --no-cache curl
+
 # Copie des dépendances depuis le builder
 COPY --from=builder /app/node_modules ./node_modules
 
