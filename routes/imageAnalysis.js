@@ -3,7 +3,7 @@ const router = express.Router();
 const { analyzeImage } = require('../services/imageAnalysis');
 const path = require('path');
 const auth = require('../middleware/auth');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const fs = require('fs');
 
 // Fonction pour créer une connexion à la base de données
