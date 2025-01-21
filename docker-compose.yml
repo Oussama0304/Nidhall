@@ -24,7 +24,7 @@ services:
     environment:
       - DB_HOST=database
       - DB_USER=root
-      - DB_PASSWORD=
+      - DB_PASSWORD=ProjectPfeAgil
       - DB_NAME=ProjetPfeAgil
       - NODE_ENV=production
       - EMAIL_USER=nidhal.boughanmi@esprit.tn
@@ -37,6 +37,7 @@ services:
       - database
     networks:
       - app-network
+    restart: unless-stopped
 
   database:
     image: mysql:8.0
@@ -44,12 +45,15 @@ services:
       - "3306:3306"
     environment:
       - MYSQL_DATABASE=ProjetPfeAgil
-      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_ROOT_PASSWORD=ProjectPfeAgil
+      - MYSQL_ROOT_HOST=%
     volumes:
-      - db-data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
       - ./database.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app-network
+    command: --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
 
 networks:
   app-network:
@@ -57,4 +61,4 @@ networks:
 
 volumes:
   uploads:
-  db-data:
+  mysql_data:
