@@ -29,13 +29,12 @@ services:
       - NODE_ENV=production
       - EMAIL_USER=nidhal.boughanmi@esprit.tn
       - EMAIL_PASS=Nidhalboughanmi123
-      - HUGGING_FACE_TOKEN=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
+      - HUGGINGFACE_API_KEY=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
     volumes:
       - ./uploads:/app/uploads
       - ./public:/app/public
     depends_on:
-      database:
-        condition: service_healthy
+      - database
     networks:
       - app-network
 
@@ -49,11 +48,6 @@ services:
     volumes:
       - db-data:/var/lib/mysql
       - ./database.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 5s
-      retries: 10
-      interval: 5s
     networks:
       - app-network
 

@@ -124,8 +124,8 @@ CREATE TABLE IF NOT EXISTS Reclamation (
 -- Create Commandeproduit table
 CREATE TABLE IF NOT EXISTS Commandeproduit (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    idCommande INT NOT NULL,
-    idProduit INT NOT NULL,
+    idCommande BIGINT NOT NULL,  -- Changé de INT à BIGINT
+    idProduit BIGINT NOT NULL,   -- Changé de INT à BIGINT
     quantite INT NOT NULL,
     prix DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (idCommande) REFERENCES Commande(idCommande),
