@@ -138,12 +138,12 @@ CREATE TABLE IF NOT EXISTS Commandeproduit (
 
 -- Create Mouvementstock table
 CREATE TABLE IF NOT EXISTS Mouvementstock (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    idProduit INT DEFAULT NULL,
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    idProduit BIGINT DEFAULT NULL,
     quantite INT DEFAULT NULL,
     type_mouvement ENUM('ENTREE', 'RETRAIT', 'AJUSTEMENT') DEFAULT NULL,
     date_mouvement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    idCommande INT DEFAULT NULL,
+    idCommande BIGINT DEFAULT NULL,
     raison TEXT DEFAULT NULL,
     FOREIGN KEY (idProduit) REFERENCES Produit(idProduit),
     FOREIGN KEY (idCommande) REFERENCES Commande(idCommande)
