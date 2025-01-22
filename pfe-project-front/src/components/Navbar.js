@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { AppBar, Toolbar, Typography, Button, IconButton, Box, Menu, MenuItem, useMediaQuery, useTheme } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { Link, useLocation } from 'react-router-dom';
+// Modifié pour utiliser le nom exact du fichier
+const AGILLogo = '/assets/agil-logo.png';
 
 const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -67,39 +69,20 @@ const Navbar = () => {
       }}
     >
       <Toolbar>
-        <Box
-          component={Link}
-          to="/"
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            textDecoration: 'none',
-            flexGrow: 1,
-          }}
-        >
-          <Box
-            component="img"
-            src="/assets/agil-logo.png"
-            alt="AGIL Logo"
-            sx={{
-              height: 50,
-              mr: 2,
-              transition: 'transform 0.3s ease',
-              '&:hover': {
-                transform: 'scale(1.05)',
-              },
-            }}
-          />
-          <Typography
-            variant="h6"
-            sx={{
-              color: scrolled ? 'primary.main' : 'white',
-              fontWeight: 'bold',
-              letterSpacing: 1,
-            }}
-          >
-            AGIL
-          </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <img src={AGILLogo} alt="AGIL Logo" style={{ height: '40px', marginRight: '10px' }} />
+            <Typography
+              variant="h6"
+              sx={{
+                color: scrolled ? 'primary.main' : 'white',
+                textDecoration: 'none',
+                fontWeight: 'bold',
+              }}
+            >
+              AGIL
+            </Typography>
+          </Link>
         </Box>
 
         {isMobile ? (

@@ -172,8 +172,44 @@ let db = createConnection();
 
 // Initialiser les données après la connexion
 const initializeData = require('./init/initData');
+const initializeGerantData = require('./init/initGerantData');
+const initializeUtilisateurData = require('./init/initUtilisateurData');
+const initializeDepotData = require('./init/initDepotData');
+const initializeProduitData = require('./init/initProduitData');
+const initializeMaterialData = require('./init/initMaterialData');
+const initializeCommandeData = require('./init/initCommandeData');
+const initializeLivraisonData = require('./init/initLivraisonData');
+const initializeCommandeProduitData = require('./init/initCommandeProduitData');
+const initializeMouvementStockData = require('./init/initMouvementStockData');
+
 setTimeout(() => {
-    initializeData();
+    // Initialiser les tables de base d'abord
+    initializeUtilisateurData();
+    initializeDepotData();
+    initializeProduitData();
+    
+    // Puis les tables avec des clés étrangères
+    setTimeout(() => {
+        initializeGerantData();
+        initializeMaterialData();
+        
+        // Puis les tables liées aux commandes
+        setTimeout(() => {
+            initializeCommandeData();
+            
+            // Enfin les tables dépendantes des commandes
+            setTimeout(() => {
+                initializeLivraisonData();
+                initializeCommandeProduitData();
+                initializeMouvementStockData();
+                
+                // Et les réclamations en dernier
+                setTimeout(() => {
+                    initializeData();
+                }, 1000);
+            }, 1000);
+        }, 1000);
+    }, 1000);
 }, 5000); // Attendre 5 secondes pour s'assurer que la base de données est prête
 
 // Error handling middleware
