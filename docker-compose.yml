@@ -1,45 +1,31 @@
 version: '3.8'
 
 services:
-  database:
-    image: mysql:8.0
-    command: >
-      --default-authentication-plugin=mysql_native_password
-      --ssl=0
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-    environment:
-      - MYSQL_ROOT_PASSWORD=ProjectPfeAgil
-      - MYSQL_DATABASE=ProjetPfeAgil
-      - MYSQL_ROOT_HOST=%
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./init:/docker-entrypoint-initdb.d
-      - ./mysql-logs:/var/log/mysql
+  frontend:
+    build:
+      context: ./pfe-project-front
+      dockerfile: Dockerfile
     ports:
-      - "3306:3306"
+      - "8095:80"
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=http://backend:3000
+      - REACT_APP_UPLOADS_URL=http://backend:3000/uploads
+      - REACT_APP_PUBLIC_URL=http://backend:3000/public
+    volumes:
+      - ./pfe-project-front/public:/usr/share/nginx/html/public
+      - uploads:/usr/share/nginx/html/uploads
+    depends_on:
+      backend:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pProjectPfeAgil", "--ssl-mode=DISABLED"]
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+      start_period: 10s
 
   backend:
     build:
@@ -53,100 +39,60 @@ services:
       - DB_PASSWORD=ProjectPfeAgil
       - DB_NAME=ProjetPfeAgil
       - NODE_ENV=production
-      - DB_SSL=false
       - EMAIL_USER=nidhal.boughanmi@esprit.tn
       - EMAIL_PASS=Nidhalboughanmi123
       - HUGGINGFACE_API_KEY=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
-      - LOG_LEVEL=info
     volumes:
       - ./uploads:/app/uploads
       - ./public:/app/public
-      - ./logs:/app/logs
     depends_on:
       database:
         condition: service_healthy
     networks:
       - app-network
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 15s
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-    restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+      start_period: 40s
 
-  frontend:
-    build:
-      context: ./pfe-project-front
-      dockerfile: Dockerfile
+  database:
+    image: mysql:8.0
     ports:
-      - "8095:80"
+      - "3306:3306"
     environment:
-      - NODE_ENV=production
-      - REACT_APP_API_URL=http://backend:3000
-      - REACT_APP_UPLOADS_URL=http://backend:3000/uploads
-      - REACT_APP_PUBLIC_URL=http://backend:3000/public
+      - MYSQL_ROOT_PASSWORD=ProjectPfeAgil
+      - MYSQL_DATABASE=ProjetPfeAgil
+      - MYSQL_ROOT_HOST=%
     volumes:
-      - ./pfe-project-front/public:/usr/share/nginx/html/public:ro
-      - uploads:/usr/share/nginx/html/uploads:ro
-      - ./nginx-logs:/var/log/nginx
-    depends_on:
-      backend:
-        condition: service_healthy
+      - mysql_data:/var/lib/mysql
+      - ./database.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./init/initStationService.sql:/docker-entrypoint-initdb.d/02-station.sql
+      - ./init/initProduit.sql:/docker-entrypoint-initdb.d/03-produit.sql
+      - ./init/initDepot.sql:/docker-entrypoint-initdb.d/04-depot.sql
+      - ./init/initCommande.sql:/docker-entrypoint-initdb.d/05-commande.sql
+      - ./init/initLivraison.sql:/docker-entrypoint-initdb.d/06-livraison.sql
+      - ./init/initMaterial.sql:/docker-entrypoint-initdb.d/07-material.sql
+      - ./init/initCommandeProduit.sql:/docker-entrypoint-initdb.d/08-commandeproduit.sql
+      - ./init/initMouvementStock.sql:/docker-entrypoint-initdb.d/09-mouvementstock.sql
+      - ./init/initReclamationData.sql:/docker-entrypoint-initdb.d/10-reclamation.sql
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:80 || exit 1"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
+      start_period: 30s
+    command: --default-authentication-plugin=mysql_native_password
     restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-volumes:
-  mysql_data:
-  uploads:
 
 networks:
   app-network:
     driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.20.0.0/16
+
+volumes:
+  uploads:
+  mysql_data:
