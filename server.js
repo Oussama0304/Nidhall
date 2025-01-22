@@ -170,6 +170,12 @@ function handleDisconnect() {
 // Créer la connexion initiale
 let db = createConnection();
 
+// Initialiser les données après la connexion
+const initializeData = require('./init/initData');
+setTimeout(() => {
+    initializeData();
+}, 5000); // Attendre 5 secondes pour s'assurer que la base de données est prête
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Global error handler:', err);

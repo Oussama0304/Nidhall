@@ -115,7 +115,7 @@ router.get('/reclamations/trends', (req, res) => {
             gravite,
             COUNT(*) as count,
             DATE_FORMAT(date, '%Y-%m') as month
-        FROM reclamation
+        FROM Reclamation
         GROUP BY type, etat, priority, gravite, DATE_FORMAT(date, '%Y-%m')
         ORDER BY month DESC
     `;
@@ -123,7 +123,7 @@ router.get('/reclamations/trends', (req, res) => {
     db.query(query, (err, results) => {
         if (err) {
             console.error('Error in trends query:', err);
-            return res.status(500).json({ error: "Erreur lors de l'analyse" });
+            return res.status(500).json({ message: 'Error fetching trends data' });
         }
         res.json(results);
     });
@@ -146,8 +146,8 @@ router.get('/performance/users', (req, res) => {
                 WHEN r.satisfaction = 'PEU_SATISFAIT' THEN 2
                 WHEN r.satisfaction = 'INSATISFAIT' THEN 1
             END) as satisfaction_moyenne
-        FROM utilisateur u
-        LEFT JOIN reclamation r ON (u.identifiant = r.idGerant OR u.identifiant = r.idCommercial)
+        FROM Utilisateur u
+        LEFT JOIN Reclamation r ON (u.identifiant = r.idGerant OR u.identifiant = r.idCommercial)
         WHERE u.roles IN ('COMMERCIAL', 'GERANT')
         GROUP BY u.identifiant
     `;
@@ -170,7 +170,7 @@ router.get('/reclamations/resolution-times', (req, res) => {
             AVG(estimatedResolutionTime) as avg_estimated_time,
             AVG(actualResolutionTime) as avg_actual_time,
             AVG(predicted_resolution_time) as avg_predicted_time
-        FROM reclamation
+        FROM Reclamation
         GROUP BY type, priority
     `;
     

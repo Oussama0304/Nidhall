@@ -54,7 +54,7 @@ class AnalysisService {
 
     async analyzeReclamation(reclamationData) {
         try {
-            console.log('Début de l\'analyse de la réclamation:', reclamationData.idReclamation);
+            console.log('Début de l\'analyse de la réclamation:', reclamationData.id);
             
             // Analyse de texte
             const textAnalysis = {
@@ -82,7 +82,7 @@ class AnalysisService {
             console.log('Prédictions générées:', predictions);
 
             // Sauvegarder l'analyse
-            await this.saveAnalysis(reclamationData.idReclamation, {
+            await this.saveAnalysis(reclamationData.id, {
                 text_analysis: textAnalysis,
                 image_analysis: imageAnalysis,
                 predictions: predictions
@@ -225,52 +225,38 @@ class AnalysisService {
     }
 
     async saveAnalysis(reclamationId, analysisData) {
-        try {
+        return new Promise((resolve, reject) => {
             const query = `
-                INSERT INTO ReclamationAnalytics 
-                (idReclamation, text_analysis, image_analysis, predictions, metadata)
-                VALUES (?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                text_analysis = VALUES(text_analysis),
-                image_analysis = VALUES(image_analysis),
-                predictions = VALUES(predictions),
-                metadata = VALUES(metadata)
-            `;
-            
-            await db.query(query, [
-                reclamationId,
-                JSON.stringify(analysisData.text_analysis),
-                JSON.stringify(analysisData.image_analysis),
-                JSON.stringify(analysisData.predictions),
-                JSON.stringify({ analyzed_at: new Date().toISOString(), reclamation_id: reclamationId })
-            ]);
-
-            // Mettre à jour la réclamation avec les nouvelles informations
-            const updateQuery = `
-                UPDATE Reclamation
+                UPDATE Reclamation 
                 SET 
                     sentiment_score = ?,
                     priority = ?,
                     estimatedResolutionTime = ?,
-                    categories = ?,
-                    keywords = ?
+                    image_analysis = ?,
+                    aiConfidence = ?,
+                    suggestedActions = ?
                 WHERE idReclamation = ?
             `;
-
-            await db.query(updateQuery, [
+            
+            const values = [
                 analysisData.text_analysis.sentiment_score,
                 analysisData.predictions.suggestedPriority,
                 analysisData.predictions.estimatedTime,
-                JSON.stringify(analysisData.text_analysis.category),
-                JSON.stringify(analysisData.text_analysis.keywords),
+                JSON.stringify(analysisData.image_analysis),
+                JSON.stringify({ confidence: analysisData.predictions.confidence }),
+                JSON.stringify(analysisData.predictions.aiSuggestions),
                 reclamationId
-            ]);
+            ];
 
-            return true;
-        } catch (error) {
-            console.error('Erreur lors de la sauvegarde de l\'analyse:', error);
-            throw error;
-        }
+            db.query(query, values, (err, result) => {
+                if (err) {
+                    console.error('Erreur lors de la sauvegarde de l\'analyse:', err);
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
     }
 
     extractKeywords(text) {

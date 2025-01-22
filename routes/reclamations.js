@@ -156,11 +156,16 @@ const analyzeReclamation = (description) => {
 router.get('/', auth, (req, res) => {
     const query = `
         SELECT r.*, 
-               u1.nom as nom_gerant, u1.prenom as prenom_gerant,
-               u2.nom as nom_commercial, u2.prenom as prenom_commercial
+               u1.nom as nom_commercial, 
+               u1.prenom as prenom_commercial,
+               u2.nom as nom_gerant, 
+               u2.prenom as prenom_gerant,
+               s.nom as nom_station
         FROM Reclamation r
-        LEFT JOIN Utilisateur u1 ON r.idGerant = u1.identifiant
-        LEFT JOIN Utilisateur u2 ON r.idCommercial = u2.identifiant
+        LEFT JOIN Utilisateur u1 ON r.idCommercial = u1.identifiant
+        LEFT JOIN Utilisateur u2 ON r.idGerant = u2.identifiant
+        LEFT JOIN StationService s ON r.idStation = s.idStation
+        WHERE 1=1
     `;
     
     db.query(query, (err, results) => {
