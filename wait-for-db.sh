@@ -6,7 +6,7 @@ host="$1"
 shift
 cmd="$@"
 
-until mysql -h "$host" -u root -pProjectPfeAgil -e 'SELECT 1'; do
+until mysql -h "$host" -u root -pProjectPfeAgil --ssl-mode=DISABLED -e 'SELECT 1'; do
   >&2 echo "MySQL is unavailable - sleeping"
   sleep 1
 done

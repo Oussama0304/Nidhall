@@ -3,10 +3,15 @@ version: '3.8'
 services:
   database:
     image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --ssl=0
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
     environment:
       - MYSQL_ROOT_PASSWORD=ProjectPfeAgil
       - MYSQL_DATABASE=ProjetPfeAgil
+      - MYSQL_ROOT_HOST=%
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init:/docker-entrypoint-initdb.d
@@ -16,7 +21,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pProjectPfeAgil"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pProjectPfeAgil", "--ssl-mode=DISABLED"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,6 +53,7 @@ services:
       - DB_PASSWORD=ProjectPfeAgil
       - DB_NAME=ProjetPfeAgil
       - NODE_ENV=production
+      - DB_SSL=false
       - EMAIL_USER=nidhal.boughanmi@esprit.tn
       - EMAIL_PASS=Nidhalboughanmi123
       - HUGGINGFACE_API_KEY=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
@@ -108,7 +114,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:80 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
