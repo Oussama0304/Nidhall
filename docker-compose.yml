@@ -21,11 +21,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 10s
+      test: ["CMD", "/healthcheck.sh"]
+      interval: 30s
       timeout: 5s
-      retries: 5
-      start_period: 10s
+      retries: 3
+      start_period: 30s
 
   backend:
     build:
@@ -52,11 +52,11 @@ services:
       - app-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
-      interval: 10s
+      test: ["CMD", "/healthcheck.sh"]
+      interval: 30s
       timeout: 5s
-      retries: 5
-      start_period: 40s
+      retries: 3
+      start_period: 30s
 
   database:
     image: mysql:8.0
@@ -81,10 +81,10 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
-      interval: 10s
+      test: ["CMD", "/healthcheck.sh"]
+      interval: 30s
       timeout: 5s
-      retries: 5
+      retries: 3
       start_period: 30s
     command: --default-authentication-plugin=mysql_native_password
     restart: unless-stopped
