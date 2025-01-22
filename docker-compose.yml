@@ -13,8 +13,8 @@ services:
       - REACT_APP_UPLOADS_URL=http://backend:3000/uploads
       - REACT_APP_PUBLIC_URL=http://backend:3000/public
     volumes:
-      - ./pfe-project-front/public:/usr/share/nginx/html/public
-      - uploads:/usr/share/nginx/html/uploads
+      - ./pfe-project-front/public:/usr/share/nginx/html/public:ro
+      - uploads:/usr/share/nginx/html/uploads:ro
     depends_on:
       backend:
         condition: service_healthy
@@ -23,9 +23,15 @@ services:
     healthcheck:
       test: ["CMD", "/healthcheck.sh"]
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 3
       start_period: 30s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
 
   backend:
     build:
@@ -50,49 +56,49 @@ services:
         condition: service_healthy
     networks:
       - app-network
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "/healthcheck.sh"]
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 3
       start_period: 30s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
 
   database:
     image: mysql:8.0
-    ports:
-      - "3306:3306"
+    command: --default-authentication-plugin=mysql_native_password
     environment:
       - MYSQL_ROOT_PASSWORD=ProjectPfeAgil
       - MYSQL_DATABASE=ProjetPfeAgil
-      - MYSQL_ROOT_HOST=%
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./database.sql:/docker-entrypoint-initdb.d/01-schema.sql
-      - ./init/initStationService.sql:/docker-entrypoint-initdb.d/02-station.sql
-      - ./init/initProduit.sql:/docker-entrypoint-initdb.d/03-produit.sql
-      - ./init/initDepot.sql:/docker-entrypoint-initdb.d/04-depot.sql
-      - ./init/initCommande.sql:/docker-entrypoint-initdb.d/05-commande.sql
-      - ./init/initLivraison.sql:/docker-entrypoint-initdb.d/06-livraison.sql
-      - ./init/initMaterial.sql:/docker-entrypoint-initdb.d/07-material.sql
-      - ./init/initCommandeProduit.sql:/docker-entrypoint-initdb.d/08-commandeproduit.sql
-      - ./init/initMouvementStock.sql:/docker-entrypoint-initdb.d/09-mouvementstock.sql
-      - ./init/initReclamationData.sql:/docker-entrypoint-initdb.d/10-reclamation.sql
+      - ./init:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "/healthcheck.sh"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pProjectPfeAgil"]
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 3
-      start_period: 30s
-    command: --default-authentication-plugin=mysql_native_password
+      start_period: 40s
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+
+volumes:
+  mysql_data:
+  uploads:
 
 networks:
   app-network:
     driver: bridge
-
-volumes:
-  uploads:
-  mysql_data:
