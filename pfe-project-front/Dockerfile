@@ -1,47 +1,44 @@
 # Build stage
-FROM node:18-alpine as build
+FROM node:16-alpine as build
+
 WORKDIR /app
 
-# Définir les arguments de build
-ARG REACT_APP_API_URL
-ARG REACT_APP_UPLOADS_URL
-ARG REACT_APP_PUBLIC_URL
-
-# Définir les variables d'environnement
-ENV REACT_APP_API_URL=$REACT_APP_API_URL
-ENV REACT_APP_UPLOADS_URL=$REACT_APP_UPLOADS_URL
-ENV REACT_APP_PUBLIC_URL=$REACT_APP_PUBLIC_URL
-
-# Copier package.json et package-lock.json
+# Copy package files
 COPY package*.json ./
 
-# Installer les dépendances
-RUN npm install
+# Install dependencies
+RUN npm install --legacy-peer-deps
 
-# Copier le reste des fichiers
+# Copy source code
 COPY . .
 
-# Construire l'application
+# Set environment variables with default values
+ENV REACT_APP_API_URL=http://backend:3000
+ENV REACT_APP_UPLOADS_URL=http://backend:3000/uploads
+ENV REACT_APP_PUBLIC_URL=http://backend:3000/public
+ENV NODE_ENV=production
+
+# Build the app
 RUN npm run build
 
 # Production stage
-FROM nginx:1.25-alpine
+FROM nginx:alpine
 
-# Supprimer la configuration par défaut
-RUN rm /etc/nginx/conf.d/default.conf
+# Remove default nginx static assets
+RUN rm -rf /usr/share/nginx/html/*
 
-# Copier la configuration nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copier les fichiers buildés
+# Copy static assets from builder stage
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Créer les dossiers nécessaires
-RUN mkdir -p /usr/share/nginx/html/uploads
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Définir les permissions correctes
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
+# Create necessary directories
+RUN mkdir -p /usr/share/nginx/html/uploads
+RUN mkdir -p /usr/share/nginx/html/public
+
+# Ensure proper permissions
+RUN chown -R nginx:nginx /usr/share/nginx/html
 
 EXPOSE 80
 
