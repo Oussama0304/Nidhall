@@ -6,13 +6,13 @@ services:
       context: ./pfe-project-front
       dockerfile: Dockerfile
       args:
-        - REACT_APP_API_URL=http://localhost:3000
+        - REACT_APP_API_URL=http://backend:3000
     ports:
       - "8095:80"
     environment:
-      - REACT_APP_API_URL=http://localhost:3000
-      - REACT_APP_UPLOADS_URL=http://localhost:3000/uploads
-      - REACT_APP_PUBLIC_URL=http://localhost:3000/public
+      - REACT_APP_API_URL=http://backend:3000
+      - REACT_APP_UPLOADS_URL=http://backend:3000/uploads
+      - REACT_APP_PUBLIC_URL=http://backend:3000/public
       - NODE_ENV=production
     volumes:
       - ./pfe-project-front/public:/usr/share/nginx/html/public
