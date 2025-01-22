@@ -1,37 +1,40 @@
 version: '3.8'
 
 services:
-  frontend:
-    build:
-      context: ./pfe-project-front
-      dockerfile: Dockerfile
-    ports:
-      - "8095:80"
+  database:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
     environment:
-      - NODE_ENV=production
-      - REACT_APP_API_URL=http://backend:3000
-      - REACT_APP_UPLOADS_URL=http://backend:3000/uploads
-      - REACT_APP_PUBLIC_URL=http://backend:3000/public
+      - MYSQL_ROOT_PASSWORD=ProjectPfeAgil
+      - MYSQL_DATABASE=ProjetPfeAgil
     volumes:
-      - ./pfe-project-front/public:/usr/share/nginx/html/public:ro
-      - uploads:/usr/share/nginx/html/uploads:ro
-    depends_on:
-      backend:
-        condition: service_healthy
+      - mysql_data:/var/lib/mysql
+      - ./init:/docker-entrypoint-initdb.d
+      - ./mysql-logs:/var/log/mysql
+    ports:
+      - "3306:3306"
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "/healthcheck.sh"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pProjectPfeAgil"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
       start_period: 30s
-    restart: unless-stopped
     deploy:
       resources:
         limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
           cpus: '0.5'
           memory: 512M
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   backend:
     build:
@@ -48,52 +51,87 @@ services:
       - EMAIL_USER=nidhal.boughanmi@esprit.tn
       - EMAIL_PASS=Nidhalboughanmi123
       - HUGGINGFACE_API_KEY=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
+      - LOG_LEVEL=info
     volumes:
       - ./uploads:/app/uploads
       - ./public:/app/public
+      - ./logs:/app/logs
     depends_on:
       database:
         condition: service_healthy
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "/healthcheck.sh"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    restart: unless-stopped
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     deploy:
       resources:
         limits:
           cpus: '1.0'
           memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  database:
-    image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password
-    environment:
-      - MYSQL_ROOT_PASSWORD=ProjectPfeAgil
-      - MYSQL_DATABASE=ProjetPfeAgil
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./init:/docker-entrypoint-initdb.d
+  frontend:
+    build:
+      context: ./pfe-project-front
+      dockerfile: Dockerfile
     ports:
-      - "3306:3306"
+      - "8095:80"
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=http://backend:3000
+      - REACT_APP_UPLOADS_URL=http://backend:3000/uploads
+      - REACT_APP_PUBLIC_URL=http://backend:3000/public
+    volumes:
+      - ./pfe-project-front/public:/usr/share/nginx/html/public:ro
+      - uploads:/usr/share/nginx/html/uploads:ro
+      - ./nginx-logs:/var/log/nginx
+    depends_on:
+      backend:
+        condition: service_healthy
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pProjectPfeAgil"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    restart: unless-stopped
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 1G
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   mysql_data:
@@ -102,3 +140,7 @@ volumes:
 networks:
   app-network:
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16

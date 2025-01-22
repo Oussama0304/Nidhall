@@ -6,6 +6,7 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
+# Install build dependencies
 RUN apk add --no-cache python3 make g++
 RUN npm ci --only=production
 
@@ -14,13 +15,14 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install necessary utilities for healthcheck
+# Install necessary utilities for healthcheck and database connection
 RUN apk update && \
     apk add --no-cache \
     curl \
     bash \
     procps \
     net-tools \
+    mysql-client \
     && rm -rf /var/cache/apk/*
 
 # Create app user
@@ -35,19 +37,21 @@ RUN mkdir -p /app/uploads /app/public && \
 COPY --from=builder /app/node_modules ./node_modules
 COPY . .
 
-# Copy healthcheck script
+# Copy healthcheck and wait-for-db scripts
 COPY healthcheck.sh /healthcheck.sh
-RUN chmod +x /healthcheck.sh
-
-# Create endpoint for healthcheck
-RUN echo 'app.get("/api/health", (req, res) => res.status(200).json({ status: "healthy" }));' >> src/app.js
+COPY wait-for-db.sh /wait-for-db.sh
+RUN chmod +x /healthcheck.sh /wait-for-db.sh && \
+    chown appuser:appgroup /healthcheck.sh /wait-for-db.sh
 
 # Switch to non-root user
 USER appuser
 
+# Expose port
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+# Configure healthcheck
+HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=5 \
     CMD /healthcheck.sh
 
-CMD ["npm", "start"]
+# Start the application with database wait
+CMD ["/wait-for-db.sh", "database", "node", "src/server.js"]

@@ -8,28 +8,28 @@ fi
 
 # Vérifier si le fichier index.html existe
 if [ ! -f /usr/share/nginx/html/index.html ]; then
-    echo "Le fichier index.html n'existe pas"
+    echo "index.html n'existe pas"
     exit 1
 fi
 
 # Vérifier si nginx écoute sur le port 80
-if ! netstat -an | grep "LISTEN" | grep ":80 " > /dev/null; then
+if ! netstat -tln | grep -q ':80\b'; then
     echo "Nginx n'écoute pas sur le port 80"
     exit 1
 fi
 
-# Vérifier l'accès HTTP local
-response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80/)
-if [ "$response" != "200" ]; then
-    echo "Échec de l'accès HTTP: $response"
+# Vérifier l'accès HTTP
+if ! curl -f -s -m 5 http://localhost:80 > /dev/null; then
+    echo "Impossible d'accéder à l'application via HTTP"
     exit 1
 fi
 
 # Vérifier les permissions des répertoires
-if [ ! -w "/usr/share/nginx/html/uploads" ] || [ ! -w "/usr/share/nginx/html/public" ]; then
-    echo "Problème de permissions sur les répertoires uploads ou public"
+if [ ! -r /usr/share/nginx/html ] || [ ! -x /usr/share/nginx/html ]; then
+    echo "Permissions incorrectes sur /usr/share/nginx/html"
     exit 1
 fi
 
-echo "Le conteneur est en bonne santé"
+# Si tout est OK
+echo "Frontend en bonne santé"
 exit 0
