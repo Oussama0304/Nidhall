@@ -1,64 +1,6 @@
 version: '3.8'
 
 services:
-  frontend:
-    build:
-      context: ./pfe-project-front
-      dockerfile: Dockerfile
-      args:
-        - REACT_APP_API_URL=http://localhost:3000
-        - REACT_APP_UPLOADS_URL=http://localhost:3000/uploads
-        - REACT_APP_PUBLIC_URL=http://localhost:3000/public
-    ports:
-      - "8095:80"
-    environment:
-      - NODE_ENV=production
-    volumes:
-      - ./pfe-project-front/public:/usr/share/nginx/html/public:ro
-      - uploads:/usr/share/nginx/html/uploads:ro
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - DB_HOST=database
-      - DB_USER=root
-      - DB_PASSWORD=ProjectPfeAgil
-      - DB_NAME=ProjetPfeAgil
-      - NODE_ENV=production
-      - EMAIL_USER=nidhal.boughanmi@esprit.tn
-      - EMAIL_PASS=Nidhalboughanmi123
-      - HUGGINGFACE_API_KEY=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
-    volumes:
-      - ./uploads:/app/uploads
-      - ./public:/app/public
-    depends_on:
-      database:
-        condition: service_healthy
-    networks:
-      - app-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 40s
-
   database:
     image: mysql:8.0
     ports:
@@ -89,6 +31,65 @@ services:
       start_period: 30s
     command: --default-authentication-plugin=mysql_native_password
     restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=database
+      - DB_USER=root
+      - DB_PASSWORD=ProjectPfeAgil
+      - DB_NAME=ProjetPfeAgil
+      - NODE_ENV=production
+      - EMAIL_USER=nidhal.boughanmi@esprit.tn
+      - EMAIL_PASS=Nidhalboughanmi123
+      - HUGGINGFACE_API_KEY=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
+    volumes:
+      - ./uploads:/app/uploads
+      - ./public:/app/public
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: on-failure:3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./pfe-project-front
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_URL=http://localhost:3000
+        - REACT_APP_UPLOADS_URL=http://localhost:3000/uploads
+        - REACT_APP_PUBLIC_URL=http://localhost:3000/public
+    ports:
+      - "8095:80"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./pfe-project-front/public:/usr/share/nginx/html/public:ro
+      - uploads:/usr/share/nginx/html/uploads:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: on-failure:3
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 networks:
   app-network:
