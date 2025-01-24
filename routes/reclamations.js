@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const pool = require('../config/db');
 const auth = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
@@ -153,7 +153,7 @@ const analyzeReclamation = (description) => {
 };
 
 // Get all reclamations
-router.get('/', auth, (req, res) => {
+router.get('/', auth, async (req, res) => {
     console.log('Fetching all reclamations...');
     const query = `
         SELECT r.*, 
@@ -167,18 +167,18 @@ router.get('/', auth, (req, res) => {
         ORDER BY r.date DESC
     `;
     
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Erreur SQL GET all:', err);
-            return res.status(500).json({ error: "Erreur lors de la récupération des réclamations", details: err.message });
-        }
+    try {
+        const [results] = await pool.promise().query(query);
         console.log(`Found ${results.length} reclamations`);
         res.json(results);
-    });
+    } catch (err) {
+        console.error('Erreur SQL GET all:', err);
+        res.status(500).json({ error: "Erreur lors de la récupération des réclamations", details: err.message });
+    }
 });
 
 // Get reclamations for current user
-router.get('/user', auth, (req, res) => {
+router.get('/user', auth, async (req, res) => {
     const userId = req.user.id;
     const userRole = req.user.role;
     console.log('User ID from token:', userId, 'Role:', userRole);
@@ -213,14 +213,14 @@ router.get('/user', auth, (req, res) => {
     
     console.log('Executing query:', query, 'with params:', queryParams);
     
-    db.query(query, queryParams, (err, results) => {
-        if (err) {
-            console.error('Erreur SQL GET user reclamations:', err);
-            return res.status(500).json({ error: "Erreur lors de la récupération des réclamations de l'utilisateur", details: err.message });
-        }
+    try {
+        const [results] = await pool.promise().query(query, queryParams);
         console.log('Réclamations trouvées:', results.length);
         res.json(results);
-    });
+    } catch (err) {
+        console.error('Erreur SQL GET user reclamations:', err);
+        res.status(500).json({ error: "Erreur lors de la récupération des réclamations de l'utilisateur", details: err.message });
+    }
 });
 
 // Create new reclamation
@@ -275,12 +275,8 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
             values.push(JSON.stringify(imageAnalysis));
         }
 
-        db.query(query, values, (err, result) => {
-            if (err) {
-                console.error('Erreur SQL INSERT:', err);
-                return res.status(500).json({ error: "Erreur lors de la création de la réclamation" });
-            }
-
+        try {
+            const [result] = await pool.promise().query(query, values);
             const getNewReclamationQuery = `
                 SELECT r.*, 
                        u1.nom as nom_gerant, u1.prenom as prenom_gerant,
@@ -291,25 +287,18 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
                 WHERE r.idReclamation = ?
             `;
 
-            db.query(getNewReclamationQuery, [result.insertId], (err, reclamation) => {
-                if (err) {
-                    console.error('Erreur lors de la récupération de la nouvelle réclamation:', err);
-                    return res.status(201).json({
-                        message: "Réclamation créée avec succès",
-                        id: result.insertId,
-                        imageAnalysis
-                    });
-                }
-
-                res.status(201).json({
-                    message: "Réclamation créée avec succès",
-                    id: result.insertId,
-                    reclamation: reclamation[0],
-                    analysis,
-                    imageAnalysis
-                });
+            const [reclamation] = await pool.promise().query(getNewReclamationQuery, [result.insertId]);
+            res.status(201).json({
+                message: "Réclamation créée avec succès",
+                id: result.insertId,
+                reclamation: reclamation[0],
+                analysis,
+                imageAnalysis
             });
-        });
+        } catch (err) {
+            console.error('Erreur SQL INSERT:', err);
+            res.status(500).json({ error: "Erreur lors de la création de la réclamation" });
+        }
     } catch (error) {
         console.error('Erreur lors de la création de la réclamation:', error);
         res.status(500).json({ message: error.message });
@@ -317,7 +306,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
 });
 
 // Get reclamation by ID
-router.get('/:id', auth, (req, res) => {
+router.get('/:id', auth, async (req, res) => {
     const userId = req.user.id;
     const userRole = req.user.role;
     
@@ -338,20 +327,20 @@ router.get('/:id', auth, (req, res) => {
         )
     `;
     
-    db.query(query, [req.params.id, userId, userId, userId], (err, results) => {
-        if (err) {
-            console.error('Erreur SQL GET by ID:', err);
-            return res.status(500).json({ error: "Erreur lors de la récupération de la réclamation" });
-        }
+    try {
+        const [results] = await pool.promise().query(query, [req.params.id, userId, userId, userId]);
         if (results.length === 0) {
             return res.status(404).json({ error: "Réclamation non trouvée ou accès non autorisé" });
         }
         res.json(results[0]);
-    });
+    } catch (err) {
+        console.error('Erreur SQL GET by ID:', err);
+        res.status(500).json({ error: "Erreur lors de la récupération de la réclamation" });
+    }
 });
 
 // Update reclamation status
-router.put('/:id/status', auth, (req, res) => {
+router.put('/:id/status', auth, async (req, res) => {
     const { etat } = req.body;
     const userId = req.user.id;
     const userRole = req.user.role;
@@ -374,25 +363,19 @@ router.put('/:id/status', auth, (req, res) => {
         )
     `;
     
-    db.query(checkQuery, [req.params.id, userId, userId, userId, userId], (err, results) => {
-        if (err) {
-            console.error('Erreur SQL check permission:', err);
-            return res.status(500).json({ error: "Erreur lors de la vérification des permissions" });
-        }
-        
+    try {
+        const [results] = await pool.promise().query(checkQuery, [req.params.id, userId, userId, userId, userId]);
         if (results.length === 0) {
             return res.status(403).json({ error: "Non autorisé à modifier cette réclamation" });
         }
         
         const updateQuery = 'UPDATE Reclamation SET etat = ? WHERE idReclamation = ?';
-        db.query(updateQuery, [etat, req.params.id], (err, result) => {
-            if (err) {
-                console.error('Erreur SQL UPDATE status:', err);
-                return res.status(500).json({ error: "Erreur lors de la mise à jour du statut" });
-            }
-            res.json({ message: "Statut mis à jour avec succès" });
-        });
-    });
+        await pool.promise().query(updateQuery, [etat, req.params.id]);
+        res.json({ message: "Statut mis à jour avec succès" });
+    } catch (err) {
+        console.error('Erreur SQL UPDATE status:', err);
+        res.status(500).json({ error: "Erreur lors de la mise à jour du statut" });
+    }
 });
 
 module.exports = router;
