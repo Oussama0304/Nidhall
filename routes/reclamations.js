@@ -184,17 +184,14 @@ router.get('/user', auth, (req, res) => {
     console.log('User ID from token:', userId, 'Role:', userRole);
     
     let query = `
-        SELECT DISTINCT r.*, 
+        SELECT r.*, 
                u1.nom as nom_gerant, 
                u1.prenom as prenom_gerant,
                u2.nom as nom_commercial, 
-               u2.prenom as prenom_commercial,
-               s.nom as nom_station
+               u2.prenom as prenom_commercial
         FROM Reclamation r
         LEFT JOIN Utilisateur u1 ON r.idGerant = u1.identifiant
         LEFT JOIN Utilisateur u2 ON r.idCommercial = u2.identifiant
-        LEFT JOIN Gerant g ON r.idGerant = g.idGerant
-        LEFT JOIN StationService s ON g.idStation = s.idStation
     `;
     
     const queryParams = [];
@@ -204,9 +201,7 @@ router.get('/user', auth, (req, res) => {
         query += ' WHERE r.idGerant = ?';
         queryParams.push(userId);
     } else if (userRole === 'COMMERCIAL') {
-        // Pour les commerciaux, montrer toutes les réclamations qui leur sont assignées
-        // ou qui n'ont pas encore de commercial assigné
-        query += ' WHERE (r.idCommercial = ? OR r.idCommercial IS NULL)';
+        query += ' WHERE r.idCommercial = ?';
         queryParams.push(userId);
     } else if (userRole === 'ADMIN') {
         // Pas de condition WHERE pour l'admin
@@ -221,23 +216,10 @@ router.get('/user', auth, (req, res) => {
     db.query(query, queryParams, (err, results) => {
         if (err) {
             console.error('Erreur SQL GET user reclamations:', err);
-            return res.status(500).json({ 
-                error: "Erreur lors de la récupération des réclamations de l'utilisateur", 
-                details: err.message,
-                query: query,
-                params: queryParams
-            });
+            return res.status(500).json({ error: "Erreur lors de la récupération des réclamations de l'utilisateur", details: err.message });
         }
         console.log('Réclamations trouvées:', results.length);
-        
-        // Transformer les données JSON stockées en objets
-        const transformedResults = results.map(rec => ({
-            ...rec,
-            image_analysis: rec.image_analysis ? JSON.parse(rec.image_analysis) : null,
-            suggestedActions: rec.suggestedActions ? JSON.parse(rec.suggestedActions) : null
-        }));
-        
-        res.json(transformedResults);
+        res.json(results);
     });
 });
 
