@@ -254,60 +254,62 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
             INSERT INTO Reclamation 
             (description, type, idGerant, idCommercial, date, etat, image_url, 
              priority, satisfaction, gravite, sentiment_score, estimatedResolutionTime, image_analysis)
-            VALUES (?, ?, ?, ?, NOW(), 'En instance', ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, NOW(), 'En instance', ?, ?, ?, ?, ?, ?, 
+            ${imageAnalysis ? 'CAST(? AS JSON)' : 'NULL'})
         `;
 
-        db.query(
-            query,
-            [
-                description,
-                finalType,
-                idGerant,
-                userRole === 'COMMERCIAL' ? userId : null,
-                imageUrl,
-                analysis.priority,
-                analysis.sentiment.satisfaction,
-                analysis.sentiment.gravite,
-                analysis.sentiment.score,
-                analysis.estimatedResolutionTime,
-                imageAnalysis ? JSON.stringify(imageAnalysis) : null
-            ],
-            (err, result) => {
+        const values = [
+            description,
+            finalType,
+            idGerant,
+            userRole === 'COMMERCIAL' ? userId : null,
+            imageUrl,
+            analysis.priority,
+            analysis.sentiment.satisfaction,
+            analysis.sentiment.gravite,
+            analysis.sentiment.score,
+            analysis.estimatedResolutionTime
+        ];
+
+        if (imageAnalysis) {
+            values.push(JSON.stringify(imageAnalysis));
+        }
+
+        db.query(query, values, (err, result) => {
+            if (err) {
+                console.error('Erreur SQL INSERT:', err);
+                return res.status(500).json({ error: "Erreur lors de la création de la réclamation" });
+            }
+
+            const getNewReclamationQuery = `
+                SELECT r.*, 
+                       u1.nom as nom_gerant, u1.prenom as prenom_gerant,
+                       u2.nom as nom_commercial, u2.prenom as prenom_commercial
+                FROM Reclamation r
+                LEFT JOIN Utilisateur u1 ON r.idGerant = u1.identifiant
+                LEFT JOIN Utilisateur u2 ON r.idCommercial = u2.identifiant
+                WHERE r.idReclamation = ?
+            `;
+
+            db.query(getNewReclamationQuery, [result.insertId], (err, reclamation) => {
                 if (err) {
-                    console.error('Erreur SQL INSERT:', err);
-                    return res.status(500).json({ error: "Erreur lors de la création de la réclamation" });
-                }
-
-                const getNewReclamationQuery = `
-                    SELECT r.*, 
-                           u1.nom as nom_gerant, u1.prenom as prenom_gerant,
-                           u2.nom as nom_commercial, u2.prenom as prenom_commercial
-                    FROM Reclamation r
-                    LEFT JOIN Utilisateur u1 ON r.idGerant = u1.identifiant
-                    LEFT JOIN Utilisateur u2 ON r.idCommercial = u2.identifiant
-                    WHERE r.idReclamation = ?
-                `;
-
-                db.query(getNewReclamationQuery, [result.insertId], (err, reclamation) => {
-                    if (err) {
-                        console.error('Erreur lors de la récupération de la nouvelle réclamation:', err);
-                        return res.status(201).json({
-                            message: "Réclamation créée avec succès",
-                            id: result.insertId,
-                            imageAnalysis
-                        });
-                    }
-
-                    res.status(201).json({
+                    console.error('Erreur lors de la récupération de la nouvelle réclamation:', err);
+                    return res.status(201).json({
                         message: "Réclamation créée avec succès",
                         id: result.insertId,
-                        reclamation: reclamation[0],
-                        analysis,
                         imageAnalysis
                     });
+                }
+
+                res.status(201).json({
+                    message: "Réclamation créée avec succès",
+                    id: result.insertId,
+                    reclamation: reclamation[0],
+                    analysis,
+                    imageAnalysis
                 });
-            }
-        );
+            });
+        });
     } catch (error) {
         console.error('Erreur lors de la création de la réclamation:', error);
         res.status(500).json({ message: error.message });
@@ -321,8 +323,10 @@ router.get('/:id', auth, (req, res) => {
     
     const query = `
         SELECT r.*, 
-               u1.nom as nom_gerant, u1.prenom as prenom_gerant,
-               u2.nom as nom_commercial, u2.prenom as prenom_commercial
+               u1.nom as nom_gerant, 
+               u1.prenom as prenom_gerant,
+               u2.nom as nom_commercial, 
+               u2.prenom as prenom_commercial
         FROM Reclamation r
         LEFT JOIN Utilisateur u1 ON r.idGerant = u1.identifiant
         LEFT JOIN Utilisateur u2 ON r.idCommercial = u2.identifiant

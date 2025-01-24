@@ -168,8 +168,7 @@ router.get('/reclamations/resolution-times', (req, res) => {
             type,
             priority,
             AVG(estimatedResolutionTime) as avg_estimated_time,
-            AVG(actualResolutionTime) as avg_actual_time,
-            AVG(predicted_resolution_time) as avg_predicted_time
+            AVG(actualResolutionTime) as avg_actual_time
         FROM Reclamation
         GROUP BY type, priority
     `;
