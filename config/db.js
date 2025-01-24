@@ -3,14 +3,15 @@ const mysql = require('mysql2');
 const db = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
+    password: process.env.DB_PASSWORD || 'ProjectPfeAgil',
     database: process.env.DB_NAME || 'ProjetPfeAgil',
     connectionLimit: 10,
-    connectTimeout: 20000,
-    acquireTimeout: 20000,
-    timeout: 20000,
+    connectTimeout: 60000,
+    acquireTimeout: 60000,
+    timeout: 60000,
     waitForConnections: true,
-    queueLimit: 0
+    queueLimit: 0,
+    charset: 'utf8mb4'
 });
 
 // Ajouter la colonne idUtilisateur si elle n'existe pas
@@ -56,15 +57,21 @@ const addUserIdColumn = () => {
     });
 };
 
-// Vérifier la connexion
-db.getConnection((err, connection) => {
-    if (err) {
+// Fonction pour tester la connexion
+const testConnection = async () => {
+    try {
+        const connection = await db.promise().getConnection();
+        console.log('Connexion à la base de données établie avec succès');
+        connection.release();
+        addUserIdColumn();
+    } catch (err) {
         console.error('Erreur de connexion à la base de données:', err);
-        return;
+        // Attendre 5 secondes avant de réessayer
+        setTimeout(testConnection, 5000);
     }
-    console.log('Connecté à la base de données MySQL');
-    connection.release();
-    addUserIdColumn();
-});
+};
+
+// Tester la connexion au démarrage
+testConnection();
 
 module.exports = db;

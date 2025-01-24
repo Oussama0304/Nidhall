@@ -242,10 +242,11 @@ const CommercialDashboard = () => {
 
   useEffect(() => {
     // Connexion Socket.IO
-    const newSocket = io('http://localhost:3001', {
+    const socketUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+    const newSocket = io(socketUrl, {
       transports: ['websocket', 'polling'],
       cors: {
-        origin: "http://localhost:3001",
+        origin: socketUrl,
         methods: ["GET", "POST"]
       }
     });
@@ -254,9 +255,11 @@ const CommercialDashboard = () => {
     // Écouter les nouvelles commandes
     newSocket.on('nouvelle-commande', (commande) => {
       console.log('Nouvelle commande reçue:', commande);
-      setNotification({
-        message: `Nouvelle commande #${commande.idCommande} reçue !`,
-        severity: 'info'
+      addNotification({
+        message: `Nouvelle commande #${commande.RefCommande} reçue`,
+        severity: 'info',
+        title: 'Nouvelle Commande',
+        details: `Date: ${new Date(commande.date).toLocaleDateString()}`
       });
       fetchCommandes();
     });
@@ -264,9 +267,11 @@ const CommercialDashboard = () => {
     // Écouter les nouvelles réclamations
     newSocket.on('nouvelle-reclamation', (reclamation) => {
       console.log('Nouvelle réclamation reçue:', reclamation);
-      setNotification({
-        message: `Nouvelle réclamation #${reclamation.idReclamation} reçue !`,
-        severity: 'info'
+      addNotification({
+        message: `Nouvelle réclamation #${reclamation.idReclamation} reçue`,
+        severity: 'info',
+        title: 'Nouvelle Réclamation',
+        details: `Type: ${reclamation.type}`
       });
       fetchReclamations();
     });
@@ -323,16 +328,16 @@ const CommercialDashboard = () => {
 
   const fetchReclamations = async () => {
     try {
-      const response = await api.get('/reclamations');
-      // Filtrer uniquement les réclamations commerciales
-      const reclamationsCommerciales = response.data.filter(rec => rec.type === 'COMMERCIALE');
-      setReclamations(reclamationsCommerciales);
+      setLoading(true);
+      console.log('Fetching reclamations...');
+      const response = await api.get('/reclamations/user');
+      console.log('Reclamations received:', response.data);
+      setReclamations(response.data);
     } catch (error) {
       console.error('Erreur lors de la récupération des réclamations:', error);
-      setNotification({
-        message: 'Erreur lors de la récupération des réclamations',
-        severity: 'error'
-      });
+      showNotification('Erreur lors de la récupération des réclamations', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 

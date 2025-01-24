@@ -154,25 +154,25 @@ const analyzeReclamation = (description) => {
 
 // Get all reclamations
 router.get('/', auth, (req, res) => {
+    console.log('Fetching all reclamations...');
     const query = `
         SELECT r.*, 
                u1.nom as nom_commercial, 
                u1.prenom as prenom_commercial,
                u2.nom as nom_gerant, 
-               u2.prenom as prenom_gerant,
-               s.nom as nom_station
+               u2.prenom as prenom_gerant
         FROM Reclamation r
         LEFT JOIN Utilisateur u1 ON r.idCommercial = u1.identifiant
         LEFT JOIN Utilisateur u2 ON r.idGerant = u2.identifiant
-        LEFT JOIN StationService s ON r.idStation = s.idStation
-        WHERE 1=1
+        ORDER BY r.date DESC
     `;
     
     db.query(query, (err, results) => {
         if (err) {
             console.error('Erreur SQL GET all:', err);
-            return res.status(500).json({ error: "Erreur lors de la récupération des réclamations" });
+            return res.status(500).json({ error: "Erreur lors de la récupération des réclamations", details: err.message });
         }
+        console.log(`Found ${results.length} reclamations`);
         res.json(results);
     });
 });
@@ -185,33 +185,38 @@ router.get('/user', auth, (req, res) => {
     
     let query = `
         SELECT r.*, 
-               u1.nom as nom_gerant, u1.prenom as prenom_gerant,
-               u2.nom as nom_commercial, u2.prenom as prenom_commercial
+               u1.nom as nom_gerant, 
+               u1.prenom as prenom_gerant,
+               u2.nom as nom_commercial, 
+               u2.prenom as prenom_commercial
         FROM Reclamation r
         LEFT JOIN Utilisateur u1 ON r.idGerant = u1.identifiant
         LEFT JOIN Utilisateur u2 ON r.idCommercial = u2.identifiant
-        WHERE 1=0
     `;
     
     const queryParams = [];
     
     // Adapter la requête en fonction du rôle
     if (userRole === 'GERANT') {
-        query = query.replace('WHERE 1=0', 'WHERE r.idGerant = ?');
+        query += ' WHERE r.idGerant = ?';
         queryParams.push(userId);
     } else if (userRole === 'COMMERCIAL') {
-        query = query.replace('WHERE 1=0', 'WHERE r.idCommercial = ?');
+        query += ' WHERE r.idCommercial = ?';
         queryParams.push(userId);
     } else if (userRole === 'ADMIN') {
-        query = query.replace('WHERE 1=0', 'WHERE 1=1'); // Voir toutes les réclamations
+        // Pas de condition WHERE pour l'admin
+    } else {
+        return res.status(403).json({ error: "Rôle non autorisé" });
     }
     
     query += ' ORDER BY r.date DESC';
     
+    console.log('Executing query:', query, 'with params:', queryParams);
+    
     db.query(query, queryParams, (err, results) => {
         if (err) {
             console.error('Erreur SQL GET user reclamations:', err);
-            return res.status(500).json({ error: "Erreur lors de la récupération des réclamations de l'utilisateur" });
+            return res.status(500).json({ error: "Erreur lors de la récupération des réclamations de l'utilisateur", details: err.message });
         }
         console.log('Réclamations trouvées:', results.length);
         res.json(results);
