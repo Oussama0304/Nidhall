@@ -1,6 +1,6 @@
 const mysql = require('mysql2');
 
-const dbConfig = {
+const db = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || 'ProjectPfeAgil',
@@ -12,70 +12,66 @@ const dbConfig = {
     waitForConnections: true,
     queueLimit: 0,
     charset: 'utf8mb4'
-};
-
-const pool = mysql.createPool(dbConfig);
-
-// Fonction pour tester la connexion avec retries
-const testConnection = async (retries = 5, delay = 5000) => {
-    for (let i = 0; i < retries; i++) {
-        try {
-            const connection = await pool.promise().getConnection();
-            console.log('Connexion à la base de données établie avec succès');
-            connection.release();
-            return true;
-        } catch (err) {
-            console.error(`Tentative ${i + 1}/${retries} - Erreur de connexion:`, err.message);
-            if (i < retries - 1) {
-                console.log(`Nouvelle tentative dans ${delay/1000} secondes...`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-            }
-        }
-    }
-    throw new Error('Impossible de se connecter à la base de données après plusieurs tentatives');
-};
+});
 
 // Ajouter la colonne idUtilisateur si elle n'existe pas
-const addUserIdColumn = async () => {
-    try {
-        const connection = await pool.promise().getConnection();
-        try {
-            const [results] = await connection.query(`
-                SELECT COUNT(*) as count 
-                FROM information_schema.COLUMNS 
-                WHERE TABLE_SCHEMA = ? 
-                AND TABLE_NAME = 'Commande' 
-                AND COLUMN_NAME = 'idUtilisateur'
-            `, [process.env.DB_NAME || 'ProjetPfeAgil']);
+const addUserIdColumn = () => {
+    db.getConnection((err, connection) => {
+        if (err) {
+            console.error('Erreur de connexion à la base de données:', err);
+            return;
+        }
+
+        const checkColumnQuery = `
+            SELECT COUNT(*) as count 
+            FROM information_schema.COLUMNS 
+            WHERE TABLE_SCHEMA = 'ProjetPfeAgil' 
+            AND TABLE_NAME = 'Commande' 
+            AND COLUMN_NAME = 'idUtilisateur'
+        `;
+
+        connection.query(checkColumnQuery, (err, results) => {
+            connection.release();
+            if (err) {
+                console.error('Erreur lors de la vérification de la colonne:', err);
+                return;
+            }
 
             if (results[0].count === 0) {
-                await connection.query(`
+                const alterTableQuery = `
                     ALTER TABLE Commande
                     ADD COLUMN idUtilisateur BIGINT,
                     ADD CONSTRAINT fk_commande_utilisateur
                     FOREIGN KEY (idUtilisateur) REFERENCES Utilisateur(identifiant)
-                `);
-                console.log('Colonne idUtilisateur ajoutée avec succès');
+                `;
+
+                db.query(alterTableQuery, (err) => {
+                    if (err) {
+                        console.error('Erreur lors de l\'ajout de la colonne:', err);
+                    } else {
+                        console.log('Colonne idUtilisateur ajoutée avec succès');
+                    }
+                });
             }
-        } finally {
-            connection.release();
-        }
+        });
+    });
+};
+
+// Fonction pour tester la connexion
+const testConnection = async () => {
+    try {
+        const connection = await db.promise().getConnection();
+        console.log('Connexion à la base de données établie avec succès');
+        connection.release();
+        addUserIdColumn();
     } catch (err) {
-        console.error('Erreur lors de la modification de la table:', err);
-        throw err;
+        console.error('Erreur de connexion à la base de données:', err);
+        // Attendre 5 secondes avant de réessayer
+        setTimeout(testConnection, 5000);
     }
 };
 
-// Initialiser la connexion
-(async () => {
-    try {
-        await testConnection();
-        await addUserIdColumn();
-        console.log('Base de données initialisée avec succès');
-    } catch (err) {
-        console.error('Erreur d\'initialisation de la base de données:', err);
-        process.exit(1); // Arrêter l'application si la connexion échoue
-    }
-})();
+// Tester la connexion au démarrage
+testConnection();
 
-module.exports = pool;
+module.exports = db;
