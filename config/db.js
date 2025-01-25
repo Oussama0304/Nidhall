@@ -1,22 +1,23 @@
 const mysql = require('mysql2');
 
-const db = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || 'database',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || 'ProjectPfeAgil',
     database: process.env.DB_NAME || 'ProjetPfeAgil',
-    connectionLimit: 10,
-    connectTimeout: 60000,
-    acquireTimeout: 60000,
-    timeout: 60000,
     waitForConnections: true,
+    connectionLimit: 10,
     queueLimit: 0,
-    charset: 'utf8mb4'
+    connectTimeout: 60000,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0
 });
+
+const promisePool = pool.promise();
 
 // Ajouter la colonne idUtilisateur si elle n'existe pas
 const addUserIdColumn = () => {
-    db.getConnection((err, connection) => {
+    promisePool.getConnection((err, connection) => {
         if (err) {
             console.error('Erreur de connexion à la base de données:', err);
             return;
@@ -45,7 +46,7 @@ const addUserIdColumn = () => {
                     FOREIGN KEY (idUtilisateur) REFERENCES Utilisateur(identifiant)
                 `;
 
-                db.query(alterTableQuery, (err) => {
+                promisePool.query(alterTableQuery, (err) => {
                     if (err) {
                         console.error('Erreur lors de l\'ajout de la colonne:', err);
                     } else {
@@ -60,7 +61,7 @@ const addUserIdColumn = () => {
 // Fonction pour tester la connexion
 const testConnection = async () => {
     try {
-        const connection = await db.promise().getConnection();
+        const connection = await promisePool.getConnection();
         console.log('Connexion à la base de données établie avec succès');
         connection.release();
         addUserIdColumn();
@@ -74,4 +75,8 @@ const testConnection = async () => {
 // Tester la connexion au démarrage
 testConnection();
 
-module.exports = db;
+module.exports = {
+    pool: promisePool,
+    execute: (...params) => promisePool.execute(...params),
+    query: (...params) => promisePool.query(...params)
+};
