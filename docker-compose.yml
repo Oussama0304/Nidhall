@@ -48,10 +48,14 @@ services:
     ports:
       - "8095:80"
     environment:
-      - NODE_ENV=production
+      - REACT_APP_API_URL=http://localhost:3000
+      - REACT_APP_UPLOADS_URL=http://localhost:3000/uploads
+      - REACT_APP_PUBLIC_URL=http://localhost:3000/public
+      - NODE_ENV=development
+      - PORT=8095
     volumes:
-      - ./pfe-project-front/public:/usr/share/nginx/html/public
-      - uploads:/usr/share/nginx/html/uploads
+      - ./pfe-project-front:/app
+      - /app/node_modules
     depends_on:
       - backend
     networks:

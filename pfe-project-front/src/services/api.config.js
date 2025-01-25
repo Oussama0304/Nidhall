@@ -5,7 +5,8 @@ const api = axios.create({
     headers: {
         'Content-Type': 'application/json'
     },
-    timeout: 10000
+    timeout: 30000, // Augmenter le timeout à 30 secondes
+    withCredentials: true // Ajouter cette option pour les cookies
 });
 
 // Intercepteur pour ajouter le token à chaque requête
@@ -18,7 +19,8 @@ api.interceptors.request.use(
         console.log('API Request:', {
             url: config.url,
             method: config.method,
-            baseURL: config.baseURL
+            baseURL: config.baseURL,
+            headers: config.headers
         });
         return config;
     },
@@ -42,14 +44,27 @@ api.interceptors.response.use(
         console.error('API Response Error:', {
             url: error.config?.url,
             status: error.response?.status,
-            message: error.message
+            message: error.message,
+            data: error.response?.data
         });
         
-        if (error.response && error.response.status === 401) {
-            // Token expiré ou invalide
-            localStorage.removeItem('token');
-            window.location.href = '/login';
+        if (error.response) {
+            if (error.response.status === 401) {
+                // Token expiré ou invalide
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            } else if (error.response.status === 403) {
+                // Accès refusé
+                console.error('Accès refusé');
+            }
+        } else if (error.request) {
+            // La requête a été faite mais pas de réponse
+            console.error('Pas de réponse du serveur');
+        } else {
+            // Erreur lors de la configuration de la requête
+            console.error('Erreur de configuration de la requête');
         }
+        
         return Promise.reject(error);
     }
 );
