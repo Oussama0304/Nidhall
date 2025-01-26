@@ -1,17 +1,18 @@
 const db = require('../config/db');
 
-async function initializeDepotData() {
+async function initializeStationData() {
     try {
-        // Vérifier si la table Depot est vide
-        const results = await db.query('SELECT COUNT(*) as count FROM Depot');
+        // Vérifier si la table StationService est vide
+        const results = await db.query('SELECT COUNT(*) as count FROM StationService');
         const count = results[0].count;
 
         if (count === 0) {
-            console.log('Initialisation des données des dépôts...');
+            console.log('Initialisation des données des stations service...');
             
             await db.query(`
-                INSERT INTO Depot (idDepot, nomDepot, adresse, ville, telephone, email, capacite) VALUES
-                (1, 'depot tunis', '124 Rue ', 'Tunis', '1478526', 'station.test@pfe.tn', 500),
+                INSERT INTO StationService (idStation, nom, adresse, ville, telephone, email, capacite)
+                VALUES
+                (1, 'Station Test', '123 Rue Test', NULL, NULL, NULL, NULL),
                 (2, 'station bardo', '124 Rue ', NULL, NULL, NULL, NULL),
                 (3, 'station ariana', '124 Rue ', 'ariana', '1478526', 'station.test@pfe.tn', 500),
                 (4, 'station centre ville', '101 Rue ', 'Tunis', '1478526', 'station.test@pfe.tn', 500),
@@ -20,14 +21,14 @@ async function initializeDepotData() {
                 (7, 'station ben arous', '123 Rue Test', 'Tunis', '12345678', 'station.test@pfe.tn', 400)
             `);
 
-            console.log('Données des dépôts initialisées avec succès');
+            console.log('Données des stations service initialisées avec succès');
         } else {
-            console.log('La table Depot contient déjà des données');
+            console.log('La table StationService contient déjà des données');
         }
     } catch (error) {
-        console.error('Erreur lors de l\'initialisation des dépôts:', error);
+        console.error('Erreur lors de l\'initialisation des stations service:', error);
         throw error;
     }
 }
 
-module.exports = initializeDepotData;
+module.exports = initializeStationData;

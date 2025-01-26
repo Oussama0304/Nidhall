@@ -1,40 +1,46 @@
 const db = require('../config/db');
 
-async function initializeCommandeProduitData() {
+async function initializeCommandeproduitData() {
     try {
         // Vérifier si la table Commandeproduit est vide
-        const checkQuery = 'SELECT COUNT(*) as count FROM Commandeproduit';
-        db.query(checkQuery, async (err, results) => {
-            if (err) {
-                console.error('Erreur lors de la vérification des données:', err);
-                return;
-            }
+        const results = await db.query('SELECT COUNT(*) as count FROM Commandeproduit');
+        const count = results[0].count;
 
-            const count = results[0].count;
-            if (count === 0) {
-                console.log('Initialisation des données des commandes-produits...');
-                
-                const insertQuery = `
-                    INSERT INTO Commandeproduit (idCommande, idProduit, quantite, prix) VALUES
-                    (1, 1, 100, 2100.00),
-                    (2, 2, 150, 1800.00),
-                    (3, 3, 80, 1000.00)
-                `;
+        if (count === 0) {
+            console.log('Initialisation des données des commandes produits...');
+            
+            await db.query(`
+                INSERT INTO Commandeproduit (id, idCommande, idProduit, quantite, prix)
+                VALUES
+                (2, 4, 2, 1, 2800.00),
+                (3, 5, 2, 2, 2800.00),
+                (4, 6, 2, 1, 2800.00),
+                (5, 7, 2, 1, 2800.00),
+                (6, 8, 3, 1, 70000.00),
+                (7, 9, 2, 1, 2800.00),
+                (8, 10, 2, 3, 2800.00),
+                (9, 11, 3, 2, 70000.00),
+                (10, 12, 3, 1, 70000.00),
+                (11, 13, 2, 1, 2800.00),
+                (12, 14, 3, 2, 70000.00),
+                (13, 15, 7, 3, 52000.00),
+                (14, 16, 2, 3, 2800.00),
+                (15, 17, 2, 4, 2800.00),
+                (16, 18, 2, 4, 2800.00),
+                (21, 23, 2, 1, 2800.00),
+                (22, 24, 2, 3, 2800.00),
+                (23, 24, 5, 1, 68000.00),
+                (24, 25, 2, 6, 2800.00)
+            `);
 
-                db.query(insertQuery, (err, results) => {
-                    if (err) {
-                        console.error('Erreur lors de l\'initialisation des données des commandes-produits:', err);
-                    } else {
-                        console.log('Données des commandes-produits insérées avec succès');
-                    }
-                });
-            } else {
-                console.log('Les données existent déjà dans la table Commandeproduit');
-            }
-        });
+            console.log('Données des commandes produits initialisées avec succès');
+        } else {
+            console.log('La table Commandeproduit contient déjà des données');
+        }
     } catch (error) {
-        console.error('Erreur lors de l\'initialisation des commandes-produits:', error);
+        console.error('Erreur lors de l\'initialisation des commandes produits:', error);
+        throw error;
     }
 }
 
-module.exports = initializeCommandeProduitData;
+module.exports = initializeCommandeproduitData;

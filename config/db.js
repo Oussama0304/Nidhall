@@ -27,66 +27,35 @@ const testConnection = async () => {
     }
 };
 
-// Fonction pour réessayer la connexion
-const retryConnection = async (maxRetries = 5, delay = 5000) => {
-    for (let i = 0; i < maxRetries; i++) {
-        console.log(`Attempting to connect to database (attempt ${i + 1}/${maxRetries})...`);
-        const isConnected = await testConnection();
-        if (isConnected) {
-            return true;
-        }
-        if (i < maxRetries - 1) {
-            console.log(`Connection failed. Retrying in ${delay/1000} seconds...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
-    }
-    return false;
-};
-
-// Wrapper pour les requêtes avec retry automatique
-const query = async (sql, params) => {
+// Fonction pour exécuter une requête
+const execute = async (sql, params = []) => {
     try {
         const [results] = await pool.execute(sql, params);
-        return [results];
+        return results;
     } catch (err) {
-        if (err.code === 'PROTOCOL_CONNECTION_LOST' || 
-            err.code === 'ECONNREFUSED' || 
-            err.code === 'ER_CON_COUNT_ERROR') {
-            
-            console.log('Database connection error. Attempting to reconnect...');
-            const reconnected = await retryConnection();
-            if (reconnected) {
-                // Réessayer la requête
-                const [results] = await pool.execute(sql, params);
-                return [results];
-            }
-        }
+        console.error('Database query error:', err);
         throw err;
     }
 };
 
-// Ajouter la colonne idUtilisateur si elle n'existe pas
-const addUserIdColumn = async () => {
+// Fonction pour faire une requête
+const query = async (sql, params = []) => {
     try {
-        const [results] = await query(`
-            SELECT COUNT(*) as count 
-            FROM information_schema.COLUMNS 
-            WHERE TABLE_SCHEMA = '${process.env.DB_NAME}' 
-            AND TABLE_NAME = 'Commande' 
-            AND COLUMN_NAME = 'idUtilisateur'
-        `);
+        const [results] = await pool.query(sql, params);
+        return results;
+    } catch (err) {
+        console.error('Database query error:', err);
+        throw err;
+    }
+};
 
-        if (results[0].count === 0) {
-            await query(`
-                ALTER TABLE Commande
-                ADD COLUMN idUtilisateur BIGINT,
-                ADD CONSTRAINT fk_commande_utilisateur
-                FOREIGN KEY (idUtilisateur) REFERENCES Utilisateur(identifiant)
-            `);
-            console.log('Colonne idUtilisateur ajoutée avec succès');
-        }
-    } catch (error) {
-        console.error('Erreur lors de la modification de la table:', error);
+// Fonction pour obtenir une connexion
+const getConnection = async () => {
+    try {
+        return await pool.getConnection();
+    } catch (err) {
+        console.error('Error getting connection:', err);
+        throw err;
     }
 };
 
@@ -94,12 +63,7 @@ const addUserIdColumn = async () => {
 (async () => {
     try {
         console.log('Initializing database connection...');
-        const connected = await retryConnection();
-        if (!connected) {
-            console.error('Failed to establish database connection after multiple retries.');
-            process.exit(1);
-        }
-        await addUserIdColumn();
+        await testConnection();
     } catch (err) {
         console.error('Error during database initialization:', err);
         process.exit(1);
@@ -107,8 +71,9 @@ const addUserIdColumn = async () => {
 })();
 
 module.exports = {
+    execute,
     query,
+    getConnection,
     testConnection,
-    retryConnection,
     pool
 };

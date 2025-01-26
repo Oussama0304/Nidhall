@@ -1,40 +1,31 @@
 const db = require('../config/db');
 
-async function initializeMouvementStockData() {
+async function initializeMouvementstockData() {
     try {
         // Vérifier si la table Mouvementstock est vide
-        const checkQuery = 'SELECT COUNT(*) as count FROM Mouvementstock';
-        db.query(checkQuery, async (err, results) => {
-            if (err) {
-                console.error('Erreur lors de la vérification des données:', err);
-                return;
-            }
+        const results = await db.query('SELECT COUNT(*) as count FROM Mouvementstock');
+        const count = results[0].count;
 
-            const count = results[0].count;
-            if (count === 0) {
-                console.log('Initialisation des données des mouvements de stock...');
-                
-                const insertQuery = `
-                    INSERT INTO Mouvementstock (idProduit, quantite, type_mouvement, date_mouvement, idCommande, raison) VALUES
-                    (1, 100, 'ENTREE', '2024-12-01 10:30:00', 1, 'Livraison fournisseur'),
-                    (2, -50, 'RETRAIT', '2024-12-02 11:45:00', 2, 'Vente client'),
-                    (3, 30, 'AJUSTEMENT', '2024-12-03 14:30:00', 3, 'Correction inventaire')
-                `;
+        if (count === 0) {
+            console.log('Initialisation des données des mouvements de stock...');
+            
+            await db.query(`
+                INSERT INTO Mouvementstock (id, idProduit, quantite, type_mouvement, date_mouvement, idCommande, raison)
+                VALUES
+                (1, 4, 10, 'ENTREE', '2024-12-27 14:23:48', NULL, 'Réapprovisionnement'),
+                (2, 5, 50, 'RETRAIT', '2024-12-27 14:25:43', NULL, 'Réapprovisionnement'),
+                (3, 2, 3, 'RETRAIT', '2024-12-27 22:42:27', 20, NULL),
+                (4, 2, 1, 'RETRAIT', '2024-12-27 22:43:56', 21, NULL)
+            `);
 
-                db.query(insertQuery, (err, results) => {
-                    if (err) {
-                        console.error('Erreur lors de l\'initialisation des données des mouvements de stock:', err);
-                    } else {
-                        console.log('Données des mouvements de stock insérées avec succès');
-                    }
-                });
-            } else {
-                console.log('Les données existent déjà dans la table Mouvementstock');
-            }
-        });
+            console.log('Données des mouvements de stock initialisées avec succès');
+        } else {
+            console.log('La table Mouvementstock contient déjà des données');
+        }
     } catch (error) {
         console.error('Erreur lors de l\'initialisation des mouvements de stock:', error);
+        throw error;
     }
 }
 
-module.exports = initializeMouvementStockData;
+module.exports = initializeMouvementstockData;
