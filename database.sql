@@ -29,16 +29,15 @@ CREATE TABLE IF NOT EXISTS StationService (
     capacite INT
 );
 
--- Create Gerant table
-CREATE TABLE IF NOT EXISTS Gerant (
-    idGerant BIGINT PRIMARY KEY,
-    nom VARCHAR(100) NOT NULL,
-    prenom VARCHAR(100) NOT NULL,
-    matricule BIGINT UNIQUE NOT NULL,
-    numGerant BIGINT UNIQUE NOT NULL,
-    idStation BIGINT,
-    FOREIGN KEY (idStation) REFERENCES StationService(idStation),
-    FOREIGN KEY (idGerant) REFERENCES Utilisateur(identifiant)
+-- Create Depot table
+CREATE TABLE IF NOT EXISTS Depot (
+    idDepot BIGINT PRIMARY KEY AUTO_INCREMENT,
+    nomDepot VARCHAR(100) NOT NULL,
+    adresse TEXT NOT NULL,
+    ville VARCHAR(100),
+    telephone VARCHAR(20),
+    email VARCHAR(100),
+    capacite INT
 );
 
 -- Create Produit table
@@ -56,11 +55,16 @@ CREATE TABLE IF NOT EXISTS Produit (
     seuil_alerte INT DEFAULT 10
 );
 
--- Create Depot table
-CREATE TABLE IF NOT EXISTS Depot (
-    idDepot BIGINT PRIMARY KEY AUTO_INCREMENT,
-    nomDepot VARCHAR(100) NOT NULL,
-    adresse TEXT NOT NULL
+-- Create Gerant table
+CREATE TABLE IF NOT EXISTS Gerant (
+    idGerant BIGINT PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    prenom VARCHAR(100) NOT NULL,
+    matricule BIGINT UNIQUE NOT NULL,
+    numGerant BIGINT UNIQUE NOT NULL,
+    idStation BIGINT,
+    FOREIGN KEY (idStation) REFERENCES StationService(idStation),
+    FOREIGN KEY (idGerant) REFERENCES Utilisateur(identifiant)
 );
 
 -- Create Commande table
@@ -79,6 +83,17 @@ CREATE TABLE IF NOT EXISTS Commande (
     FOREIGN KEY (idDepot) REFERENCES Depot(idDepot)
 );
 
+-- Create Commandeproduit table
+CREATE TABLE IF NOT EXISTS Commandeproduit (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    idCommande BIGINT NOT NULL,  -- Changé de INT à BIGINT
+    idProduit BIGINT NOT NULL,   -- Changé de INT à BIGINT
+    quantite INT NOT NULL,
+    prix DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (idCommande) REFERENCES Commande(idCommande),
+    FOREIGN KEY (idProduit) REFERENCES Produit(idProduit)
+);
+
 -- Create Livraison table
 CREATE TABLE IF NOT EXISTS Livraison (
     idLivraison BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -89,14 +104,17 @@ CREATE TABLE IF NOT EXISTS Livraison (
     FOREIGN KEY (idCommande) REFERENCES Commande(idCommande)
 );
 
--- Create Material table
-CREATE TABLE IF NOT EXISTS Material (
-    idStation BIGINT,
-    Actif VARCHAR(50) NOT NULL,
-    Description TEXT,
-    Emplacement VARCHAR(100),
-    status VARCHAR(50),
-    FOREIGN KEY (idStation) REFERENCES StationService(idStation)
+-- Create Mouvementstock table
+CREATE TABLE IF NOT EXISTS Mouvementstock (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    idProduit BIGINT DEFAULT NULL,
+    quantite INT DEFAULT NULL,
+    type_mouvement ENUM('ENTREE', 'RETRAIT', 'AJUSTEMENT') DEFAULT NULL,
+    date_mouvement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    idCommande BIGINT DEFAULT NULL,
+    raison TEXT DEFAULT NULL,
+    FOREIGN KEY (idProduit) REFERENCES Produit(idProduit),
+    FOREIGN KEY (idCommande) REFERENCES Commande(idCommande)
 );
 
 -- Create Reclamation table
@@ -125,28 +143,14 @@ CREATE TABLE IF NOT EXISTS Reclamation (
     FOREIGN KEY (idCommercial) REFERENCES Utilisateur(identifiant)
 );
 
--- Create Commandeproduit table
-CREATE TABLE IF NOT EXISTS Commandeproduit (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    idCommande BIGINT NOT NULL,  -- Changé de INT à BIGINT
-    idProduit BIGINT NOT NULL,   -- Changé de INT à BIGINT
-    quantite INT NOT NULL,
-    prix DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (idCommande) REFERENCES Commande(idCommande),
-    FOREIGN KEY (idProduit) REFERENCES Produit(idProduit)
-);
-
--- Create Mouvementstock table
-CREATE TABLE IF NOT EXISTS Mouvementstock (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    idProduit BIGINT DEFAULT NULL,
-    quantite INT DEFAULT NULL,
-    type_mouvement ENUM('ENTREE', 'RETRAIT', 'AJUSTEMENT') DEFAULT NULL,
-    date_mouvement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    idCommande BIGINT DEFAULT NULL,
-    raison TEXT DEFAULT NULL,
-    FOREIGN KEY (idProduit) REFERENCES Produit(idProduit),
-    FOREIGN KEY (idCommande) REFERENCES Commande(idCommande)
+-- Create Material table
+CREATE TABLE IF NOT EXISTS Material (
+    idStation BIGINT,
+    Actif VARCHAR(50) NOT NULL,
+    Description TEXT,
+    Emplacement VARCHAR(100),
+    status VARCHAR(50),
+    FOREIGN KEY (idStation) REFERENCES StationService(idStation)
 );
 
 -- Create Equipmentsensors table
@@ -204,6 +208,25 @@ VALUES
 (5, 'station bizerte', '101 Rue ', 'Tunis', '2659375', 'station.test@pfe.tn', 500),
 (6, 'station  nabeul', '101 Rue ', 'nabeul', '2659375', 'stationnabeul.test@pfe.tn', 300),
 (7, 'station ben arous', '123 Rue Test', 'Tunis', '12345678', 'station.test@pfe.tn', 400);
+
+-- Insert initial data into Depot
+INSERT INTO Depot (idDepot, nomDepot, adresse, ville, telephone, email, capacite)
+VALUES
+(1, 'Depot Tunis', '123 Rue de Tunis, Tunis', 'Tunis', '12345678', 'depot.tunis@agil.com', 1000),
+(2, 'Depot Sfax', '456 Avenue de Sfax, Sfax', 'Sfax', '23456789', 'depot.sfax@agil.com', 800),
+(3, 'Depot Sousse', '789 Boulevard de Sousse, Sousse', 'Sousse', '34567890', 'depot.sousse@agil.com', 900),
+(4, 'Depot Bizerte', '321 Rue de Bizerte, Bizerte', 'Bizerte', '45678901', 'depot.bizerte@agil.com', 700),
+(5, 'Depot Gabes', '654 Avenue de Gabes, Gabes', 'Gabes', '56789012', 'depot.gabes@agil.com', 600);
+
+-- Insert initial data into Gerant
+INSERT INTO Gerant (idGerant, nom, prenom, matricule, numGerant, idStation) VALUES
+(3, 'rodrigo', 'rodriguez', 654321, 1001, 1),
+(7, 'nidhal', 'boughanmi', 213456, 1002, 2),
+(8, 'nidhal', 'boughanmi', 123455, 1003, 3),
+(10, 'oussema', 'boughanmi', 124563, 1004, 4),
+(12, 'boughanmi', 'nidhal', 987655, 1005, 5),
+(14, 'aloui', 'omar', 254136, 1006, 1),
+(16, 'ameur', 'atef', 257413, 1007, 2);
 
 -- Insert initial data into Produit
 INSERT INTO Produit (idProduit, nom, disponibilite, prix, CODPRD, LIBPRD, CODEMB, LIBEMB, TYPPRD, quantite, seuil_alerte)
@@ -326,59 +349,12 @@ VALUES
 (24, 1, NULL, 'panne de paiment', '2025-01-08 23:40:29', 'COMMERCIALE', 'En instance', NULL, '/uploads/reclamations/1736376024636-OIP (2).jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, NULL, NULL, NULL),
 (25, 2, NULL, 'panne', '2025-01-09 23:43:54', 'TECHNIQUE', 'En instance', NULL, '/uploads/reclamations/1736462628654-gaz.jpg', 'MOYEN', 48, NULL, 'NEUTRE', 'MOYENNE', 0, NULL, NULL, NULL, NULL, NULL);
 
--- Insert initial data into Depot
-INSERT INTO Depot (nomDepot, adresse) VALUES
-('Depot Tunis', '123 Rue de Tunis, Tunis'),
-('Depot Sfax', '456 Avenue de Sfax, Sfax'),
-('Depot Sousse', '789 Boulevard de Sousse, Sousse'),
-('Depot Bizerte', '321 Rue de Bizerte, Bizerte'),
-('Depot Gabes', '654 Avenue de Gabes, Gabes');
-
--- Insert initial data into Gerant
-INSERT INTO Gerant (idGerant, nom, prenom, matricule, numGerant, idStation) VALUES
-(3, 'rodrigo', 'rodriguez', 654321, 1001, 1),
-(7, 'nidhal', 'boughanmi', 213456, 1002, 2),
-(8, 'nidhal', 'boughanmi', 123455, 1003, 3),
-(10, 'oussema', 'boughanmi', 124563, 1004, 4),
-(12, 'boughanmi', 'nidhal', 987655, 1005, 5),
-(14, 'aloui', 'omar', 254136, 1006, 6),
-(16, 'ameur', 'atef', 257413, 1007, 1);
-
--- Insert initial data into Produit
-INSERT INTO Produit (nom, disponibilite, prix, CODPRD, LIBPRD, CODEMB, LIBEMB, TYPPRD, quantite, seuil_alerte) VALUES
-('Super Sans Plomb', 'dispo', 2100, 'SSP01', 'Essence Super Sans Plomb', 'L', 'Litre', 'CARBURANT', 5000, 1000),
-('Gasoil', 'dispo', 1800, 'GAS01', 'Gasoil Standard', 'L', 'Litre', 'CARBURANT', 8000, 1500),
-('GPL', 'dispo', 1000, 'GPL01', 'Gaz de Pétrole Liquéfié', 'L', 'Litre', 'GAZ', 3000, 800);
-
 -- Insert initial data into Material
 INSERT INTO Material (idStation, Actif, Description, Emplacement, status) VALUES
 (1, 'Pompe 1', 'Pompe à essence principale', 'Zone A', 'Actif'),
 (1, 'Pompe 2', 'Pompe à gasoil principale', 'Zone B', 'Actif'),
 (2, 'Cuve 1', 'Cuve de stockage essence', 'Sous-sol', 'Actif'),
 (2, 'Cuve 2', 'Cuve de stockage gasoil', 'Sous-sol', 'Actif');
-
--- Insert initial data into Commande
-INSERT INTO Commande (montant, date, idProduit, idUtilisateur, etat, RefCommande, idDepot) VALUES
-(5000.00, '2024-12-01 10:00:00', 1, 3, 'Validée', 'CMD001', 1),
-(7500.00, '2024-12-02 11:30:00', 2, 7, 'En cours', 'CMD002', 2),
-(3200.00, '2024-12-03 14:15:00', 3, 8, 'En instance', 'CMD003', 3);
-
--- Insert initial data into Livraison
-INSERT INTO Livraison (idCommande, dateLivraison, numChauffeur, quantiteLv) VALUES
-(1, '2024-12-02 15:00:00', 5001, 2500),
-(2, '2024-12-03 16:30:00', 5002, 4000);
-
--- Insert initial data into Commandeproduit
-INSERT INTO Commandeproduit (idCommande, idProduit, quantite, prix) VALUES
-(1, 1, 100, 2100.00),
-(2, 2, 150, 1800.00),
-(3, 3, 80, 1000.00);
-
--- Insert initial data into Mouvementstock
-INSERT INTO Mouvementstock (idProduit, quantite, type_mouvement, date_mouvement, idCommande, raison) VALUES
-(1, 100, 'ENTREE', '2024-12-01 10:30:00', 1, 'Livraison fournisseur'),
-(2, -50, 'RETRAIT', '2024-12-02 11:45:00', 2, 'Vente client'),
-(3, 30, 'AJUSTEMENT', '2024-12-03 14:30:00', 3, 'Correction inventaire');
 
 -- Change authentication method for root user
 ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '';
