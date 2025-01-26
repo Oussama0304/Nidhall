@@ -17,69 +17,43 @@ const pool = mysql.createPool({
 
 const promisePool = pool.promise();
 
-// Ajouter la colonne idUtilisateur si elle n'existe pas
-const addUserIdColumn = () => {
-    promisePool.getConnection((err, connection) => {
-        if (err) {
-            console.error('Erreur de connexion à la base de données:', err);
-            return;
-        }
-
-        const checkColumnQuery = `
-            SELECT COUNT(*) as count 
-            FROM information_schema.COLUMNS 
-            WHERE TABLE_SCHEMA = 'ProjetPfeAgil' 
-            AND TABLE_NAME = 'Commande' 
-            AND COLUMN_NAME = 'idUtilisateur'
-        `;
-
-        connection.query(checkColumnQuery, (err, results) => {
-            connection.release();
-            if (err) {
-                console.error('Erreur lors de la vérification de la colonne:', err);
-                return;
-            }
-
-            if (results[0].count === 0) {
-                const alterTableQuery = `
-                    ALTER TABLE Commande
-                    ADD COLUMN idUtilisateur BIGINT,
-                    ADD CONSTRAINT fk_commande_utilisateur
-                    FOREIGN KEY (idUtilisateur) REFERENCES Utilisateur(identifiant)
-                `;
-
-                promisePool.query(alterTableQuery, (err) => {
-                    if (err) {
-                        console.error('Erreur lors de l\'ajout de la colonne:', err);
-                    } else {
-                        console.log('Colonne idUtilisateur ajoutée avec succès');
-                    }
-                });
-            }
-        });
-    });
-};
-
 // Fonction pour tester la connexion
 const testConnection = async () => {
     try {
         const connection = await promisePool.getConnection();
         console.log('Connexion à la base de données établie avec succès');
         connection.release();
-        addUserIdColumn();
+        return true;
     } catch (error) {
         console.error('Erreur de connexion à la base de données:', error);
-        // Attendre 5 secondes avant de réessayer
-        setTimeout(testConnection, 5000);
+        throw error;
     }
 };
 
 // Tester la connexion au démarrage
-testConnection();
+testConnection().catch(console.error);
 
+// Export des fonctions promise-based
 module.exports = {
-    pool: promisePool,
-    execute: (...params) => promisePool.execute(...params),
-    query: (...params) => promisePool.query(...params),
-    getConnection: () => promisePool.getConnection()
+    query: async (sql, params) => {
+        try {
+            const [results] = await promisePool.query(sql, params);
+            return results;
+        } catch (error) {
+            console.error('Erreur lors de la requête:', error);
+            throw error;
+        }
+    },
+    execute: async (sql, params) => {
+        try {
+            const [results] = await promisePool.execute(sql, params);
+            return results;
+        } catch (error) {
+            console.error('Erreur lors de l\'exécution:', error);
+            throw error;
+        }
+    },
+    getConnection: () => promisePool.getConnection(),
+    escape: (value) => pool.escape(value),
+    escapeId: (value) => pool.escapeId(value)
 };

@@ -18,65 +18,60 @@ router.post('/login', async (req, res) => {
         const query = 'SELECT * FROM Utilisateur WHERE mail = ?';
         console.log('Executing query:', query.replace('?', `'${email}'`));
         
-        db.query(query, [email], async (err, results) => {
-            if (err) {
-                console.error('Database error:', err);
-                return res.status(500).json({ error: "Erreur de serveur" });
-            }
+        const [results] = await db.execute(query, [email]);
 
-            if (results.length === 0) {
-                console.log('No user found with email:', email);
+        if (results.length === 0) {
+            console.log('No user found with email:', email);
+            return res.status(401).json({ error: "Email ou mot de passe incorrect" });
+        }
+
+        const user = results[0];
+        console.log('Found user:', {
+            id: user.identifiant,
+            email: user.mail,
+            role: user.roles,
+            stored_password_hash: user.mot_de_passe,
+            stored_password_length: user.mot_de_passe?.length
+        });
+
+        try {
+            console.log('Attempting password comparison');
+            console.log('Input password:', mot_de_passe);
+            console.log('Stored hash:', user.mot_de_passe);
+            
+            const validPassword = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
+            console.log('Password validation result:', validPassword);
+
+            if (!validPassword) {
+                console.log('Invalid password for user:', email);
                 return res.status(401).json({ error: "Email ou mot de passe incorrect" });
             }
 
-            const user = results[0];
-            console.log('Found user:', {
+            const token = jwt.sign(
+                { userId: user.identifiant, role: user.roles },
+                'your_jwt_secret',
+                { expiresIn: '24h' }
+            );
+
+            console.log('Login successful for user:', {
                 id: user.identifiant,
                 email: user.mail,
-                role: user.roles,
-                stored_password_hash: user.mot_de_passe,
-                stored_password_length: user.mot_de_passe?.length
+                role: user.roles
             });
 
-            try {
-                console.log('Attempting password comparison');
-                console.log('Input password:', mot_de_passe);
-                console.log('Stored hash:', user.mot_de_passe);
-                
-                const validPassword = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
-                console.log('Password validation result:', validPassword);
-
-                if (!validPassword) {
-                    console.log('Invalid password for user:', email);
-                    return res.status(401).json({ error: "Email ou mot de passe incorrect" });
-                }
-
-                const token = jwt.sign(
-                    { userId: user.identifiant, role: user.roles },
-                    'your_jwt_secret',
-                    { expiresIn: '24h' }
-                );
-
-                console.log('Login successful for user:', {
+            res.json({
+                token,
+                user: {
                     id: user.identifiant,
-                    email: user.mail,
+                    nom: user.nom,
+                    prenom: user.prenom,
                     role: user.roles
-                });
-
-                res.json({
-                    token,
-                    user: {
-                        id: user.identifiant,
-                        nom: user.nom,
-                        prenom: user.prenom,
-                        role: user.roles
-                    }
-                });
-            } catch (bcryptError) {
-                console.error('Bcrypt error:', bcryptError);
-                return res.status(500).json({ error: "Erreur lors de la validation du mot de passe" });
-            }
-        });
+                }
+            });
+        } catch (bcryptError) {
+            console.error('Bcrypt error:', bcryptError);
+            return res.status(500).json({ error: "Erreur lors de la validation du mot de passe" });
+        }
     } catch (error) {
         console.error('Server error:', error);
         res.status(500).json({ error: "Erreur de serveur" });
