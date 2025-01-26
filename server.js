@@ -69,10 +69,6 @@ const exportRoutes = require('./routes/exportRoutes');
 const recommendationRoutes = require('./routes/recommendations');
 const analysisRoutes = require('./routes/analysis');
 const imageAnalysisRoutes = require('./routes/imageAnalysis');
-const healthRoutes = require('./routes/health');
-
-// Health check endpoint
-app.use('/health', healthRoutes);
 
 // Public routes
 app.use('/api/auth', authRoutes);
