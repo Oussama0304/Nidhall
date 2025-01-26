@@ -3,6 +3,7 @@ version: '3.8'
 services:
   database:
     image: mysql:8.0
+    container_name: pfe_database
     ports:
       - "3306:3306"
     environment:
@@ -11,32 +12,29 @@ services:
       - MYSQL_ROOT_HOST=%
     volumes:
       - ./database.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql
     networks:
       - app-network
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pProjectPfeAgil"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     restart: unless-stopped
 
   backend:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: pfe_backend
     ports:
       - "3000:3000"
     environment:
+      - NODE_ENV=production
       - DB_HOST=database
       - DB_USER=root
       - DB_PASSWORD=ProjectPfeAgil
       - DB_NAME=ProjetPfeAgil
-      - NODE_ENV=production
-      - EMAIL_USER=nidhal.boughanmi@esprit.tn
-      - EMAIL_PASS=Nidhalboughanmi123
-      - HUGGINGFACE_API_KEY=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
+      - PORT=3000
     volumes:
       - ./uploads:/app/uploads
-      - ./public:/app/public
+      - ./logs:/app/logs
     depends_on:
       - database
     networks:
@@ -63,5 +61,6 @@ networks:
     driver: bridge
 
 volumes:
-  uploads:
   mysql_data:
+    driver: local
+  uploads:

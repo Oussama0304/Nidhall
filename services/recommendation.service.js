@@ -28,8 +28,8 @@ async function initializeDatabase() {
 initializeDatabase();
 
 // Fonction pour trouver des cas similaires
-const findSimilarCases = (description) => {
-    return new Promise((resolve, reject) => {
+const findSimilarCases = async (description) => {
+    try {
         // Recherche des réclamations similaires basées sur le type et les mots-clés
         const query = `
             SELECT r.*, 
@@ -45,16 +45,17 @@ const findSimilarCases = (description) => {
         // Créer un pattern de recherche avec les mots-clés de la description
         const searchPattern = `%${description.split(' ').join('%')}%`;
         
-        db.query(query, [searchPattern], (err, results) => {
-            if (err) reject(err);
-            else resolve(results);
-        });
-    });
+        const [results] = await db.execute(query, [searchPattern]);
+        return results;
+    } catch (err) {
+        console.error('Error in findSimilarCases:', err);
+        throw err;
+    }
 };
 
 // Fonction pour recommander un commercial
-const recommendCommercial = (reclamationType) => {
-    return new Promise((resolve, reject) => {
+const recommendCommercial = async (reclamationType) => {
+    try {
         // Trouver le commercial avec le meilleur taux de résolution pour ce type de réclamation
         const query = `
             SELECT 
@@ -73,16 +74,17 @@ const recommendCommercial = (reclamationType) => {
             LIMIT 1
         `;
         
-        db.query(query, [reclamationType], (err, results) => {
-            if (err) reject(err);
-            else resolve(results[0]);
-        });
-    });
+        const [results] = await db.execute(query, [reclamationType]);
+        return results[0];
+    } catch (err) {
+        console.error('Error in recommendCommercial:', err);
+        throw err;
+    }
 };
 
 // Fonction pour suggérer des actions préventives
-const suggestPreventiveActions = (reclamationType) => {
-    return new Promise((resolve, reject) => {
+const suggestPreventiveActions = async (reclamationType) => {
+    try {
         // Analyser les tendances des réclamations pour suggérer des actions préventives
         const query = `
             SELECT 
@@ -95,26 +97,25 @@ const suggestPreventiveActions = (reclamationType) => {
             ORDER BY occurrence_count DESC
         `;
         
-        db.query(query, [reclamationType], (err, results) => {
-            if (err) reject(err);
-            else {
-                // Générer des suggestions basées sur les tendances
-                const suggestions = [];
-                if (results[0]) {
-                    if (reclamationType === 'TECHNIQUE') {
-                        suggestions.push('Planifier une maintenance préventive régulière');
-                        suggestions.push('Former le personnel sur les procédures de maintenance');
-                        suggestions.push('Mettre en place un système de surveillance des équipements');
-                    } else if (reclamationType === 'COMMERCIALE') {
-                        suggestions.push('Revoir les processus de service client');
-                        suggestions.push('Organiser des formations sur la relation client');
-                        suggestions.push('Mettre en place un suivi régulier de la satisfaction client');
-                    }
-                }
-                resolve(suggestions);
+        const [results] = await db.execute(query, [reclamationType]);
+        // Générer des suggestions basées sur les tendances
+        const suggestions = [];
+        if (results[0]) {
+            if (reclamationType === 'TECHNIQUE') {
+                suggestions.push('Planifier une maintenance préventive régulière');
+                suggestions.push('Former le personnel sur les procédures de maintenance');
+                suggestions.push('Mettre en place un système de surveillance des équipements');
+            } else if (reclamationType === 'COMMERCIALE') {
+                suggestions.push('Revoir les processus de service client');
+                suggestions.push('Organiser des formations sur la relation client');
+                suggestions.push('Mettre en place un suivi régulier de la satisfaction client');
             }
-        });
-    });
+        }
+        return suggestions;
+    } catch (err) {
+        console.error('Error in suggestPreventiveActions:', err);
+        throw err;
+    }
 };
 
 module.exports = {

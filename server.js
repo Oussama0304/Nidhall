@@ -69,11 +69,10 @@ const exportRoutes = require('./routes/exportRoutes');
 const recommendationRoutes = require('./routes/recommendations');
 const analysisRoutes = require('./routes/analysis');
 const imageAnalysisRoutes = require('./routes/imageAnalysis');
+const healthRoutes = require('./routes/health');
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK' });
-});
+app.use('/health', healthRoutes);
 
 // Public routes
 app.use('/api/auth', authRoutes);
@@ -224,6 +223,71 @@ app.set('io', io);
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+});
+
+// Gestion des erreurs 404
+app.use((req, res, next) => {
+    res.status(404).json({ error: "Route non trouvée" });
+});
+
+// Gestion globale des erreurs
+app.use((err, req, res, next) => {
+    console.error('Erreur serveur:', err);
+    res.status(err.status || 500).json({
+        error: process.env.NODE_ENV === 'production' 
+            ? "Une erreur est survenue" 
+            : err.message
+    });
+});
+
+// Gestion des événements Socket.IO
+io.on('connection', (socket) => {
+    console.log('Nouveau client connecté');
+
+    socket.on('disconnect', () => {
+        console.log('Client déconnecté');
+    });
+});
+
+// Gestion de la fermeture propre
+const shutdown = async () => {
+    console.log('Arrêt du serveur...');
+    
+    // Fermer le serveur HTTP
+    server.close(() => {
+        console.log('Serveur HTTP arrêté');
+    });
+
+    // Fermer Socket.IO
+    io.close(() => {
+        console.log('Socket.IO arrêté');
+    });
+
+    try {
+        // Fermer la connexion à la base de données
+        await db.end();
+        console.log('Connexion à la base de données fermée');
+    } catch (err) {
+        console.error('Erreur lors de la fermeture de la base de données:', err);
+    }
+
+    // Sortir proprement
+    process.exit(0);
+};
+
+// Gestion des signaux d'arrêt
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
+
+// Gestion des erreurs non capturées
+process.on('uncaughtException', (err) => {
+    console.error('Erreur non capturée:', err);
+    shutdown();
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Promesse rejetée non gérée:', reason);
+    shutdown();
 });
 
 module.exports = app;

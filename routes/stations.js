@@ -3,139 +3,192 @@ const router = express.Router();
 const db = require('../config/db');
 
 // Get all stations
-router.get('/', (req, res) => {
-    const query = 'SELECT * FROM StationService';
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Erreur SQL GET all:', err);
-            return res.status(500).json({ error: "Erreur lors de la récupération des stations" });
-        }
+router.get('/', async (req, res) => {
+    try {
+        const query = `
+            SELECT s.*, 
+                   u.nom as nom_gerant, 
+                   u.prenom as prenom_gerant
+            FROM StationService s
+            LEFT JOIN Utilisateur u ON s.idGerant = u.identifiant
+            ORDER BY s.nom
+        `;
+        
+        const [results] = await db.query(query);
         res.json(results);
-    });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: "Erreur lors de la récupération des stations" });
+    }
+});
+
+// Get stations by user
+router.get('/user', async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const userRole = req.user.role;
+
+        let query = `
+            SELECT s.*, 
+                   u.nom as nom_gerant, 
+                   u.prenom as prenom_gerant
+            FROM StationService s
+            LEFT JOIN Utilisateur u ON s.idGerant = u.identifiant
+        `;
+
+        if (userRole === 'GERANT') {
+            query += ' WHERE s.idGerant = ?';
+        } else if (userRole !== 'ADMIN') {
+            return res.status(403).json({ error: "Accès non autorisé" });
+        }
+
+        query += ' ORDER BY s.nom';
+
+        const [results] = await db.query(query, [userId]);
+        res.json(results);
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: "Erreur lors de la récupération des stations" });
+    }
 });
 
 // Create new station
-router.post('/', (req, res) => {
-    const { nom, adresse, ville, telephone, email, capacite } = req.body;
-    console.log('Données reçues:', req.body);
-    
-    // Validation des données requises
-    if (!nom || !adresse || !ville || !telephone || !email || !capacite) {
-        return res.status(400).json({ error: "Tous les champs sont requis" });
-    }
+router.post('/', async (req, res) => {
+    try {
+        const { nom, adresse, ville, telephone, email, idGerant } = req.body;
+        const userRole = req.user.role;
 
-    const query = `
-        INSERT INTO StationService (nom, adresse, ville, telephone, email, capacite) 
-        VALUES (?, ?, ?, ?, ?, ?)
-    `;
-    console.log('Query:', query);
-    console.log('Params:', [nom, adresse, ville, telephone, email, capacite]);
-    
-    db.query(query, [nom, adresse, ville, telephone, email, capacite], (err, result) => {
-        if (err) {
-            console.error('Erreur SQL INSERT:', err);
-            return res.status(500).json({ error: "Erreur lors de la création de la station", details: err.message });
+        if (userRole !== 'ADMIN') {
+            return res.status(403).json({ error: "Seuls les administrateurs peuvent créer des stations" });
         }
-        res.status(201).json({ 
-            message: "Station créée avec succès", 
-            id: result.insertId 
+
+        const query = `
+            INSERT INTO StationService (nom, adresse, ville, telephone, email, idGerant)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
+
+        const [result] = await db.query(query, [nom, adresse, ville, telephone, email, idGerant]);
+
+        // Récupérer la station créée
+        const getStationQuery = `
+            SELECT s.*, 
+                   u.nom as nom_gerant, 
+                   u.prenom as prenom_gerant
+            FROM StationService s
+            LEFT JOIN Utilisateur u ON s.idGerant = u.identifiant
+            WHERE s.idStation = ?
+        `;
+
+        const [station] = await db.query(getStationQuery, [result.insertId]);
+
+        res.status(201).json({
+            message: "Station créée avec succès",
+            station: station[0]
         });
-    });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: "Erreur lors de la création de la station" });
+    }
 });
 
 // Get station by ID
-router.get('/:id', (req, res) => {
-    const query = 'SELECT * FROM StationService WHERE idStation = ?';
-    db.query(query, [req.params.id], (err, results) => {
-        if (err) {
-            console.error('Erreur SQL GET by ID:', err);
-            return res.status(500).json({ error: "Erreur lors de la récupération de la station" });
-        }
+router.get('/:id', async (req, res) => {
+    try {
+        const query = `
+            SELECT s.*, 
+                   u.nom as nom_gerant, 
+                   u.prenom as prenom_gerant
+            FROM StationService s
+            LEFT JOIN Utilisateur u ON s.idGerant = u.identifiant
+            WHERE s.idStation = ?
+        `;
+
+        const [results] = await db.query(query, [req.params.id]);
+
         if (results.length === 0) {
             return res.status(404).json({ error: "Station non trouvée" });
         }
+
         res.json(results[0]);
-    });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: "Erreur lors de la récupération de la station" });
+    }
 });
 
 // Update station
-router.put('/:id', (req, res) => {
-    console.log('PUT /stations/:id - Début de la requête');
-    console.log('ID de la station:', req.params.id);
-    console.log('Corps de la requête:', req.body);
-
-    const { nom, adresse, ville, telephone, email, capacite } = req.body;
-    
-    // Validation des données requises
-    if (!nom || !adresse || !ville || !telephone || !email || !capacite) {
-        console.log('Validation échouée: tous les champs sont requis');
-        return res.status(400).json({ error: "Tous les champs sont requis" });
-    }
-
+router.put('/:id', async (req, res) => {
     try {
-        // First, check if the station exists
-        db.query('SELECT * FROM StationService WHERE idStation = ?', [req.params.id], (err, results) => {
-            if (err) {
-                console.error('Erreur lors de la vérification de la station:', err);
-                return res.status(500).json({ error: "Erreur lors de la vérification de la station" });
-            }
+        const { nom, adresse, ville, telephone, email, idGerant } = req.body;
+        const userRole = req.user.role;
 
-            if (results.length === 0) {
-                return res.status(404).json({ error: "Station non trouvée" });
-            }
+        if (userRole !== 'ADMIN') {
+            return res.status(403).json({ error: "Seuls les administrateurs peuvent modifier les stations" });
+        }
 
-            // Station exists, proceed with update
-            const query = `
-                UPDATE StationService 
-                SET nom = ?, adresse = ?, ville = ?, telephone = ?, email = ?, capacite = ?
-                WHERE idStation = ?
-            `;
-            
-            const params = [nom, adresse, ville, telephone, email, capacite, req.params.id];
+        const query = `
+            UPDATE StationService 
+            SET nom = ?, 
+                adresse = ?, 
+                ville = ?, 
+                telephone = ?, 
+                email = ?, 
+                idGerant = ?
+            WHERE idStation = ?
+        `;
 
-            console.log('Requête SQL:', query);
-            console.log('Paramètres:', params);
+        const [result] = await db.query(query, [
+            nom, adresse, ville, telephone, 
+            email, idGerant, req.params.id
+        ]);
 
-            db.query(query, params, (err, result) => {
-                if (err) {
-                    console.error('Erreur SQL UPDATE:', err);
-                    return res.status(500).json({ 
-                        error: "Erreur lors de la mise à jour de la station", 
-                        details: err.message,
-                        sqlMessage: err.sqlMessage
-                    });
-                }
-                
-                console.log('Mise à jour réussie');
-                res.json({ 
-                    message: "Station mise à jour avec succès",
-                    affectedRows: result.affectedRows
-                });
-            });
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "Station non trouvée" });
+        }
+
+        // Récupérer la station mise à jour
+        const getStationQuery = `
+            SELECT s.*, 
+                   u.nom as nom_gerant, 
+                   u.prenom as prenom_gerant
+            FROM StationService s
+            LEFT JOIN Utilisateur u ON s.idGerant = u.identifiant
+            WHERE s.idStation = ?
+        `;
+
+        const [station] = await db.query(getStationQuery, [req.params.id]);
+
+        res.json({
+            message: "Station mise à jour avec succès",
+            station: station[0]
         });
-    } catch (error) {
-        console.error('Erreur lors du traitement:', error);
-        res.status(500).json({ 
-            error: "Erreur lors de la mise à jour de la station",
-            details: error.message 
-        });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: "Erreur lors de la mise à jour de la station" });
     }
 });
 
 // Delete station
-router.delete('/:id', (req, res) => {
-    const query = 'DELETE FROM StationService WHERE idStation = ?';
-    
-    db.query(query, [req.params.id], (err, result) => {
-        if (err) {
-            console.error('Erreur SQL DELETE:', err);
-            return res.status(500).json({ error: "Erreur lors de la suppression de la station", details: err.message });
+router.delete('/:id', async (req, res) => {
+    try {
+        const userRole = req.user.role;
+
+        if (userRole !== 'ADMIN') {
+            return res.status(403).json({ error: "Seuls les administrateurs peuvent supprimer des stations" });
         }
+
+        const query = 'DELETE FROM StationService WHERE idStation = ?';
+        const [result] = await db.query(query, [req.params.id]);
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: "Station non trouvée" });
         }
+
         res.json({ message: "Station supprimée avec succès" });
-    });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: "Erreur lors de la suppression de la station" });
+    }
 });
 
 module.exports = router;

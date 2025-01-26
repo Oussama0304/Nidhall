@@ -4,88 +4,98 @@ const bcrypt = require('bcryptjs');
 const db = require('../config/db');
 
 // Get all users
-router.get('/', (req, res) => {
-    const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur';
-    db.query(query, (err, results) => {
-        if (err) {
-            return res.status(500).json({ error: "Erreur lors de la récupération des utilisateurs" });
-        }
+router.get('/', async (req, res) => {
+    try {
+        const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur';
+        const [results] = await db.query(query);
         res.json(results);
-    });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: "Erreur lors de la récupération des utilisateurs" });
+    }
 });
 
 // Create new user
 router.post('/', async (req, res) => {
-    const { nom, prenom, telephone, mail, mot_de_passe, matricule, roles } = req.body;
-
     try {
+        const { nom, prenom, telephone, mail, mot_de_passe, matricule, roles } = req.body;
         const hashedPassword = await bcrypt.hash(mot_de_passe, 10);
-        const query = 'INSERT INTO Utilisateur (nom, prenom, telephone, mail, mot_de_passe, matricule, roles) VALUES (?, ?, ?, ?, ?, ?, ?)';
         
-        db.query(query, [nom, prenom, telephone, mail, hashedPassword, matricule, roles], (err, result) => {
-            if (err) {
-                return res.status(500).json({ error: "Erreur lors de la création de l'utilisateur" });
-            }
-            res.status(201).json({ message: "Utilisateur créé avec succès", id: result.insertId });
+        const query = 'INSERT INTO Utilisateur (nom, prenom, telephone, mail, mot_de_passe, matricule, roles) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        const [result] = await db.query(query, [nom, prenom, telephone, mail, hashedPassword, matricule, roles]);
+        
+        res.status(201).json({
+            message: "Utilisateur créé avec succès",
+            id: result.insertId
         });
-    } catch (error) {
-        res.status(500).json({ error: "Erreur lors du hashage du mot de passe" });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: "Erreur lors de la création de l'utilisateur" });
     }
 });
 
 // Get user by ID
-router.get('/:id', (req, res) => {
-    const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?';
-    db.query(query, [req.params.id], (err, results) => {
-        if (err) {
-            return res.status(500).json({ error: "Erreur lors de la récupération de l'utilisateur" });
-        }
+router.get('/:id', async (req, res) => {
+    try {
+        const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?';
+        const [results] = await db.query(query, [req.params.id]);
+        
         if (results.length === 0) {
             return res.status(404).json({ error: "Utilisateur non trouvé" });
         }
         res.json(results[0]);
-    });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: "Erreur lors de la récupération de l'utilisateur" });
+    }
 });
 
 // Update user
 router.put('/:id', async (req, res) => {
-    const { nom, prenom, telephone, mail, matricule, roles } = req.body;
-    const query = 'UPDATE Utilisateur SET nom = ?, prenom = ?, telephone = ?, mail = ?, matricule = ?, roles = ? WHERE identifiant = ?';
-    
-    db.query(query, [nom, prenom, telephone, mail, matricule, roles, req.params.id], (err, result) => {
-        if (err) {
-            return res.status(500).json({ error: "Erreur lors de la mise à jour de l'utilisateur" });
+    try {
+        const { nom, prenom, telephone, mail, matricule, roles } = req.body;
+        const query = 'UPDATE Utilisateur SET nom = ?, prenom = ?, telephone = ?, mail = ?, matricule = ?, roles = ? WHERE identifiant = ?';
+        const [result] = await db.query(query, [nom, prenom, telephone, mail, matricule, roles, req.params.id]);
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "Utilisateur non trouvé" });
         }
         res.json({ message: "Utilisateur mis à jour avec succès" });
-    });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: "Erreur lors de la mise à jour de l'utilisateur" });
+    }
 });
 
 // Get users by role
-router.get('/role/:role', (req, res) => {
-    const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE roles = ?';
-    db.query(query, [req.params.role], (err, results) => {
-        if (err) {
-            return res.status(500).json({ error: "Erreur lors de la récupération des utilisateurs" });
-        }
+router.get('/role/:role', async (req, res) => {
+    try {
+        const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE roles = ?';
+        const [results] = await db.query(query, [req.params.role]);
         res.json(results);
-    });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: "Erreur lors de la récupération des utilisateurs" });
+    }
 });
 
 // Get user profile (authenticated user)
-router.get('/profile', (req, res) => {
-    // Récupérer l'ID de l'utilisateur depuis le token JWT
-    const userId = req.user.id; // Assurez-vous que votre middleware d'authentification ajoute user à req
+router.get('/profile', async (req, res) => {
+    try {
+        // Récupérer l'ID de l'utilisateur depuis le token JWT
+        const userId = req.user.id; // Assurez-vous que votre middleware d'authentification ajoute user à req
 
-    const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?';
-    db.query(query, [userId], (err, results) => {
-        if (err) {
-            return res.status(500).json({ error: "Erreur lors de la récupération du profil" });
-        }
+        const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?';
+        const [results] = await db.query(query, [userId]);
+        
         if (results.length === 0) {
             return res.status(404).json({ error: "Utilisateur non trouvé" });
         }
         res.json(results[0]);
-    });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: "Erreur lors de la récupération du profil" });
+    }
 });
 
 module.exports = router;

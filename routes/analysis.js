@@ -106,80 +106,80 @@ router.get('/history/:id', auth, async (req, res) => {
 });
 
 // Route pour les tendances des réclamations
-router.get('/reclamations/trends', (req, res) => {
-    const query = `
-        SELECT 
-            type,
-            etat,
-            priority,
-            gravite,
-            COUNT(*) as count,
-            DATE_FORMAT(date, '%Y-%m') as month
-        FROM Reclamation
-        GROUP BY type, etat, priority, gravite, DATE_FORMAT(date, '%Y-%m')
-        ORDER BY month DESC
-    `;
-    
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Error in trends query:', err);
-            return res.status(500).json({ message: 'Error fetching trends data' });
-        }
+router.get('/reclamations/trends', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                type,
+                etat,
+                priority,
+                gravite,
+                COUNT(*) as count,
+                DATE_FORMAT(date, '%Y-%m') as month
+            FROM Reclamation
+            GROUP BY type, etat, priority, gravite, DATE_FORMAT(date, '%Y-%m')
+            ORDER BY month DESC
+        `;
+        
+        const [results] = await db.query(query);
         res.json(results);
-    });
+    } catch (err) {
+        console.error('Error in trends query:', err);
+        return res.status(500).json({ message: 'Error fetching trends data' });
+    }
 });
 
 // Route pour les performances des utilisateurs
-router.get('/performance/users', (req, res) => {
-    const query = `
-        SELECT 
-            u.identifiant,
-            u.nom,
-            u.prenom,
-            u.roles,
-            COUNT(r.idReclamation) as total_reclamations,
-            SUM(CASE WHEN r.etat = 'Validée' THEN 1 ELSE 0 END) as reclamations_resolues,
-            AVG(CASE 
-                WHEN r.satisfaction = 'TRES_SATISFAIT' THEN 5
-                WHEN r.satisfaction = 'SATISFAIT' THEN 4
-                WHEN r.satisfaction = 'NEUTRE' THEN 3
-                WHEN r.satisfaction = 'PEU_SATISFAIT' THEN 2
-                WHEN r.satisfaction = 'INSATISFAIT' THEN 1
-            END) as satisfaction_moyenne
-        FROM Utilisateur u
-        LEFT JOIN Reclamation r ON (u.identifiant = r.idGerant OR u.identifiant = r.idCommercial)
-        WHERE u.roles IN ('COMMERCIAL', 'GERANT')
-        GROUP BY u.identifiant
-    `;
-    
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Error in performance query:', err);
-            return res.status(500).json({ error: "Erreur lors de l'analyse des performances" });
-        }
+router.get('/performance/users', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                u.identifiant,
+                u.nom,
+                u.prenom,
+                u.roles,
+                COUNT(r.idReclamation) as total_reclamations,
+                SUM(CASE WHEN r.etat = 'Validée' THEN 1 ELSE 0 END) as reclamations_resolues,
+                AVG(CASE 
+                    WHEN r.satisfaction = 'TRES_SATISFAIT' THEN 5
+                    WHEN r.satisfaction = 'SATISFAIT' THEN 4
+                    WHEN r.satisfaction = 'NEUTRE' THEN 3
+                    WHEN r.satisfaction = 'PEU_SATISFAIT' THEN 2
+                    WHEN r.satisfaction = 'INSATISFAIT' THEN 1
+                END) as satisfaction_moyenne
+            FROM Utilisateur u
+            LEFT JOIN Reclamation r ON (u.identifiant = r.idGerant OR u.identifiant = r.idCommercial)
+            WHERE u.roles IN ('COMMERCIAL', 'GERANT')
+            GROUP BY u.identifiant
+        `;
+        
+        const [results] = await db.query(query);
         res.json(results);
-    });
+    } catch (err) {
+        console.error('Error in performance query:', err);
+        return res.status(500).json({ error: "Erreur lors de l'analyse des performances" });
+    }
 });
 
 // Route pour les temps de résolution
-router.get('/reclamations/resolution-times', (req, res) => {
-    const query = `
-        SELECT 
-            type,
-            priority,
-            AVG(estimatedResolutionTime) as avg_estimated_time,
-            AVG(actualResolutionTime) as avg_actual_time
-        FROM Reclamation
-        GROUP BY type, priority
-    `;
-    
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Error in resolution times query:', err);
-            return res.status(500).json({ error: "Erreur lors de l'analyse" });
-        }
+router.get('/reclamations/resolution-times', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                type,
+                priority,
+                AVG(estimatedResolutionTime) as avg_estimated_time,
+                AVG(actualResolutionTime) as avg_actual_time
+            FROM Reclamation
+            GROUP BY type, priority
+        `;
+        
+        const [results] = await db.query(query);
         res.json(results);
-    });
+    } catch (err) {
+        console.error('Error in resolution times query:', err);
+        return res.status(500).json({ error: "Erreur lors de l'analyse" });
+    }
 });
 
 module.exports = router;
