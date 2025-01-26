@@ -9,15 +9,24 @@ router.post('/login', async (req, res) => {
     try {
         const { email, mot_de_passe } = req.body;
 
+        if (!email || !mot_de_passe) {
+            return res.status(400).json({ error: "Email et mot de passe requis" });
+        }
+
         // Vérifier si l'utilisateur existe
-        const checkQuery = 'SELECT * FROM Utilisateur WHERE mail = ?';
-        const [users] = await db.execute(checkQuery, [email]);
+        const [users] = await db.execute('SELECT * FROM Utilisateur WHERE mail = ?', [email]);
 
         if (users.length === 0) {
             return res.status(401).json({ error: "Email ou mot de passe incorrect" });
         }
 
         const user = users[0];
+
+        // Vérifier que le mot de passe existe dans la base
+        if (!user.mot_de_passe) {
+            console.error('Erreur: mot de passe manquant dans la base pour l\'utilisateur:', user.identifiant);
+            return res.status(500).json({ error: "Erreur de configuration du compte" });
+        }
 
         // Vérifier le mot de passe
         const validPassword = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
@@ -31,21 +40,24 @@ router.post('/login', async (req, res) => {
                 userId: user.identifiant,
                 role: user.roles
             },
-            'your_jwt_secret',
+            process.env.JWT_SECRET || 'votre_clé_secrète',
             { expiresIn: '24h' }
         );
 
+        // Envoyer la réponse
         res.json({
             token,
             user: {
                 id: user.identifiant,
                 nom: user.nom,
                 prenom: user.prenom,
+                email: user.mail,
                 role: user.roles
             }
         });
-    } catch (err) {
-        console.error('Erreur lors de la connexion:', err);
+
+    } catch (error) {
+        console.error('Erreur lors de la connexion:', error);
         res.status(500).json({ error: "Erreur lors de la connexion" });
     }
 });
