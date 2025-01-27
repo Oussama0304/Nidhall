@@ -171,8 +171,50 @@ async function testDatabaseConnection() {
     }
 }
 
-// Tester la connexion au démarrage
-testDatabaseConnection();
+// Fonction pour initialiser les données de manière séquentielle
+async function initializeAllData() {
+    try {
+        console.log('Démarrage de l\'initialisation des données...');
+        
+        // Initialiser les tables de base d'abord
+        await initializeUtilisateurData();
+        await initializeDepotData();
+        await initializeProduitData();
+        
+        // Puis les tables avec des clés étrangères
+        await initializeGerantData();
+        await initializeMaterialData();
+        
+        // Puis les tables liées aux commandes
+        await initializeCommandeData();
+        
+        // Les tables dépendantes des commandes
+        await initializeLivraisonData();
+        await initializeCommandeProduitData();
+        await initializeMouvementStockData();
+        
+        // Et les réclamations en dernier
+        await initializeData();
+        
+        console.log('Initialisation des données terminée avec succès');
+    } catch (error) {
+        console.error('Erreur lors de l\'initialisation des données:', error);
+    }
+}
+
+// Attendre que la base de données soit prête avant d'initialiser les données
+setTimeout(async () => {
+    try {
+        const isConnected = await testDatabaseConnection();
+        if (isConnected) {
+            await initializeAllData();
+        } else {
+            console.error('Impossible d\'initialiser les données : la base de données n\'est pas connectée');
+        }
+    } catch (error) {
+        console.error('Erreur lors de la vérification de la connexion:', error);
+    }
+}, 5000);
 
 // Initialiser les données après la connexion
 const initializeData = require('./init/initData');
@@ -185,36 +227,6 @@ const initializeCommandeData = require('./init/initCommandeData');
 const initializeLivraisonData = require('./init/initLivraisonData');
 const initializeCommandeProduitData = require('./init/initCommandeProduitData');
 const initializeMouvementStockData = require('./init/initMouvementStockData');
-
-setTimeout(() => {
-    // Initialiser les tables de base d'abord
-    initializeUtilisateurData();
-    initializeDepotData();
-    initializeProduitData();
-    
-    // Puis les tables avec des clés étrangères
-    setTimeout(() => {
-        initializeGerantData();
-        initializeMaterialData();
-        
-        // Puis les tables liées aux commandes
-        setTimeout(() => {
-            initializeCommandeData();
-            
-            // Enfin les tables dépendantes des commandes
-            setTimeout(() => {
-                initializeLivraisonData();
-                initializeCommandeProduitData();
-                initializeMouvementStockData();
-                
-                // Et les réclamations en dernier
-                setTimeout(() => {
-                    initializeData();
-                }, 1000);
-            }, 1000);
-        }, 1000);
-    }, 1000);
-}, 5000); // Attendre 5 secondes pour s'assurer que la base de données est prête
 
 // Démarrer le serveur
 const PORT = process.env.PORT || 3000;
