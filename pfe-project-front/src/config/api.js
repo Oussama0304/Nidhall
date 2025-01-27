@@ -10,7 +10,12 @@ export const API_ENDPOINTS = {
     RECLAMATIONS_STATS: `${API_BASE_URL}/api/admin/dashboard/reclamations/stats`,
     USER_COMMANDES: `${API_BASE_URL}/api/commandes/user`,
     USER_RECLAMATIONS: `${API_BASE_URL}/api/reclamations/user`,
-    USER_PROFILE: `${API_BASE_URL}/api/auth/profile`,  
+    USER_PROFILE: `${API_BASE_URL}/api/auth/profile`,
+    ANALYTICS: {
+        TRENDS: `${API_BASE_URL}/api/analytics/trends`,
+        PERFORMANCE: `${API_BASE_URL}/api/analytics/performance`,
+        RESOLUTION_TIMES: `${API_BASE_URL}/api/analytics/resolution-times`
+    },
     ANALYSIS: {
         ANALYZE_RECLAMATION: `${API_BASE_URL}/api/analysis/analyze-reclamation`,
         ANALYZE_IMAGE: `${API_BASE_URL}/api/analysis/image`,

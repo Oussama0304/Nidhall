@@ -2,42 +2,49 @@ const db = require('../config/db');
 
 async function initializeMaterialData() {
     try {
-        // Vérifier si la table Material est vide
-        const [result] = await db.execute('SELECT COUNT(*) as count FROM Material');
-        const count = result[0].count;
+        // Check if Material table is empty
+        const [existingData] = await db.query('SELECT COUNT(*) as count FROM Material');
+        
+        if (existingData[0].count === 0) {
+            // Initial material data
+            const materials = [
+                {
+                    idStation: 1,
+                    Actif: 'Pompe 1',
+                    Description: 'Pompe à essence principale',
+                    Emplacement: 'Zone A',
+                    status: 'Actif'
+                },
+                {
+                    idStation: 1,
+                    Actif: 'Pompe 2',
+                    Description: 'Pompe à gasoil principale',
+                    Emplacement: 'Zone B',
+                    status: 'Actif'
+                },
+                {
+                    idStation: 2,
+                    Actif: 'Cuve 1',
+                    Description: 'Cuve de stockage essence',
+                    Emplacement: 'Sous-sol',
+                    status: 'Actif'
+                },
+                {
+                    idStation: 2,
+                    Actif: 'Cuve 2',
+                    Description: 'Cuve de stockage gasoil',
+                    Emplacement: 'Sous-sol',
+                    status: 'Actif'
+                }
+            ];
 
-        if (count === 0) {
-            console.log('Initialisation des données des matériels...');
-            
-            // Vérifier que les stations existent
-            const [stations] = await db.execute('SELECT idStation FROM StationService');
-            
-            if (stations.length === 0) {
-                throw new Error('Aucune station n\'existe');
+            // Insert materials
+            for (const material of materials) {
+                await db.query(
+                    'INSERT INTO Material (idStation, Actif, Description, Emplacement, status) VALUES (?, ?, ?, ?, ?)',
+                    [material.idStation, material.Actif, material.Description, material.Emplacement, material.status]
+                );
             }
-
-            const insertQuery = `
-                INSERT INTO Material (idStation, Actif, Description, Emplacement, status) VALUES
-                (1, 'Pompe 1', 'Pompe à essence principale', 'Zone A', 'Actif'),
-                (1, 'Pompe 2', 'Pompe à gasoil principale', 'Zone B', 'Actif'),
-                (1, 'Pompe 3', 'Pompe à essence secondaire', 'Zone A', 'En maintenance'),
-                (1, 'Pompe 4', 'Pompe à gasoil secondaire', 'Zone B', 'Actif'),
-                (1, 'Jauge 1', 'Jauge électronique essence', 'Zone A', 'Actif'),
-                (1, 'Jauge 2', 'Jauge électronique gasoil', 'Zone B', 'Actif'),
-                (2, 'Cuve 1', 'Cuve de stockage essence', 'Sous-sol', 'Actif'),
-                (2, 'Cuve 2', 'Cuve de stockage gasoil', 'Sous-sol', 'Actif'),
-                (2, 'Pompe 5', 'Pompe à essence principale', 'Zone C', 'Actif'),
-                (2, 'Pompe 6', 'Pompe à gasoil principale', 'Zone D', 'En panne'),
-                (3, 'Cuve 3', 'Cuve de stockage essence', 'Sous-sol', 'Actif'),
-                (3, 'Cuve 4', 'Cuve de stockage gasoil', 'Sous-sol', 'En maintenance'),
-                (3, 'Pompe 7', 'Pompe à essence principale', 'Zone E', 'Actif'),
-                (3, 'Pompe 8', 'Pompe à gasoil principale', 'Zone F', 'Actif'),
-                (4, 'Cuve 5', 'Cuve de stockage essence', 'Sous-sol', 'Actif'),
-                (4, 'Cuve 6', 'Cuve de stockage gasoil', 'Sous-sol', 'Actif'),
-                (4, 'Pompe 9', 'Pompe à essence principale', 'Zone G', 'En panne'),
-                (4, 'Pompe 10', 'Pompe à gasoil principale', 'Zone H', 'Actif')`;
-            
-            await db.execute(insertQuery);
             console.log('Données des matériels initialisées avec succès');
         } else {
             console.log('La table Material contient déjà des données');

@@ -42,6 +42,7 @@ export const stationService = {
     createStation: (data) => axios.post(`${API_ENDPOINTS.BASE_URL}/stations`, data, getAuthHeader()),
     updateStation: (id, data) => axios.put(`${API_ENDPOINTS.BASE_URL}/stations/${id}`, data, getAuthHeader()),
     deleteStation: (id) => axios.delete(`${API_ENDPOINTS.BASE_URL}/stations/${id}`, getAuthHeader()),
+    getUserStations: () => axios.get(`${API_ENDPOINTS.BASE_URL}/stations/user`, getAuthHeader()),
 };
 
 // Services pour les produits

@@ -13,7 +13,8 @@ import {
   Grid,
   Snackbar,
   Alert,
-  MenuItem
+  MenuItem,
+  IconButton
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { produitService } from '../../services/api.service';
@@ -21,13 +22,15 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/ico
 
 const initialFormState = {
   nom: '',
-  disponibilite: '',
+  disponibilite: 'Disponible',
   prix: '',
   CODPRD: '',
   LIBPRD: '',
-  CODEMB: '',
-  LIBEMB: '',
-  TYPPRD: ''
+  CODEMB: 'L',
+  LIBEMB: 'Litre',
+  TYPPRD: 'CARBURANT',
+  quantite: '0',
+  seuil_alerte: '0'
 };
 
 const ProduitList = () => {
@@ -50,31 +53,23 @@ const ProduitList = () => {
     }},
     { field: 'disponibilite', headerName: 'Disponibilité', width: 130 },
     { field: 'TYPPRD', headerName: 'Type', width: 130 },
+    { field: 'quantite', headerName: 'Quantité', width: 100, type: 'number' },
+    { field: 'seuil_alerte', headerName: 'Seuil Alerte', width: 100, type: 'number' },
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 200,
+      width: 120,
       renderCell: (params) => (
         <Box>
-          <Button
-            startIcon={<EditIcon />}
-            onClick={() => handleEdit(params.row)}
-            size="small"
-            sx={{ mr: 1 }}
-          >
-            Modifier
-          </Button>
-          <Button
-            startIcon={<DeleteIcon />}
-            onClick={() => handleDelete(params.row.idProduit)}
-            size="small"
-            color="error"
-          >
-            Supprimer
-          </Button>
+          <IconButton onClick={() => handleEdit(params.row)} color="primary">
+            <EditIcon />
+          </IconButton>
+          <IconButton onClick={() => handleDelete(params.row.idProduit)} color="error">
+            <DeleteIcon />
+          </IconButton>
         </Box>
-      ),
-    },
+      )
+    }
   ];
 
   useEffect(() => {
@@ -111,7 +106,9 @@ const ProduitList = () => {
       LIBPRD: produit.LIBPRD || '',
       CODEMB: produit.CODEMB || '',
       LIBEMB: produit.LIBEMB || '',
-      TYPPRD: produit.TYPPRD || ''
+      TYPPRD: produit.TYPPRD || '',
+      quantite: produit.quantite || '',
+      seuil_alerte: produit.seuil_alerte || ''
     });
     setOpenDialog(true);
   };
@@ -212,7 +209,7 @@ const ProduitList = () => {
         />
       </Paper>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <form onSubmit={handleSubmit}>
           <DialogTitle>
             {selectedProduit ? 'Modifier le produit' : 'Ajouter un produit'}
@@ -224,6 +221,7 @@ const ProduitList = () => {
                   name="CODPRD"
                   label="Code Produit"
                   fullWidth
+                  required
                   value={formData.CODPRD}
                   onChange={handleInputChange}
                 />
@@ -247,67 +245,105 @@ const ProduitList = () => {
                   required
                   value={formData.prix}
                   onChange={handleInputChange}
-                  inputProps={{ min: 0, step: 0.01 }}
+                  inputProps={{ min: 0, step: 0.001 }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   name="disponibilite"
                   label="Disponibilité"
+                  select
                   fullWidth
                   value={formData.disponibilite}
                   onChange={handleInputChange}
-                />
+                >
+                  <MenuItem value="Disponible">Disponible</MenuItem>
+                  <MenuItem value="Indisponible">Indisponible</MenuItem>
+                </TextField>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   name="TYPPRD"
                   label="Type de Produit"
+                  select
                   fullWidth
+                  required
                   value={formData.TYPPRD}
                   onChange={handleInputChange}
-                  select
-                  helperText="Catégorie générale du produit"
                 >
-                  <MenuItem value="CARBURANT">CARBURANT</MenuItem>
-                  <MenuItem value="LUBRIFIANT">LUBRIFIANT</MenuItem>
-                  <MenuItem value="ACCESSOIRE">ACCESSOIRE</MenuItem>
-                  <MenuItem value="SERVICE">SERVICE</MenuItem>
+                  <MenuItem value="CARBURANT">Carburant</MenuItem>
+                  <MenuItem value="LUBRIFIANT">Lubrifiant</MenuItem>
+                  <MenuItem value="ACCESSOIRE">Accessoire</MenuItem>
                 </TextField>
               </Grid>
               <Grid item xs={12} sm={6}>
+                <TextField
+                  name="quantite"
+                  label="Quantité"
+                  type="number"
+                  fullWidth
+                  value={formData.quantite}
+                  onChange={handleInputChange}
+                  inputProps={{ min: 0 }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  name="seuil_alerte"
+                  label="Seuil d'Alerte"
+                  type="number"
+                  fullWidth
+                  value={formData.seuil_alerte}
+                  onChange={handleInputChange}
+                  inputProps={{ min: 0 }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  name="CODEMB"
+                  label="Code Emballage"
+                  fullWidth
+                  value={formData.CODEMB}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  name="LIBEMB"
+                  label="Libellé Emballage"
+                  fullWidth
+                  value={formData.LIBEMB}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
                 <TextField
                   name="LIBPRD"
                   label="Libellé Produit"
                   fullWidth
                   value={formData.LIBPRD}
                   onChange={handleInputChange}
-                  placeholder="Ex: Essence Sans Plomb 95"
-                  helperText="Description détaillée du produit"
                 />
               </Grid>
             </Grid>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDialog} color="inherit">
-              Annuler
-            </Button>
-            <Button type="submit" color="primary" variant="contained">
-              {selectedProduit ? 'Mettre à jour' : 'Ajouter'}
+            <Button onClick={handleCloseDialog}>Annuler</Button>
+            <Button type="submit" variant="contained" color="primary">
+              {selectedProduit ? 'Modifier' : 'Ajouter'}
             </Button>
           </DialogActions>
         </form>
       </Dialog>
 
-      <Snackbar
-        open={notification.open}
-        autoHideDuration={6000}
+      <Snackbar 
+        open={notification.open} 
+        autoHideDuration={6000} 
         onClose={handleCloseNotification}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert
-          onClose={handleCloseNotification}
-          severity={notification.severity}
+        <Alert 
+          onClose={handleCloseNotification} 
+          severity={notification.severity} 
           sx={{ width: '100%' }}
         >
           {notification.message}

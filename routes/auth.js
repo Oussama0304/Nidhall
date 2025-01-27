@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
+const auth = require('../middleware/auth');
 
 // Middleware de vérification du token
 const verifyToken = async (req, res, next) => {
@@ -16,12 +17,12 @@ const verifyToken = async (req, res, next) => {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET || 'votre_secret_jwt');
         
         // Récupérer les informations de l'utilisateur
-        const users = await db.query(
+        const [users] = await db.execute(
             'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?',
             [decodedToken.id]
         );
 
-        if (!users || users.length === 0) {
+        if (users.length === 0) {
             return res.status(404).json({ error: "Utilisateur non trouvé" });
         }
 
@@ -39,18 +40,17 @@ router.post('/login', async (req, res) => {
         const { email, mot_de_passe } = req.body;
 
         if (!email || !mot_de_passe) {
-            console.log('Tentative de connexion sans email ou mot de passe');
             return res.status(400).json({ error: "Email et mot de passe requis" });
         }
 
         // Vérifier si l'utilisateur existe
-        const users = await db.query(
-            'SELECT * FROM Utilisateur WHERE mail = ?', 
+        const [users] = await db.execute(
+            'SELECT * FROM Utilisateur WHERE mail = ?',
             [email]
         );
 
-        if (!users || users.length === 0) {
-            console.log(`Tentative de connexion avec email non trouvé: ${email}`);
+        if (users.length === 0) {
+            console.log('Tentative de connexion avec email non trouvé:', email);
             return res.status(401).json({ error: "Email ou mot de passe incorrect" });
         }
 
@@ -58,22 +58,18 @@ router.post('/login', async (req, res) => {
 
         // Vérifier le mot de passe
         const validPassword = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
-
         if (!validPassword) {
-            console.log(`Mot de passe incorrect pour l'email: ${email}`);
             return res.status(401).json({ error: "Email ou mot de passe incorrect" });
         }
 
         // Créer et signer le token JWT
         const token = jwt.sign(
-            { 
-                id: user.identifiant,
-                role: user.roles
-            },
+            { id: user.identifiant },
             process.env.JWT_SECRET || 'votre_secret_jwt',
             { expiresIn: '24h' }
         );
 
+        // Envoyer la réponse
         res.json({
             token,
             user: {
@@ -90,19 +86,26 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// Get current user profile
+router.get('/profile', auth, async (req, res) => {
+    try {
+        // req.user is already set by auth middleware
+        res.json({
+            id: req.user.id,
+            nom: req.user.nom,
+            prenom: req.user.prenom,
+            email: req.user.mail,
+            role: req.user.roles
+        });
+    } catch (error) {
+        console.error('Erreur lors de la récupération du profil:', error);
+        res.status(500).json({ error: "Erreur lors de la récupération du profil" });
+    }
+});
+
 // Route protégée pour vérifier le token
 router.get('/verify', verifyToken, (req, res) => {
     res.json({ user: req.user });
-});
-
-// Get user profile
-router.get('/profile', verifyToken, async (req, res) => {
-    try {
-        res.json(req.user);
-    } catch (error) {
-        console.error('Profile error:', error);
-        res.status(401).json({ error: 'Token invalide' });
-    }
 });
 
 // Registration route
@@ -117,9 +120,9 @@ router.post('/register', async (req, res) => {
 
         // Check if user already exists
         const checkQuery = 'SELECT * FROM Utilisateur WHERE mail = ?';
-        const users = await db.query(checkQuery, [email]);
+        const [users] = await db.execute(checkQuery, [email]);
 
-        if (users && users.length > 0) {
+        if (users.length > 0) {
             return res.status(400).json({ error: "Cet email est déjà utilisé" });
         }
 
@@ -133,7 +136,7 @@ router.post('/register', async (req, res) => {
             VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
 
-        await db.query(
+        await db.execute(
             insertQuery,
             [nom, prenom, telephone, email, hashedPassword, matricule, roles]
         );
@@ -149,7 +152,7 @@ router.post('/register', async (req, res) => {
 router.get('/test-users', async (req, res) => {
     try {
         const query = 'SELECT identifiant, nom, prenom, mail, roles FROM Utilisateur';
-        const users = await db.query(query);
+        const [users] = await db.execute(query);
         
         res.json(users);
     } catch (err) {
@@ -162,7 +165,7 @@ router.get('/test-users', async (req, res) => {
 router.get('/check-users', async (req, res) => {
     try {
         const query = 'SELECT identifiant, nom, prenom, mail, roles FROM Utilisateur';
-        const users = await db.query(query);
+        const [users] = await db.execute(query);
         
         res.json(users);
     } catch (err) {
