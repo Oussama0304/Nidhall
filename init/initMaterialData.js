@@ -3,9 +3,9 @@ const db = require('../config/db');
 async function initializeMaterialData() {
     try {
         // Check if Material table is empty
-        const [existingData] = await db.query('SELECT COUNT(*) as count FROM Material');
+        const [existingData] = await db.execute('SELECT COUNT(*) as count FROM Material');
         
-        if (existingData[0].count === 0) {
+        if (!existingData || existingData.length === 0 || existingData[0].count === 0) {
             // Initial material data
             const materials = [
                 {
@@ -38,9 +38,24 @@ async function initializeMaterialData() {
                 }
             ];
 
+            // Vérifier si la table existe
+            await db.execute(`
+                CREATE TABLE IF NOT EXISTS Material (
+                    idMaterial INT PRIMARY KEY AUTO_INCREMENT,
+                    idStation INT,
+                    Actif VARCHAR(255) NOT NULL,
+                    Description TEXT,
+                    Emplacement VARCHAR(255),
+                    status VARCHAR(50) DEFAULT 'Actif',
+                    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    FOREIGN KEY (idStation) REFERENCES StationService(idStation)
+                )
+            `);
+
             // Insert materials
             for (const material of materials) {
-                await db.query(
+                await db.execute(
                     'INSERT INTO Material (idStation, Actif, Description, Emplacement, status) VALUES (?, ?, ?, ?, ?)',
                     [material.idStation, material.Actif, material.Description, material.Emplacement, material.status]
                 );

@@ -39,22 +39,38 @@ router.post('/login', async (req, res) => {
     try {
         const { email, mot_de_passe } = req.body;
 
+        // Validation des données
         if (!email || !mot_de_passe) {
-            return res.status(400).json({ error: "Email et mot de passe requis" });
+            return res.status(400).json({ 
+                error: "Email et mot de passe sont requis",
+                details: [
+                    !email && "L'email est requis",
+                    !mot_de_passe && "Le mot de passe est requis"
+                ].filter(Boolean)
+            });
         }
 
-        // Vérifier si l'utilisateur existe
+        // Récupérer l'utilisateur par email
         const [users] = await db.execute(
             'SELECT * FROM Utilisateur WHERE mail = ?',
             [email]
         );
 
-        if (users.length === 0) {
+        if (!users || users.length === 0) {
             console.log('Tentative de connexion avec email non trouvé:', email);
             return res.status(401).json({ error: "Email ou mot de passe incorrect" });
         }
 
         const user = users[0];
+
+        // Vérifier que le mot de passe existe dans la base de données
+        if (!user.mot_de_passe) {
+            console.error('Utilisateur trouvé mais pas de mot de passe en base:', email);
+            return res.status(500).json({ 
+                error: "Erreur de configuration du compte",
+                details: "Veuillez contacter l'administrateur"
+            });
+        }
 
         // Vérifier le mot de passe
         const validPassword = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
@@ -64,7 +80,10 @@ router.post('/login', async (req, res) => {
 
         // Créer et signer le token JWT
         const token = jwt.sign(
-            { id: user.identifiant },
+            { 
+                id: user.identifiant,
+                roles: user.roles 
+            },
             process.env.JWT_SECRET || 'votre_secret_jwt',
             { expiresIn: '24h' }
         );
@@ -82,7 +101,10 @@ router.post('/login', async (req, res) => {
         });
     } catch (error) {
         console.error('Erreur lors de la connexion:', error);
-        res.status(500).json({ error: "Erreur lors de la connexion" });
+        res.status(500).json({ 
+            error: "Erreur lors de la connexion",
+            details: error.message
+        });
     }
 });
 
