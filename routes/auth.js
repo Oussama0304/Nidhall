@@ -14,52 +14,91 @@ router.post('/login', async (req, res) => {
         }
 
         // Vérifier si l'utilisateur existe
-        const [users] = await db.execute('SELECT * FROM Utilisateur WHERE mail = ?', [email]);
+        const [rows] = await db.execute('SELECT * FROM Utilisateur WHERE mail = ?', [email]);
 
-        if (users.length === 0) {
+        if (rows.length === 0) {
             return res.status(401).json({ error: "Email ou mot de passe incorrect" });
         }
 
-        const user = users[0];
+        const user = rows[0];
 
-        // Vérifier que le mot de passe existe dans la base
-        if (!user.mot_de_passe) {
-            console.error('Erreur: mot de passe manquant dans la base pour l\'utilisateur:', user.identifiant);
-            return res.status(500).json({ error: "Erreur de configuration du compte" });
+        // Vérifier que le mot de passe existe
+        if (!user || !user.mot_de_passe) {
+            console.error('Erreur: utilisateur ou mot de passe manquant:', email);
+            return res.status(401).json({ error: "Email ou mot de passe incorrect" });
         }
 
         // Vérifier le mot de passe
         const validPassword = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
+        
         if (!validPassword) {
             return res.status(401).json({ error: "Email ou mot de passe incorrect" });
         }
 
-        // Générer le token JWT
+        // Créer et signer le token JWT
         const token = jwt.sign(
             { 
-                userId: user.identifiant,
+                id: user.identifiant,
                 role: user.roles
             },
-            process.env.JWT_SECRET || 'votre_clé_secrète',
+            process.env.JWT_SECRET || 'votre_secret_jwt',
             { expiresIn: '24h' }
         );
 
-        // Envoyer la réponse
         res.json({
             token,
             user: {
                 id: user.identifiant,
+                email: user.mail,
+                role: user.roles,
                 nom: user.nom,
                 prenom: user.prenom,
-                email: user.mail,
-                role: user.roles
+                telephone: user.telephone,
+                matricule: user.matricule
             }
         });
-
     } catch (error) {
         console.error('Erreur lors de la connexion:', error);
+        console.error('Détails de l\'erreur:', error.message);
+        if (error.sql) {
+            console.error('Requête SQL:', error.sql);
+        }
         res.status(500).json({ error: "Erreur lors de la connexion" });
     }
+});
+
+// Middleware de vérification du token
+const verifyToken = async (req, res, next) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+
+        if (!token) {
+            return res.status(401).json({ error: "Token manquant" });
+        }
+
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET || 'votre_secret_jwt');
+        
+        // Récupérer les informations de l'utilisateur
+        const [rows] = await db.execute(
+            'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?',
+            [decodedToken.id]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ error: "Utilisateur non trouvé" });
+        }
+
+        req.user = rows[0];
+        next();
+    } catch (error) {
+        console.error('Erreur de vérification du token:', error);
+        res.status(401).json({ error: "Token invalide" });
+    }
+};
+
+// Route protégée pour vérifier le token
+router.get('/verify', verifyToken, (req, res) => {
+    res.json({ user: req.user });
 });
 
 // Registration route
@@ -165,30 +204,13 @@ router.get('/test-hash', async (req, res) => {
 });
 
 // Get user profile
-router.get('/profile', async (req, res) => {
+router.get('/profile', verifyToken, async (req, res) => {
     try {
-        // Extraire le token du header
-        const authHeader = req.headers.authorization;
-        if (!authHeader) {
-            return res.status(401).json({ error: 'No token provided' });
-        }
-
-        const token = authHeader.split(' ')[1];
-        const decodedToken = jwt.verify(token, 'your_jwt_secret');
-        
-        // Récupérer les informations de l'utilisateur
-        const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?';
-        const [results] = await db.execute(query, [decodedToken.userId]);
-        
-        if (results.length === 0) {
-            return res.status(404).json({ error: "Utilisateur non trouvé" });
-        }
-        
-        res.json(results[0]);
+        res.json(req.user);
     } catch (error) {
         console.error('Profile error:', error);
         res.status(401).json({ error: 'Token invalide' });
     }
 });
 
-module.exports = router;
+module.exports = { router, verifyToken };
