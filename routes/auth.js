@@ -16,16 +16,16 @@ const verifyToken = async (req, res, next) => {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET || 'votre_secret_jwt');
         
         // Récupérer les informations de l'utilisateur
-        const [rows] = await db.execute(
+        const users = await db.query(
             'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?',
             [decodedToken.id]
         );
 
-        if (rows.length === 0) {
+        if (!users || users.length === 0) {
             return res.status(404).json({ error: "Utilisateur non trouvé" });
         }
 
-        req.user = rows[0];
+        req.user = users[0];
         next();
     } catch (error) {
         console.error('Erreur de vérification du token:', error);
@@ -39,28 +39,28 @@ router.post('/login', async (req, res) => {
         const { email, mot_de_passe } = req.body;
 
         if (!email || !mot_de_passe) {
+            console.log('Tentative de connexion sans email ou mot de passe');
             return res.status(400).json({ error: "Email et mot de passe requis" });
         }
 
         // Vérifier si l'utilisateur existe
-        const [rows] = await db.execute('SELECT * FROM Utilisateur WHERE mail = ?', [email]);
+        const users = await db.query(
+            'SELECT * FROM Utilisateur WHERE mail = ?', 
+            [email]
+        );
 
-        if (rows.length === 0) {
+        if (!users || users.length === 0) {
+            console.log(`Tentative de connexion avec email non trouvé: ${email}`);
             return res.status(401).json({ error: "Email ou mot de passe incorrect" });
         }
 
-        const user = rows[0];
-
-        // Vérifier que le mot de passe existe
-        if (!user || !user.mot_de_passe) {
-            console.error('Erreur: utilisateur ou mot de passe manquant:', email);
-            return res.status(401).json({ error: "Email ou mot de passe incorrect" });
-        }
+        const user = users[0];
 
         // Vérifier le mot de passe
         const validPassword = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
-        
+
         if (!validPassword) {
+            console.log(`Mot de passe incorrect pour l'email: ${email}`);
             return res.status(401).json({ error: "Email ou mot de passe incorrect" });
         }
 
@@ -78,20 +78,14 @@ router.post('/login', async (req, res) => {
             token,
             user: {
                 id: user.identifiant,
-                email: user.mail,
-                role: user.roles,
                 nom: user.nom,
                 prenom: user.prenom,
-                telephone: user.telephone,
-                matricule: user.matricule
+                email: user.mail,
+                role: user.roles
             }
         });
     } catch (error) {
         console.error('Erreur lors de la connexion:', error);
-        console.error('Détails de l\'erreur:', error.message);
-        if (error.sql) {
-            console.error('Requête SQL:', error.sql);
-        }
         res.status(500).json({ error: "Erreur lors de la connexion" });
     }
 });
@@ -123,9 +117,9 @@ router.post('/register', async (req, res) => {
 
         // Check if user already exists
         const checkQuery = 'SELECT * FROM Utilisateur WHERE mail = ?';
-        const [results] = await db.execute(checkQuery, [email]);
+        const users = await db.query(checkQuery, [email]);
 
-        if (results.length > 0) {
+        if (users && users.length > 0) {
             return res.status(400).json({ error: "Cet email est déjà utilisé" });
         }
 
@@ -139,7 +133,7 @@ router.post('/register', async (req, res) => {
             VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
 
-        await db.execute(
+        await db.query(
             insertQuery,
             [nom, prenom, telephone, email, hashedPassword, matricule, roles]
         );
@@ -155,9 +149,9 @@ router.post('/register', async (req, res) => {
 router.get('/test-users', async (req, res) => {
     try {
         const query = 'SELECT identifiant, nom, prenom, mail, roles FROM Utilisateur';
-        const [results] = await db.execute(query);
+        const users = await db.query(query);
         
-        res.json(results);
+        res.json(users);
     } catch (err) {
         console.error('Database error:', err);
         return res.status(500).json({ error: "Erreur de serveur" });
@@ -168,22 +162,9 @@ router.get('/test-users', async (req, res) => {
 router.get('/check-users', async (req, res) => {
     try {
         const query = 'SELECT identifiant, nom, prenom, mail, roles FROM Utilisateur';
-        const [results] = await db.execute(query);
+        const users = await db.query(query);
         
-        res.json(results);
-    } catch (err) {
-        console.error('Database error:', err);
-        return res.status(500).json({ error: "Erreur serveur" });
-    }
-});
-
-// Route temporaire pour voir les utilisateurs
-router.get('/check-users', async (req, res) => {
-    try {
-        const query = 'SELECT identifiant, nom, prenom, mail, roles FROM Utilisateur';
-        const [results] = await db.execute(query);
-        
-        res.json(results);
+        res.json(users);
     } catch (err) {
         console.error('Database error:', err);
         return res.status(500).json({ error: "Erreur serveur" });
