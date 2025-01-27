@@ -17,8 +17,8 @@ RUN mkdir -p uploads/reclamations public
 
 EXPOSE 3000
 
-# Healthcheck using a more reliable endpoint
+# Healthcheck using the new endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:3000/api/health || exit 1
+    CMD curl -f http://localhost:3000/health || exit 1
 
 CMD ["node", "server.js"]

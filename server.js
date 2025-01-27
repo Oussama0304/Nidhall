@@ -57,6 +57,25 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
     }
 }));
 
+// Health check endpoint
+app.get('/health', async (req, res) => {
+    try {
+        // Vérifier la connexion à la base de données
+        await db.promise().query('SELECT 1');
+        res.status(200).json({ 
+            status: 'OK',
+            database: 'connected'
+        });
+    } catch (error) {
+        console.error('Health check failed:', error);
+        res.status(503).json({ 
+            status: 'ERROR',
+            database: 'disconnected',
+            message: error.message
+        });
+    }
+});
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const commandeRoutes = require('./routes/commandes');
