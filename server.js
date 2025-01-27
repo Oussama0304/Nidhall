@@ -59,19 +59,23 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
 
 // Health check endpoint
 app.get('/health', async (req, res) => {
+    console.log('Health check appelé');
     try {
         // Vérifier la connexion à la base de données
-        await db.promise().query('SELECT 1');
+        const [result] = await db.promise().query('SELECT 1');
+        console.log('Health check DB result:', result);
         res.status(200).json({ 
             status: 'OK',
-            database: 'connected'
+            database: 'connected',
+            timestamp: new Date().toISOString()
         });
     } catch (error) {
         console.error('Health check failed:', error);
         res.status(503).json({ 
             status: 'ERROR',
             database: 'disconnected',
-            message: error.message
+            error: error.message,
+            timestamp: new Date().toISOString()
         });
     }
 });
@@ -189,6 +193,14 @@ function handleDisconnect() {
 // Créer la connexion initiale
 let db = createConnection();
 
+db.connect((err) => {
+    if (err) {
+        console.error('Erreur de connexion à la base de données:', err);
+        return;
+    }
+    console.log('Connecté à la base de données MySQL');
+});
+
 // Initialiser les données après la connexion
 const initializeData = require('./init/initData');
 const initializeGerantData = require('./init/initGerantData');
@@ -231,6 +243,12 @@ setTimeout(() => {
     }, 1000);
 }, 5000); // Attendre 5 secondes pour s'assurer que la base de données est prête
 
+// Démarrer le serveur
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Global error handler:', err);
@@ -239,11 +257,6 @@ app.use((err, req, res, next) => {
 
 // Export pour utilisation dans d'autres fichiers
 app.set('io', io);
-
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
 
 // Gestion des erreurs 404
 app.use((req, res, next) => {
