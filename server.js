@@ -70,6 +70,11 @@ const recommendationRoutes = require('./routes/recommendations');
 const analysisRoutes = require('./routes/analysis');
 const imageAnalysisRoutes = require('./routes/imageAnalysis');
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'healthy' });
+});
+
 // Public routes
 app.use('/api/auth', authRoutes);
 
