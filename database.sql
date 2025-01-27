@@ -186,7 +186,12 @@ VALUES
 ('rodrigo', 'rodriguez', '23456781', 'gerant.test@station.com', '$2a$10$/IWjTxgiBry/8VIwuUsFu.2Bv0d.5uBIOCKgoNqRcdCHqb.CtpABC', 654321, 'GERANT'),
 ('mouldi', 'aifa', '28456934', 'depot.test@gmail.com', '$2a$10$Or1XUqCJ8cPWlQqeeILsLOgrohixpnwiWK.w/FT5gGuUfx2hkWD/2', 9876554, 'DEPOT'),
 ('brian', 'ruiz', '12365478', 'brian.depot@gmail.com', '$2a$10$qf9INIgYJsOKjLdhiArvA.VSQjme8M27UTumUcIsA1AGM9FBrSaUy', 471852, 'DEPOT'),
-('oussema', 'boughan', '26593757', 'boughanmi.commercial@agil.com', '$2a$10$7he4/mlhVcwDso6exKbQx.tUEoxeK5POd1gioUGXvD.l9UeDJulNi', 14455, 'COMMERCIAL');
+('oussema', 'boughan', '26593757', 'boughanmi.commercial@agil.com', '$2a$10$7he4/mlhVcwDso6exKbQx.tUEoxeK5POd1gioUGXvD.l9UeDJulNi', 14455, 'COMMERCIAL'),
+('nidhal', 'boughanmi', '26593758', 'nidhal.gerant@station.com', '$2a$10$7he4/mlhVcwDso6exKbQx.tUEoxeK5POd1gioUGXvD.l9UeDJulNi', 213456, 'GERANT'),
+('nidhal', 'boughanmi', '26593759', 'nidhal2.gerant@station.com', '$2a$10$7he4/mlhVcwDso6exKbQx.tUEoxeK5POd1gioUGXvD.l9UeDJulNi', 123455, 'GERANT'),
+('oussema', 'boughanmi', '26593760', 'oussema.gerant@station.com', '$2a$10$7he4/mlhVcwDso6exKbQx.tUEoxeK5POd1gioUGXvD.l9UeDJulNi', 124563, 'GERANT'),
+('boughanmi', 'nidhal', '26593761', 'nidhal3.gerant@station.com', '$2a$10$7he4/mlhVcwDso6exKbQx.tUEoxeK5POd1gioUGXvD.l9UeDJulNi', 987655, 'GERANT'),
+('aloui', 'omar', '26593762', 'omar.gerant@station.com', '$2a$10$7he4/mlhVcwDso6exKbQx.tUEoxeK5POd1gioUGXvD.l9UeDJulNi', 987656, 'GERANT');
 
 -- Insert initial data into StationService
 INSERT INTO StationService (idStation, nom, adresse, ville, telephone, email, capacite)
@@ -209,14 +214,31 @@ VALUES
 (5, 'Depot Gabes', '654 Avenue de Gabes, Gabes', 'Gabes', '56789012', 'depot.gabes@agil.com', 600);
 
 -- Insert initial data into Gerant
-INSERT INTO Gerant (idGerant, nom, prenom, matricule, numGerant, idStation) VALUES
-(3, 'rodrigo', 'rodriguez', 654321, 1001, 1),
-(7, 'nidhal', 'boughanmi', 213456, 1002, 2),
-(8, 'nidhal', 'boughanmi', 123455, 1003, 3),
-(10, 'oussema', 'boughanmi', 124563, 1004, 4),
-(12, 'boughanmi', 'nidhal', 987655, 1005, 5),
-(14, 'aloui', 'omar', 254136, 1006, 1),
-(16, 'ameur', 'atef', 257413, 1007, 2);
+INSERT INTO Gerant (idGerant, nom, prenom, matricule, numGerant, idStation)
+SELECT 
+    u.identifiant,
+    u.nom,
+    u.prenom,
+    u.matricule,
+    CASE u.matricule
+        WHEN 654321 THEN 1001
+        WHEN 213456 THEN 1002
+        WHEN 123455 THEN 1003
+        WHEN 124563 THEN 1004
+        WHEN 987655 THEN 1005
+        WHEN 987656 THEN 1006
+    END as numGerant,
+    CASE u.matricule
+        WHEN 654321 THEN 1
+        WHEN 213456 THEN 2
+        WHEN 123455 THEN 3
+        WHEN 124563 THEN 4
+        WHEN 987655 THEN 5
+        WHEN 987656 THEN 6
+    END as idStation
+FROM Utilisateur u
+WHERE u.roles = 'GERANT'
+AND u.matricule IN (654321, 213456, 123455, 124563, 987655, 987656);
 
 -- Insert initial data into Produit
 INSERT INTO Produit (idProduit, nom, disponibilite, prix, CODPRD, LIBPRD, CODEMB, LIBEMB, TYPPRD, quantite, seuil_alerte)
