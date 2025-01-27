@@ -5,7 +5,7 @@ dotenv.config();
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'database',
-    user: process.env.DB_USER || 'root',
+    user: process.env.DB_USER || 'pfeuser',
     password: process.env.DB_PASSWORD || 'ProjectPfeAgil',
     database: process.env.DB_NAME || 'ProjetPfeAgil',
     waitForConnections: true,
@@ -35,7 +35,7 @@ const execute = async (sql, params = []) => {
         const [results] = await pool.execute(sql, params);
         return results;
     } catch (err) {
-        console.error('Database query error:', err);
+        console.error('Error executing query:', err);
         throw err;
     }
 };
@@ -46,7 +46,7 @@ const query = async (sql, params = []) => {
         const [results] = await pool.query(sql, params);
         return results;
     } catch (err) {
-        console.error('Database query error:', err);
+        console.error('Error executing query:', err);
         throw err;
     }
 };

@@ -6,6 +6,11 @@ USE ProjetPfeAgil;
 ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'ProjectPfeAgil';
 FLUSH PRIVILEGES;
 
+-- Créer l'utilisateur et accorder les permissions
+CREATE USER IF NOT EXISTS 'pfeuser'@'%' IDENTIFIED BY 'ProjectPfeAgil';
+GRANT ALL PRIVILEGES ON ProjetPfeAgil.* TO 'pfeuser'@'%';
+FLUSH PRIVILEGES;
+
 -- Create Utilisateur table
 CREATE TABLE IF NOT EXISTS Utilisateur (
     identifiant BIGINT PRIMARY KEY AUTO_INCREMENT,
