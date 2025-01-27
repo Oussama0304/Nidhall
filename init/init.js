@@ -5,7 +5,6 @@ const initializeCommandeData = require('./initCommandeData');
 const initializeCommandeproduitData = require('./initCommandeproduitData');
 const initializeLivraisonData = require('./initLivraisonData');
 const initializeMouvementstockData = require('./initMouvementstockData');
-const initializeReclamationData = require('./initReclamationData');
 
 async function initializeAllData() {
     try {
@@ -31,9 +30,6 @@ async function initializeAllData() {
 
         // Initialiser les mouvements de stock
         await initializeMouvementstockData();
-
-        // Initialiser les réclamations
-        await initializeReclamationData();
 
         console.log('Toutes les données ont été initialisées avec succès');
     } catch (error) {
