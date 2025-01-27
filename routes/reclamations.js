@@ -152,8 +152,10 @@ const analyzeReclamation = (description) => {
     };
 };
 
+router.use(auth);
+
 // Get all reclamations
-router.get('/', auth, async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const query = `
             SELECT r.*, 
@@ -176,7 +178,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Get reclamations for current user
-router.get('/user', auth, async (req, res) => {
+router.get('/user', async (req, res) => {
     try {
         const userId = req.user.id;
         const userRole = req.user.role;
@@ -221,7 +223,7 @@ router.get('/user', auth, async (req, res) => {
 });
 
 // Create new reclamation
-router.post('/', auth, upload.single('image'), async (req, res) => {
+router.post('/', upload.single('image'), async (req, res) => {
     try {
         let imageAnalysis = null;
         let imageUrl = null;
@@ -300,7 +302,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
 });
 
 // Get reclamation by ID
-router.get('/:id', auth, async (req, res) => {
+router.get('/:id', async (req, res) => {
     try {
         const userId = req.user.id;
         const userRole = req.user.role;
@@ -336,7 +338,7 @@ router.get('/:id', auth, async (req, res) => {
 });
 
 // Update reclamation status
-router.put('/:id/status', auth, async (req, res) => {
+router.put('/:id/status', async (req, res) => {
     try {
         const { etat } = req.body;
         const userId = req.user.id;

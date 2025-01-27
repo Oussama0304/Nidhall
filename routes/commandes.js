@@ -3,9 +3,6 @@ const router = express.Router();
 const db = require('../config/db');
 const auth = require('../middleware/auth');
 
-// Appliquer l'authentification à toutes les routes
-router.use(auth);
-
 // Get all commandes
 router.get('/', async (req, res) => {
     try {

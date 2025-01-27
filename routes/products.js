@@ -6,7 +6,7 @@ const db = require('../config/db');
 router.get('/', async (req, res) => {
     try {
         const query = 'SELECT * FROM Produit';
-        const [results] = await db.query(query);
+        const [results] = await db.execute(query);
         res.json(results);
     } catch (err) {
         console.error('Error:', err);
@@ -20,7 +20,7 @@ router.post('/', async (req, res) => {
         const { nom, disponibilite, prix, CODPRD, LIBPRD, CODEMB, LIBEMB, TYPPRD } = req.body;
         const query = 'INSERT INTO Produit (nom, disponibilite, prix, CODPRD, LIBPRD, CODEMB, LIBEMB, TYPPRD) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
         
-        const [result] = await db.query(query, [nom, disponibilite, prix, CODPRD, LIBPRD, CODEMB, LIBEMB, TYPPRD]);
+        const [result] = await db.execute(query, [nom, disponibilite, prix, CODPRD, LIBPRD, CODEMB, LIBEMB, TYPPRD]);
         
         res.status(201).json({
             message: "Produit créé avec succès",
@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const query = 'SELECT * FROM Produit WHERE idProduit = ?';
-        const [results] = await db.query(query, [req.params.id]);
+        const [results] = await db.execute(query, [req.params.id]);
         
         if (results.length === 0) {
             return res.status(404).json({ error: "Produit non trouvé" });
@@ -60,7 +60,7 @@ router.put('/:id', async (req, res) => {
             WHERE idProduit = ?
         `;
         
-        const [result] = await db.query(query, [
+        const [result] = await db.execute(query, [
             nom, disponibilite, prix, 
             CODPRD, LIBPRD, CODEMB, 
             LIBEMB, TYPPRD, req.params.id

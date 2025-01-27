@@ -93,15 +93,8 @@ const recommendationRoutes = require('./routes/recommendations');
 const analysisRoutes = require('./routes/analysis');
 const imageAnalysisRoutes = require('./routes/imageAnalysis');
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'healthy' });
-});
-
-// Public routes
+// Routes
 app.use('/api/auth', authRoutes);
-
-// Protected routes
 app.use('/api/commandes', auth, commandeRoutes);
 app.use('/api/reclamations', auth, reclamationRoutes);
 app.use('/api/users', auth, userRoutes);

@@ -4,6 +4,35 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
+// Middleware de vérification du token
+const verifyToken = async (req, res, next) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+
+        if (!token) {
+            return res.status(401).json({ error: "Token manquant" });
+        }
+
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET || 'votre_secret_jwt');
+        
+        // Récupérer les informations de l'utilisateur
+        const [rows] = await db.execute(
+            'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?',
+            [decodedToken.id]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ error: "Utilisateur non trouvé" });
+        }
+
+        req.user = rows[0];
+        next();
+    } catch (error) {
+        console.error('Erreur de vérification du token:', error);
+        res.status(401).json({ error: "Token invalide" });
+    }
+};
+
 // Login route
 router.post('/login', async (req, res) => {
     try {
@@ -67,38 +96,19 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// Middleware de vérification du token
-const verifyToken = async (req, res, next) => {
-    try {
-        const token = req.headers.authorization?.split(' ')[1];
-
-        if (!token) {
-            return res.status(401).json({ error: "Token manquant" });
-        }
-
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET || 'votre_secret_jwt');
-        
-        // Récupérer les informations de l'utilisateur
-        const [rows] = await db.execute(
-            'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?',
-            [decodedToken.id]
-        );
-
-        if (rows.length === 0) {
-            return res.status(404).json({ error: "Utilisateur non trouvé" });
-        }
-
-        req.user = rows[0];
-        next();
-    } catch (error) {
-        console.error('Erreur de vérification du token:', error);
-        res.status(401).json({ error: "Token invalide" });
-    }
-};
-
 // Route protégée pour vérifier le token
 router.get('/verify', verifyToken, (req, res) => {
     res.json({ user: req.user });
+});
+
+// Get user profile
+router.get('/profile', verifyToken, async (req, res) => {
+    try {
+        res.json(req.user);
+    } catch (error) {
+        console.error('Profile error:', error);
+        res.status(401).json({ error: 'Token invalide' });
+    }
 });
 
 // Registration route
@@ -203,14 +213,4 @@ router.get('/test-hash', async (req, res) => {
     }
 });
 
-// Get user profile
-router.get('/profile', verifyToken, async (req, res) => {
-    try {
-        res.json(req.user);
-    } catch (error) {
-        console.error('Profile error:', error);
-        res.status(401).json({ error: 'Token invalide' });
-    }
-});
-
-module.exports = { router, verifyToken };
+module.exports = router;

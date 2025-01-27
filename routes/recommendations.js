@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const recommendationService = require('../services/recommendation.service');
+const db = require('../config/db');
 
 // Get recommendations for a reclamation
 router.get('/:reclamationId', auth, async (req, res) => {
@@ -9,83 +9,82 @@ router.get('/:reclamationId', auth, async (req, res) => {
         const reclamationId = req.params.reclamationId;
 
         // Récupérer la réclamation
-        const reclamation = await new Promise((resolve, reject) => {
-            recommendationService.db.query(
-                'SELECT * FROM Reclamation WHERE idReclamation = ?',
-                [reclamationId],
-                (err, results) => {
-                    if (err) reject(err);
-                    else resolve(results[0]);
-                }
-            );
-        });
+        const [reclamations] = await db.execute(
+            'SELECT * FROM Reclamation WHERE idReclamation = ?',
+            [reclamationId]
+        );
 
-        if (!reclamation) {
-            return res.status(404).json({ message: 'Réclamation non trouvée' });
+        if (!reclamations || reclamations.length === 0) {
+            return res.status(404).json({ error: 'Réclamation non trouvée' });
         }
 
-        // Obtenir les différentes recommandations
-        const [similarCases, recommendedCommercial, preventiveActions] = await Promise.all([
-            recommendationService.findSimilarCases(reclamation.description),
-            recommendationService.recommendCommercial(reclamation.type),
-            recommendationService.suggestPreventiveActions(reclamation.type)
-        ]);
+        const reclamation = reclamations[0];
 
-        // Formater les recommandations
-        const recommendations = [];
+        // Récupérer les réclamations similaires
+        const [similarReclamations] = await db.execute(
+            'SELECT * FROM Reclamation WHERE idReclamation != ? AND type = ? LIMIT 5',
+            [reclamationId, reclamation.type]
+        );
 
-        // Ajouter les cas similaires
-        if (similarCases && similarCases.length > 0) {
-            similarCases.forEach(caseItem => {
-                recommendations.push({
-                    type: 'SIMILAR_CASE',
-                    description: `Cas similaire #${caseItem.idReclamation}: ${caseItem.description}`,
-                    score: 0.8,
-                    details: {
-                        idReclamation: caseItem.idReclamation,
-                        commercial: `${caseItem.nom_commercial} ${caseItem.prenom_commercial}`,
-                        date: caseItem.date
-                    }
-                });
-            });
-        }
+        // Récupérer les solutions précédentes
+        const [previousSolutions] = await db.execute(
+            'SELECT DISTINCT solution FROM Reclamation WHERE type = ? AND solution IS NOT NULL LIMIT 5',
+            [reclamation.type]
+        );
 
-        // Ajouter le commercial recommandé
-        if (recommendedCommercial) {
-            recommendations.push({
-                type: 'RECOMMENDED_COMMERCIAL',
-                description: `Commercial recommandé: ${recommendedCommercial.nom} ${recommendedCommercial.prenom}`,
-                score: recommendedCommercial.taux_resolution / 100,
-                details: {
-                    commercial: recommendedCommercial,
-                    stats: {
-                        totalReclamations: recommendedCommercial.total_reclamations,
-                        reclamationsResolues: recommendedCommercial.reclamations_resolues,
-                        tauxResolution: recommendedCommercial.taux_resolution
-                    }
-                }
-            });
-        }
-
-        // Ajouter les actions préventives
-        if (preventiveActions && Array.isArray(preventiveActions)) {
-            preventiveActions.forEach((action, index) => {
-                recommendations.push({
-                    type: 'PREVENTIVE_ACTION',
-                    description: action,
-                    score: 0.9 - (index * 0.1),
-                    details: {
-                        priority: index === 0 ? 'HAUTE' : index === 1 ? 'MOYENNE' : 'FAIBLE'
-                    }
-                });
-            });
-        }
+        // Générer des recommandations basées sur l'historique
+        const recommendations = {
+            similarCases: similarReclamations.map(rec => ({
+                id: rec.idReclamation,
+                description: rec.description,
+                solution: rec.solution,
+                status: rec.etat,
+                resolutionTime: rec.dateResolution ? 
+                    Math.floor((new Date(rec.dateResolution) - new Date(rec.dateCreation)) / (1000 * 60 * 60 * 24)) : 
+                    null
+            })),
+            suggestedSolutions: previousSolutions.map(sol => sol.solution).filter(Boolean),
+            estimatedResolutionTime: calculateEstimatedTime(similarReclamations),
+            priority: determinePriority(reclamation, similarReclamations)
+        };
 
         res.json(recommendations);
     } catch (error) {
         console.error('Erreur lors de la génération des recommandations:', error);
-        res.status(500).json({ message: 'Erreur lors de la génération des recommandations' });
+        res.status(500).json({ error: 'Erreur lors de la génération des recommandations' });
     }
 });
+
+// Fonction utilitaire pour calculer le temps estimé
+function calculateEstimatedTime(similarCases) {
+    const times = similarCases
+        .filter(rec => rec.dateResolution && rec.dateCreation)
+        .map(rec => new Date(rec.dateResolution) - new Date(rec.dateCreation));
+    
+    if (times.length === 0) return "Non disponible";
+    
+    const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+    return Math.floor(avgTime / (1000 * 60 * 60 * 24)) + " jours";
+}
+
+// Fonction utilitaire pour déterminer la priorité
+function determinePriority(reclamation, similarCases) {
+    // Logique de base pour la priorité
+    if (reclamation.type === 'URGENT' || reclamation.description.toLowerCase().includes('urgent')) {
+        return 'HAUTE';
+    }
+    
+    // Vérifier les cas similaires
+    const urgentCases = similarCases.filter(rec => 
+        rec.etat === 'URGENT' || 
+        (rec.description && rec.description.toLowerCase().includes('urgent'))
+    );
+    
+    if (urgentCases.length > similarCases.length / 2) {
+        return 'HAUTE';
+    }
+    
+    return 'NORMALE';
+}
 
 module.exports = router;

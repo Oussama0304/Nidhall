@@ -3,143 +3,75 @@ const router = express.Router();
 const { analyzeImage } = require('../services/imageAnalysis');
 const path = require('path');
 const auth = require('../middleware/auth');
-const mysql = require('mysql2');
+const db = require('../config/db');
 const fs = require('fs');
 
-// Fonction pour créer une connexion à la base de données
-function createConnection() {
-    const connection = mysql.createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME
-    });
-
-    // Gérer la reconnexion
-    connection.on('error', function(err) {
-        console.error('Erreur de base de données:', err);
-        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-            console.log('Tentative de reconnexion à la base de données...');
-            createConnection();
-        } else {
-            throw err;
-        }
-    });
-
-    return connection;
-}
-
-// Créer la connexion initiale
-let db = createConnection();
-
 // Route pour analyser une image de réclamation
-router.post('/analyze/:reclamationId', auth, async (req, res) => {
+router.post('/analyze', auth, async (req, res) => {
     try {
-        const { reclamationId } = req.params;
-        console.log('Analyse de la réclamation:', reclamationId);
+        const { imagePath } = req.body;
 
-        // Vérifier la connexion et reconnecter si nécessaire
-        if (!db || db.state === 'disconnected') {
-            console.log('Reconnexion à la base de données...');
-            db = createConnection();
+        if (!imagePath) {
+            return res.status(400).json({ error: 'Chemin de l\'image requis' });
         }
 
-        // Récupérer les détails de la réclamation depuis la base de données
-        const query = 'SELECT image_url FROM reclamation WHERE idReclamation = ?';
-        
-        db.query(query, [reclamationId], async (err, results) => {
-            if (err) {
-                console.error('Erreur lors de la récupération de l\'image:', err);
-                return res.status(500).json({ error: 'Erreur lors de l\'analyse de l\'image' });
-            }
+        // Vérifier si le fichier existe
+        const absolutePath = path.resolve(imagePath);
+        if (!fs.existsSync(absolutePath)) {
+            return res.status(404).json({ error: 'Image non trouvée' });
+        }
 
-            if (!results || results.length === 0) {
-                console.log('Réclamation non trouvée:', reclamationId);
-                return res.status(404).json({ error: 'Réclamation non trouvée' });
-            }
+        // Analyser l'image
+        const analysisResults = await analyzeImage(absolutePath);
 
-            const { image_url } = results[0];
-            if (!image_url) {
-                console.log('Pas d\'image pour la réclamation:', reclamationId);
-                return res.status(400).json({ error: 'Aucune image associée à cette réclamation' });
-            }
+        // Sauvegarder les résultats dans la base de données
+        const [result] = await db.execute(
+            'INSERT INTO ImageAnalysis (image_path, analysis_results, created_at) VALUES (?, ?, NOW())',
+            [imagePath, JSON.stringify(analysisResults)]
+        );
 
-            console.log('URL de l\'image trouvée:', image_url);
-
-            // Nettoyer le chemin de l'image
-            const cleanImageUrl = image_url.replace(/^\/?(uploads\/reclamations\/)?/, '');
-            const imagePath = path.join(__dirname, '..', 'uploads', 'reclamations', cleanImageUrl);
-            console.log('Chemin complet de l\'image:', imagePath);
-
-            // Vérifier si le fichier existe
-            if (!fs.existsSync(imagePath)) {
-                console.error('Image non trouvée au chemin:', imagePath);
-                // Essayer un chemin alternatif sans le dossier uploads
-                const alternativePath = path.join(__dirname, '..', cleanImageUrl);
-                if (!fs.existsSync(alternativePath)) {
-                    console.error('Image également non trouvée au chemin alternatif:', alternativePath);
-                    return res.status(404).json({ error: 'Image non trouvée sur le serveur' });
-                }
-                console.log('Image trouvée au chemin alternatif');
-                imagePath = alternativePath;
-            }
-
-            // Analyser l'image
-            const analysisResults = await analyzeImage(imagePath);
-            console.log('Résultats de l\'analyse:', analysisResults);
-
-            // Mettre à jour la réclamation avec les résultats
-            const updateQuery = `
-                UPDATE reclamation 
-                SET 
-                    analysis_results = ?,
-                    last_analyzed = CURRENT_TIMESTAMP
-                WHERE idReclamation = ?
-            `;
-            
-            db.query(updateQuery, [JSON.stringify(analysisResults), reclamationId], (updateErr) => {
-                if (updateErr) {
-                    console.error('Erreur lors de la mise à jour des résultats:', updateErr);
-                    return res.status(500).json({ error: 'Erreur lors de la sauvegarde des résultats' });
-                }
-
-                res.json(analysisResults);
-            });
+        // Retourner les résultats
+        res.json({
+            id: result.insertId,
+            ...analysisResults
         });
     } catch (error) {
-        console.error('Erreur lors de l\'analyse:', error);
+        console.error('Erreur lors de l\'analyse de l\'image:', error);
         res.status(500).json({ error: 'Erreur lors de l\'analyse de l\'image' });
     }
 });
 
 // Route pour récupérer l'historique des analyses
-router.get('/history/:reclamationId', auth, (req, res) => {
-    const { reclamationId } = req.params;
-    
-    const query = `
-        SELECT 
-            id,
-            type,
-            description,
-            image_url,
-            analysis_results,
-            last_analyzed
-        FROM reclamation
-        WHERE idReclamation = ? AND analysis_results IS NOT NULL
-    `;
+router.get('/history', auth, async (req, res) => {
+    try {
+        const [results] = await db.execute(
+            'SELECT * FROM ImageAnalysis ORDER BY created_at DESC LIMIT 100'
+        );
 
-    db.query(query, [reclamationId], (err, results) => {
-        if (err) {
-            console.error('Erreur lors de la récupération de l\'historique:', err);
-            return res.status(500).json({ error: 'Erreur lors de la récupération de l\'historique' });
-        }
+        res.json(results);
+    } catch (error) {
+        console.error('Erreur lors de la récupération de l\'historique:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération de l\'historique' });
+    }
+});
 
-        if (!results || results.length === 0) {
-            return res.status(404).json({ error: 'Aucune analyse trouvée' });
+// Route pour récupérer une analyse spécifique
+router.get('/:id', auth, async (req, res) => {
+    try {
+        const [results] = await db.execute(
+            'SELECT * FROM ImageAnalysis WHERE id = ?',
+            [req.params.id]
+        );
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Analyse non trouvée' });
         }
 
         res.json(results[0]);
-    });
+    } catch (error) {
+        console.error('Erreur lors de la récupération de l\'analyse:', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération de l\'analyse' });
+    }
 });
 
 module.exports = router;

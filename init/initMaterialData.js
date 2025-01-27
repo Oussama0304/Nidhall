@@ -9,6 +9,13 @@ async function initializeMaterialData() {
         if (count === 0) {
             console.log('Initialisation des données des matériels...');
             
+            // Vérifier que les stations existent
+            const [stations] = await db.execute('SELECT idStation FROM StationService');
+            
+            if (stations.length === 0) {
+                throw new Error('Aucune station n\'existe');
+            }
+
             const insertQuery = `
                 INSERT INTO Material (idStation, Actif, Description, Emplacement, status) VALUES
                 (1, 'Pompe 1', 'Pompe à essence principale', 'Zone A', 'Actif'),
@@ -36,11 +43,8 @@ async function initializeMaterialData() {
             console.log('La table Material contient déjà des données');
         }
     } catch (error) {
-        console.error('Erreur lors de l\'initialisation des données des matériels:', error);
-        console.error('Détails de l\'erreur:', error.message);
-        if (error.sql) {
-            console.error('Requête SQL:', error.sql);
-        }
+        console.error('Erreur lors de l\'initialisation des matériels:', error);
+        throw error;
     }
 }
 

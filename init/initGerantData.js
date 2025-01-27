@@ -9,27 +9,44 @@ async function initializeGerantData() {
         if (count === 0) {
             console.log('Initialisation des données des gérants...');
             
-            const insertQuery = `
-                INSERT INTO Gerant (idGerant, nom, prenom, matricule, numGerant, idStation) VALUES
-                (3, 'rodrigo', 'rodriguez', 654321, 1001, 1),
-                (7, 'nidhal', 'boughanmi', 213456, 1002, 2),
-                (8, 'nidhal', 'boughanmi', 123455, 1003, 3),
-                (10, 'oussema', 'boughanmi', 124563, 1004, 4),
-                (12, 'boughanmi', 'nidhal', 987655, 1005, 5),
-                (14, 'aloui', 'omar', 254136, 1006, 6),
-                (16, 'ameur', 'atef', 257413, 1007, 1)`;
+            // D'abord, vérifions que les utilisateurs existent
+            const [users] = await db.execute(
+                'SELECT identifiant FROM Utilisateur WHERE roles = ?',
+                ['GERANT']
+            );
+
+            if (users.length === 0) {
+                throw new Error('Aucun utilisateur avec le rôle GERANT n\'existe');
+            }
+
+            // Ensuite, vérifions que les stations existent
+            const [stations] = await db.execute('SELECT idStation FROM StationService');
             
-            await db.execute(insertQuery);
+            if (stations.length === 0) {
+                throw new Error('Aucune station n\'existe');
+            }
+
+            const insertQuery = `
+                INSERT INTO Gerant (idGerant, idStation) VALUES
+                (?, ?), (?, ?), (?, ?), (?, ?), (?, ?), (?, ?), (?, ?)`;
+            
+            await db.execute(insertQuery, [
+                3, 1,  // rodrigo rodriguez -> Station Test
+                7, 2,  // nidhal boughanmi -> station bardo
+                8, 3,  // nidhal boughanmi -> station ariana
+                10, 4, // oussema boughanmi -> station centre ville
+                12, 5, // boughanmi nidhal -> station bizerte
+                14, 6, // aloui omar -> station nabeul
+                16, 1  // ameur atef -> station ben arous
+            ]);
+
             console.log('Données des gérants initialisées avec succès');
         } else {
             console.log('La table Gerant contient déjà des données');
         }
     } catch (error) {
         console.error('Erreur lors de l\'initialisation des gérants:', error);
-        console.error('Détails de l\'erreur:', error.message);
-        if (error.sql) {
-            console.error('Requête SQL:', error.sql);
-        }
+        throw error; // Propager l'erreur pour que initializeDatabase puisse la gérer
     }
 }
 

@@ -7,7 +7,7 @@ const db = require('../config/db');
 router.get('/', async (req, res) => {
     try {
         const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur';
-        const [results] = await db.query(query);
+        const [results] = await db.execute(query);
         res.json(results);
     } catch (err) {
         console.error('Error:', err);
@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
         const hashedPassword = await bcrypt.hash(mot_de_passe, 10);
         
         const query = 'INSERT INTO Utilisateur (nom, prenom, telephone, mail, mot_de_passe, matricule, roles) VALUES (?, ?, ?, ?, ?, ?, ?)';
-        const [result] = await db.query(query, [nom, prenom, telephone, mail, hashedPassword, matricule, roles]);
+        const [result] = await db.execute(query, [nom, prenom, telephone, mail, hashedPassword, matricule, roles]);
         
         res.status(201).json({
             message: "Utilisateur créé avec succès",
@@ -38,7 +38,7 @@ router.post('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?';
-        const [results] = await db.query(query, [req.params.id]);
+        const [results] = await db.execute(query, [req.params.id]);
         
         if (results.length === 0) {
             return res.status(404).json({ error: "Utilisateur non trouvé" });
@@ -55,7 +55,7 @@ router.put('/:id', async (req, res) => {
     try {
         const { nom, prenom, telephone, mail, matricule, roles } = req.body;
         const query = 'UPDATE Utilisateur SET nom = ?, prenom = ?, telephone = ?, mail = ?, matricule = ?, roles = ? WHERE identifiant = ?';
-        const [result] = await db.query(query, [nom, prenom, telephone, mail, matricule, roles, req.params.id]);
+        const [result] = await db.execute(query, [nom, prenom, telephone, mail, matricule, roles, req.params.id]);
         
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: "Utilisateur non trouvé" });
@@ -71,7 +71,7 @@ router.put('/:id', async (req, res) => {
 router.get('/role/:role', async (req, res) => {
     try {
         const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE roles = ?';
-        const [results] = await db.query(query, [req.params.role]);
+        const [results] = await db.execute(query, [req.params.role]);
         res.json(results);
     } catch (err) {
         console.error('Error:', err);
@@ -86,7 +86,7 @@ router.get('/profile', async (req, res) => {
         const userId = req.user.id; // Assurez-vous que votre middleware d'authentification ajoute user à req
 
         const query = 'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?';
-        const [results] = await db.query(query, [userId]);
+        const [results] = await db.execute(query, [userId]);
         
         if (results.length === 0) {
             return res.status(404).json({ error: "Utilisateur non trouvé" });
