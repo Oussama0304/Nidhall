@@ -142,57 +142,37 @@ io.on('connection', (socket) => {
   });
 });
 
-// Fonction pour créer une connexion à la base de données
-function createConnection() {
-    const connection = mysql.createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
-        waitForConnections: true,
-        connectionLimit: 10,
-        queueLimit: 0
-    });
-
-    // Gérer la reconnexion
-    connection.on('error', function(err) {
-        console.error('Erreur de base de données:', err);
-        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-            console.log('Tentative de reconnexion à la base de données...');
-            handleDisconnect();
-        } else {
-            throw err;
-        }
-    });
-
-    connection.connect(function(err) {
-        if (err) {
-            console.error('Erreur lors de la connexion à la base de données:', err);
-            setTimeout(handleDisconnect, 2000);
-        } else {
-            console.log('Connecté à la base de données MySQL');
-        }
-    });
-
-    return connection;
-}
-
-// Fonction pour gérer la déconnexion
-function handleDisconnect() {
-    console.log('Tentative de reconnexion à la base de données...');
-    db = createConnection();
-}
-
-// Créer la connexion initiale
-let db = createConnection();
-
-db.connect((err) => {
-    if (err) {
-        console.error('Erreur de connexion à la base de données:', err);
-        return;
-    }
-    console.log('Connecté à la base de données MySQL');
+// Configuration de la base de données
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || 'database',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'ProjectPfeAgil',
+    database: process.env.DB_NAME || 'ProjetPfeAgil',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0
 });
+
+// Promisify pour utilisation avec async/await
+const promisePool = pool.promise();
+
+// Test initial de la connexion
+async function testDatabaseConnection() {
+    try {
+        const connection = await promisePool.getConnection();
+        console.log('Successfully connected to the database');
+        connection.release();
+        return true;
+    } catch (err) {
+        console.error('Error connecting to the database:', err);
+        return false;
+    }
+}
+
+// Tester la connexion au démarrage
+testDatabaseConnection();
 
 // Initialiser les données après la connexion
 const initializeData = require('./init/initData');
@@ -276,30 +256,23 @@ io.on('connection', (socket) => {
 });
 
 // Gestion de la fermeture propre
-const shutdown = async () => {
+async function shutdown() {
     console.log('Arrêt du serveur...');
-    
-    // Fermer le serveur HTTP
-    server.close(() => {
-        console.log('Serveur HTTP arrêté');
-    });
-
-    // Fermer Socket.IO
-    io.close(() => {
-        console.log('Socket.IO arrêté');
-    });
-
     try {
-        // Fermer la connexion à la base de données
-        await db.end();
-        console.log('Connexion à la base de données fermée');
+        // Fermer le pool de connexions
+        await promisePool.end();
+        console.log('Connexions à la base de données fermées');
+        
+        // Fermer le serveur HTTP
+        server.close(() => {
+            console.log('Serveur HTTP fermé');
+            process.exit(0);
+        });
     } catch (err) {
-        console.error('Erreur lors de la fermeture de la base de données:', err);
+        console.error('Erreur lors de la fermeture:', err);
+        process.exit(1);
     }
-
-    // Sortir proprement
-    process.exit(0);
-};
+}
 
 // Gestion des signaux d'arrêt
 process.on('SIGTERM', shutdown);
