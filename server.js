@@ -92,16 +92,14 @@ const exportRoutes = require('./routes/exportRoutes');
 const recommendationRoutes = require('./routes/recommendations');
 const analysisRoutes = require('./routes/analysis');
 const imageAnalysisRoutes = require('./routes/imageAnalysis');
-const analyticsRoutes = require('./routes/analytics');
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/commandes', commandeRoutes);
-app.use('/api/reclamations', reclamationRoutes);
-app.use('/api/stations', stationRoutes);
-app.use('/api/products', require('./routes/products'));
-app.use('/api/analytics', analyticsRoutes);
+app.use('/api/commandes', auth, commandeRoutes);
+app.use('/api/reclamations', auth, reclamationRoutes);
+app.use('/api/users', auth, userRoutes);
+app.use('/api/stations', auth, stationRoutes);
+app.use('/api/products', auth, productRoutes);
 app.use('/api/admin/dashboard', auth, dashboardRoutes);
 app.use('/api', auth, exportRoutes);  
 app.use('/api/recommendations', auth, recommendationRoutes);
