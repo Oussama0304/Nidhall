@@ -20,9 +20,10 @@ async function initializeMaterialData() {
         }
 
         // Check if table is empty
-        const [result] = await db.execute('SELECT COUNT(*) as count FROM Material');
+        const [rows] = await db.execute('SELECT COUNT(*) as count FROM Material');
+        const count = rows[0]?.count || 0;
         
-        if (result[0].count === 0) {
+        if (count === 0) {
             console.log('Initialisation des données des matériels...');
             
             // Get existing stations
