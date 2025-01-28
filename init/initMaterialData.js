@@ -27,6 +27,7 @@ async function initializeMaterialData() {
             
             // Get all stations with a more explicit query
             const [stations] = await db.execute('SELECT * FROM StationService ORDER BY idStation');
+            console.log('Nombre de stations trouvées:', stations.length);
             console.log('Stations trouvées:', JSON.stringify(stations, null, 2));
             
             if (!stations || stations.length === 0) {
@@ -34,54 +35,25 @@ async function initializeMaterialData() {
                 return;
             }
 
-            // Construire la requête d'insertion
-            let insertQuery = 'INSERT INTO Material (idStation, Actif, Description, Emplacement, status) VALUES ';
-            const values = [];
-
-            // Pour chaque station, ajouter les matériels
-            stations.forEach((station, index) => {
-                // Ajouter Pompe 1
-                values.push(
-                    station.idStation,
-                    'Pompe 1',
-                    'Pompe à essence principale',
-                    'Zone A',
-                    'Actif'
-                );
+            // Construire la requête d'insertion pour une station à la fois
+            for (const station of stations) {
+                console.log('Initialisation des matériels pour la station:', station.idStation);
                 
-                // Ajouter Pompe 2
-                values.push(
-                    station.idStation,
-                    'Pompe 2',
-                    'Pompe à essence secondaire',
-                    'Zone B',
-                    'Actif'
-                );
+                const insertQuery = `
+                    INSERT INTO Material (idStation, Actif, Description, Emplacement, status)
+                    VALUES 
+                    (?, 'Pompe 1', 'Pompe à essence principale', 'Zone A', 'Actif'),
+                    (?, 'Pompe 2', 'Pompe à essence secondaire', 'Zone B', 'Actif'),
+                    (?, 'Réservoir 1', 'Réservoir principal', 'Zone C', 'Actif')
+                `;
                 
-                // Ajouter Réservoir
-                values.push(
+                await db.execute(insertQuery, [
                     station.idStation,
-                    'Réservoir 1',
-                    'Réservoir principal',
-                    'Zone C',
-                    'Actif'
-                );
-
-                // Ajouter les placeholders pour cette station
-                const stationPlaceholders = [
-                    '(?, ?, ?, ?, ?)',
-                    '(?, ?, ?, ?, ?)',
-                    '(?, ?, ?, ?, ?)'
-                ].join(',');
-
-                insertQuery += stationPlaceholders;
-                if (index < stations.length - 1) {
-                    insertQuery += ',';
-                }
-            });
+                    station.idStation,
+                    station.idStation
+                ]);
+            }
             
-            console.log('Executing query with values:', JSON.stringify(values, null, 2));
-            await db.execute(insertQuery, values);
             console.log('Données des matériels initialisées avec succès pour toutes les stations');
         } else {
             console.log('La table Material contient déjà des données');
