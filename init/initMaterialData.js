@@ -8,11 +8,10 @@ async function initializeMaterialData() {
             console.log('Creating Material table...');
             await db.execute(`
                 CREATE TABLE IF NOT EXISTS Material (
-                    idMaterial INT PRIMARY KEY AUTO_INCREMENT,
-                    idStation INT,
-                    Actif VARCHAR(255),
+                    idStation BIGINT,
+                    Actif VARCHAR(50) NOT NULL,
                     Description TEXT,
-                    Emplacement VARCHAR(255),
+                    Emplacement VARCHAR(100),
                     status VARCHAR(50),
                     FOREIGN KEY (idStation) REFERENCES StationService(idStation)
                 )
@@ -26,24 +25,60 @@ async function initializeMaterialData() {
         if (count === 0) {
             console.log('Initialisation des données des matériels...');
             
-            // Get existing stations
+            // Get all stations
             const [stations] = await db.execute('SELECT idStation FROM StationService');
+            console.log('Stations trouvées:', stations);
             
-            if (stations.length === 0) {
+            if (!stations || stations.length === 0) {
                 console.log('Aucune station n\'existe. Skipping Material initialization.');
                 return;
             }
 
-            // Insert sample data using the first station
+            // Préparer la requête d'insertion
+            const values = [];
+            const placeholders = [];
+            
+            // Pour chaque station, ajouter 3 matériels
+            stations.forEach(station => {
+                // Pompe 1
+                values.push(
+                    station.idStation,
+                    'Pompe 1',
+                    'Pompe à essence principale',
+                    'Zone A',
+                    'Actif'
+                );
+                // Pompe 2
+                values.push(
+                    station.idStation,
+                    'Pompe 2',
+                    'Pompe à essence secondaire',
+                    'Zone B',
+                    'Actif'
+                );
+                // Réservoir
+                values.push(
+                    station.idStation,
+                    'Réservoir 1',
+                    'Réservoir principal',
+                    'Zone C',
+                    'Actif'
+                );
+                
+                // Ajouter les placeholders pour cette station
+                placeholders.push('(?, ?, ?, ?, ?)');
+                placeholders.push('(?, ?, ?, ?, ?)');
+                placeholders.push('(?, ?, ?, ?, ?)');
+            });
+
+            // Construire et exécuter la requête d'insertion
             const insertQuery = `
-                INSERT INTO Material (idStation, Actif, Description, Emplacement, status) VALUES
-                (?, 'Pompe 1', 'Pompe à essence principale', 'Zone A', 'Actif'),
-                (?, 'Pompe 2', 'Pompe à essence secondaire', 'Zone B', 'Actif'),
-                (?, 'Réservoir 1', 'Réservoir principal', 'Zone C', 'Actif')
+                INSERT INTO Material (idStation, Actif, Description, Emplacement, status)
+                VALUES ${placeholders.join(', ')}
             `;
             
-            await db.execute(insertQuery, [stations[0].idStation, stations[0].idStation, stations[0].idStation]);
-            console.log('Données des matériels initialisées avec succès');
+            await db.execute(insertQuery, values);
+            console.log('Données des matériels initialisées avec succès pour toutes les stations');
         } else {
             console.log('La table Material contient déjà des données');
         }

@@ -92,6 +92,8 @@ const exportRoutes = require('./routes/exportRoutes');
 const recommendationRoutes = require('./routes/recommendations');
 const analysisRoutes = require('./routes/analysis');
 const imageAnalysisRoutes = require('./routes/imageAnalysis');
+const dashboardRoutesNew = require('./routes/dashboard');
+const materialRoutes = require('./routes/material');
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -105,6 +107,8 @@ app.use('/api', auth, exportRoutes);
 app.use('/api/recommendations', auth, recommendationRoutes);
 app.use('/api/analysis', auth, analysisRoutes);
 app.use('/api/analysis/image', imageAnalysisRoutes);
+app.use('/dashboard', dashboardRoutesNew);
+app.use('/material', materialRoutes);
 
 // Log all requests
 app.use((req, res, next) => {
