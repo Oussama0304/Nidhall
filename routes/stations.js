@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
                    u.prenom as prenom_gerant
             FROM StationService s
             LEFT JOIN Gerant g ON s.idStation = g.idStation
-            LEFT JOIN Utilisateur u ON g.identifiant = u.identifiant
+            LEFT JOIN Utilisateur u ON g.idGerant = u.identifiant
             ORDER BY s.nom
         `;
         
@@ -35,19 +35,19 @@ router.get('/user', async (req, res) => {
                    u.prenom as prenom_gerant
             FROM StationService s
             LEFT JOIN Gerant g ON s.idStation = g.idStation
-            LEFT JOIN Utilisateur u ON g.identifiant = u.identifiant
+            LEFT JOIN Utilisateur u ON g.idGerant = u.identifiant
         `;
 
         if (userRole === 'GERANT') {
-            query += ' WHERE g.identifiant = ?';
+            query += ' WHERE g.idGerant = ?';
         } else if (userRole !== 'ADMIN') {
             return res.status(403).json({ error: "Accès non autorisé" });
         }
 
         query += ' ORDER BY s.nom';
 
-        const [results] = await db.query(query, [userId]);
-        res.json(results);
+        const [stations] = await db.query(query, userRole === 'GERANT' ? [userId] : []);
+        res.json(stations);
     } catch (err) {
         console.error('Error:', err);
         res.status(500).json({ error: "Erreur lors de la récupération des stations" });
@@ -57,11 +57,11 @@ router.get('/user', async (req, res) => {
 // Create new station
 router.post('/', async (req, res) => {
     try {
-        const { nom, adresse, ville, telephone, email, idGerant } = req.body;
+        const { nom, adresse, ville, telephone, email } = req.body;
         const userRole = req.user.role;
 
         if (userRole !== 'ADMIN') {
-            return res.status(403).json({ error: "Seuls les administrateurs peuvent créer des stations" });
+            return res.status(403).json({ error: "Seul l'administrateur peut créer une station" });
         }
 
         const query = `
@@ -78,16 +78,12 @@ router.post('/', async (req, res) => {
                    u.prenom as prenom_gerant
             FROM StationService s
             LEFT JOIN Gerant g ON s.idStation = g.idStation
-            LEFT JOIN Utilisateur u ON g.identifiant = u.identifiant
+            LEFT JOIN Utilisateur u ON g.idGerant = u.identifiant
             WHERE s.idStation = ?
         `;
 
         const [station] = await db.query(getStationQuery, [result.insertId]);
-
-        res.status(201).json({
-            message: "Station créée avec succès",
-            station: station[0]
-        });
+        res.status(201).json(station[0]);
     } catch (err) {
         console.error('Error:', err);
         res.status(500).json({ error: "Erreur lors de la création de la station" });
@@ -103,7 +99,7 @@ router.get('/:id', async (req, res) => {
                    u.prenom as prenom_gerant
             FROM StationService s
             LEFT JOIN Gerant g ON s.idStation = g.idStation
-            LEFT JOIN Utilisateur u ON g.identifiant = u.identifiant
+            LEFT JOIN Utilisateur u ON g.idGerant = u.identifiant
             WHERE s.idStation = ?
         `;
 
@@ -123,14 +119,14 @@ router.get('/:id', async (req, res) => {
 // Update station
 router.put('/:id', async (req, res) => {
     try {
-        const { nom, adresse, ville, telephone, email, idGerant } = req.body;
+        const { nom, adresse, ville, telephone, email } = req.body;
         const userRole = req.user.role;
 
         if (userRole !== 'ADMIN') {
-            return res.status(403).json({ error: "Seuls les administrateurs peuvent modifier les stations" });
+            return res.status(403).json({ error: "Seul l'administrateur peut modifier une station" });
         }
 
-        const query = `
+        const updateQuery = `
             UPDATE StationService 
             SET nom = ?, 
                 adresse = ?, 
@@ -140,7 +136,7 @@ router.put('/:id', async (req, res) => {
             WHERE idStation = ?
         `;
 
-        const [result] = await db.query(query, [
+        const [result] = await db.query(updateQuery, [
             nom, adresse, ville, telephone, 
             email, req.params.id
         ]);
@@ -156,16 +152,12 @@ router.put('/:id', async (req, res) => {
                    u.prenom as prenom_gerant
             FROM StationService s
             LEFT JOIN Gerant g ON s.idStation = g.idStation
-            LEFT JOIN Utilisateur u ON g.identifiant = u.identifiant
+            LEFT JOIN Utilisateur u ON g.idGerant = u.identifiant
             WHERE s.idStation = ?
         `;
 
         const [station] = await db.query(getStationQuery, [req.params.id]);
-
-        res.json({
-            message: "Station mise à jour avec succès",
-            station: station[0]
-        });
+        res.json(station[0]);
     } catch (err) {
         console.error('Error:', err);
         res.status(500).json({ error: "Erreur lors de la mise à jour de la station" });
@@ -178,7 +170,7 @@ router.delete('/:id', async (req, res) => {
         const userRole = req.user.role;
 
         if (userRole !== 'ADMIN') {
-            return res.status(403).json({ error: "Seuls les administrateurs peuvent supprimer des stations" });
+            return res.status(403).json({ error: "Seul l'administrateur peut supprimer une station" });
         }
 
         const query = 'DELETE FROM StationService WHERE idStation = ?';

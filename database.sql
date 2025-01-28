@@ -148,6 +148,15 @@ CREATE TABLE IF NOT EXISTS Reclamation (
     FOREIGN KEY (idCommercial) REFERENCES Utilisateur(identifiant) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
+-- Create ImageAnalysis table
+CREATE TABLE IF NOT EXISTS ImageAnalysis (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    image_path TEXT NOT NULL,
+    analysis_results JSON,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- Create Material table
 CREATE TABLE IF NOT EXISTS Material (
     idStation BIGINT,

@@ -50,14 +50,14 @@ const technicalExamples = [
 ];
 
 const commercialExamples = [
-    "facture incorrecte",
+    "problème de facturation",
     "service client",
-    "délai livraison",
-    "prix",
+    "délai de livraison",
     "commande",
-    "retard livraison",
+    "prix",
     "qualité service",
-    "remboursement",
+    "réclamation commerciale",
+    "retard livraison",
     "erreur facturation"
 ];
 
@@ -71,84 +71,43 @@ commercialExamples.forEach(example => {
 
 classifier.train();
 
-const sentiment = new Sentiment();
-
 // Fonction d'analyse des réclamations
 const analyzeReclamation = (description) => {
-    const type = classifier.classify(description);
-    const sentimentResult = sentiment.analyze(description);
-    
-    // Analyse détaillée du sentiment
-    const sentimentScore = sentimentResult.score;
-    const sentimentWords = sentimentResult.words;
-    
-    // Détermination de la priorité basée sur le sentiment et les mots-clés
+    const sentiment = new Sentiment();
+    const words = description.toLowerCase().split(' ');
+    const filteredWords = stopword.removeStopwords(words, stopword.fr);
+    const sentimentScore = sentiment.analyze(filteredWords.join(' ')).score;
+
+    // Déterminer la priorité et la gravité
     let priority = 'NORMAL';
-    let satisfaction = 'NEUTRE';
     let gravite = 'FAIBLE';
 
-    // Mots-clés d'urgence
-    const urgentKeywords = ['urgent', 'immédiat', 'critique', 'grave', 'danger', 'panne', 'arrêt'];
-    const hasUrgentKeywords = urgentKeywords.some(keyword => 
-        description.toLowerCase().includes(keyword)
-    );
+    // Mots clés d'urgence
+    const urgentKeywords = ['urgent', 'immédiat', 'critique', 'grave', 'danger', 'sécurité'];
+    const isUrgent = urgentKeywords.some(keyword => description.toLowerCase().includes(keyword));
 
-    // Analyse de la satisfaction
-    if (sentimentScore < -2) {
-        satisfaction = 'INSATISFAIT';
-        if (hasUrgentKeywords) {
-            priority = 'URGENT';
-            gravite = 'HAUTE';
-        } else {
-            priority = 'MOYEN';
-            gravite = 'MOYENNE';
-        }
-    } else if (sentimentScore < 0) {
-        satisfaction = 'PEU_SATISFAIT';
+    if (isUrgent) {
+        priority = 'URGENT';
+        gravite = 'HAUTE';
+    } else if (sentimentScore < -2) {
         priority = 'MOYEN';
         gravite = 'MOYENNE';
-    } else if (sentimentScore > 2) {
-        satisfaction = 'TRES_SATISFAIT';
-        priority = 'NORMAL';
-        gravite = 'FAIBLE';
-    } else if (sentimentScore > 0) {
-        satisfaction = 'SATISFAIT';
-        priority = 'NORMAL';
-        gravite = 'FAIBLE';
     }
 
-    // Ajustement basé sur les mots-clés d'urgence
-    if (hasUrgentKeywords && priority !== 'URGENT') {
-        priority = 'MOYEN';
-        if (gravite === 'FAIBLE') gravite = 'MOYENNE';
+    // Estimer le temps de résolution
+    let estimatedResolutionTime = 24; // temps par défaut en heures
+    if (priority === 'URGENT') {
+        estimatedResolutionTime = 4;
+    } else if (priority === 'MOYEN') {
+        estimatedResolutionTime = 48;
     }
-
-    // Estimation du temps de résolution
-    const baseTime = {
-        TECHNIQUE: {
-            URGENT: 24,
-            MOYEN: 48,
-            NORMAL: 72
-        },
-        COMMERCIALE: {
-            URGENT: 12,
-            MOYEN: 24,
-            NORMAL: 48
-        }
-    };
-
-    const estimatedResolutionTime = baseTime[type][priority];
 
     return {
-        type,
+        type: classifier.classify(description),
         priority,
+        gravite,
         estimatedResolutionTime,
-        sentiment: {
-            score: sentimentScore,
-            satisfaction,
-            gravite,
-            keywords: sentimentWords
-        }
+        sentiment_score: sentimentScore
     };
 };
 
@@ -180,8 +139,8 @@ router.get('/', async (req, res) => {
 // Get reclamations for current user
 router.get('/user', async (req, res) => {
     try {
-        const userId = req.user.id;
-        const userRole = req.user.role;
+        const userId = req.user.identifiant;
+        const userRole = req.user.roles;
         console.log('User ID from token:', userId, 'Role:', userRole);
         
         let query = `
@@ -202,23 +161,17 @@ router.get('/user', async (req, res) => {
             query += ' WHERE r.idGerant = ?';
             queryParams.push(userId);
         } else if (userRole === 'COMMERCIAL') {
-            query += ' WHERE r.idCommercial = ?';
+            query += ' WHERE r.idCommercial = ? OR r.type = "COMMERCIALE"';
             queryParams.push(userId);
-        } else if (userRole === 'ADMIN') {
-            // Pas de condition WHERE pour l'admin
-        } else {
-            return res.status(403).json({ error: "Rôle non autorisé" });
         }
         
         query += ' ORDER BY r.date DESC';
-        
-        console.log('Executing query:', query, 'with params:', queryParams);
         
         const [results] = await db.query(query, queryParams);
         res.json(results);
     } catch (err) {
         console.error('Erreur SQL GET user reclamations:', err);
-        res.status(500).json({ error: "Erreur lors de la récupération des réclamations de l'utilisateur", details: err.message });
+        res.status(500).json({ error: "Erreur lors de la récupération des réclamations", details: err.message });
     }
 });
 
@@ -240,8 +193,8 @@ router.post('/', upload.single('image'), async (req, res) => {
         }
 
         const { description, type, idGerant } = req.body;
-        const userId = req.user.id;
-        const userRole = req.user.role;
+        const userId = req.user.identifiant;
+        const userRole = req.user.roles;
 
         // Analyse NLP
         const analysis = analyzeReclamation(description);
@@ -304,8 +257,8 @@ router.post('/', upload.single('image'), async (req, res) => {
 // Get reclamation by ID
 router.get('/:id', async (req, res) => {
     try {
-        const userId = req.user.id;
-        const userRole = req.user.role;
+        const userId = req.user.identifiant;
+        const userRole = req.user.roles;
         
         const query = `
             SELECT r.*, 
@@ -341,8 +294,8 @@ router.get('/:id', async (req, res) => {
 router.put('/:id/status', async (req, res) => {
     try {
         const { etat } = req.body;
-        const userId = req.user.id;
-        const userRole = req.user.role;
+        const userId = req.user.identifiant;
+        const userRole = req.user.roles;
 
         // Vérifier que l'état est valide
         const etatsValides = ['En instance', 'En cours', 'Validée'];
