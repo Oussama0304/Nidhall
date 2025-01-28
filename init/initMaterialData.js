@@ -2,10 +2,26 @@ const db = require('../config/db');
 
 async function initializeMaterialData() {
     try {
+        // Créer la table si elle n'existe pas
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS Material (
+                idMaterial INT PRIMARY KEY AUTO_INCREMENT,
+                idStation INT,
+                Actif VARCHAR(255) NOT NULL,
+                Description TEXT,
+                Emplacement VARCHAR(255),
+                status VARCHAR(50) DEFAULT 'Actif',
+                date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (idStation) REFERENCES StationService(idStation)
+            )
+        `);
+
         // Check if Material table is empty
-        const [existingData] = await db.execute('SELECT COUNT(*) as count FROM Material');
+        const [rows] = await db.execute('SELECT COUNT(*) as count FROM Material');
+        const count = rows[0]?.count || 0;
         
-        if (!existingData || existingData.length === 0 || existingData[0].count === 0) {
+        if (count === 0) {
             // Initial material data
             const materials = [
                 {
@@ -37,21 +53,6 @@ async function initializeMaterialData() {
                     status: 'Actif'
                 }
             ];
-
-            // Vérifier si la table existe
-            await db.execute(`
-                CREATE TABLE IF NOT EXISTS Material (
-                    idMaterial INT PRIMARY KEY AUTO_INCREMENT,
-                    idStation INT,
-                    Actif VARCHAR(255) NOT NULL,
-                    Description TEXT,
-                    Emplacement VARCHAR(255),
-                    status VARCHAR(50) DEFAULT 'Actif',
-                    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                    FOREIGN KEY (idStation) REFERENCES StationService(idStation)
-                )
-            `);
 
             // Insert materials
             for (const material of materials) {

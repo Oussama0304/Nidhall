@@ -50,25 +50,66 @@ const ReclamationAnalytics = () => {
                     }
                 };
 
-                const [trendsRes, performanceRes, resolutionTimesRes] = await Promise.all([
-                    axios.get(API_ENDPOINTS.ANALYTICS.TRENDS, config),
-                    axios.get(API_ENDPOINTS.ANALYTICS.PERFORMANCE, config),
-                    axios.get(API_ENDPOINTS.ANALYTICS.RESOLUTION_TIMES, config)
+                const [trendsRes, perfRes, timeRes] = await Promise.all([
+                    axios.get(`${API_ENDPOINTS.BASE_URL}/analysis/reclamations/trends`, config),
+                    axios.get(`${API_ENDPOINTS.BASE_URL}/analysis/performance/users`, config),
+                    axios.get(`${API_ENDPOINTS.BASE_URL}/analysis/reclamations/resolution-times`, config)
                 ]);
 
                 setTrends(trendsRes.data);
-                setPerformance(performanceRes.data);
-                setResolutionTimes(resolutionTimesRes.data);
+                setPerformance(perfRes.data);
+                setResolutionTimes(timeRes.data);
                 setLoading(false);
-            } catch (err) {
-                console.error('Error fetching analytics:', err);
-                setError('Erreur lors de la récupération des données analytiques');
+            } catch (error) {
+                console.error('Erreur lors de la récupération des analytics:', error);
+                setError("Erreur lors du chargement des données d'analyse");
                 setLoading(false);
             }
         };
 
         fetchAnalytics();
     }, []);
+
+    const trendsData = {
+        labels: trends?.map(t => t.month) || [],
+        datasets: [
+            {
+                label: 'Nombre de Réclamations',
+                data: trends?.map(t => t.count) || [],
+                backgroundColor: 'rgba(53, 162, 235, 0.5)',
+                borderColor: 'rgb(53, 162, 235)',
+                borderWidth: 1,
+            },
+        ],
+    };
+
+    const performanceData = {
+        labels: performance?.map(p => `${p.nom} ${p.prenom}`) || [],
+        datasets: [
+            {
+                label: 'Réclamations Totales',
+                data: performance?.map(p => p.total_reclamations) || [],
+                backgroundColor: 'rgba(53, 162, 235, 0.5)',
+            },
+            {
+                label: 'Réclamations Résolues',
+                data: performance?.map(p => p.reclamations_resolues) || [],
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+            },
+        ],
+    };
+
+    const resolutionData = {
+        labels: resolutionTimes?.map(r => r.type) || [],
+        datasets: [
+            {
+                label: 'Temps Moyen de Résolution (jours)',
+                data: resolutionTimes?.map(r => r.avg_actual_time) || [],
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1,
+            },
+        ],
+    };
 
     if (loading) {
         return (
@@ -86,125 +127,51 @@ const ReclamationAnalytics = () => {
         );
     }
 
-    const trendsData = {
-        labels: trends?.map(t => t.month) || [],
-        datasets: [
-            {
-                label: 'Total',
-                data: trends?.map(t => t.total) || [],
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
-            },
-            {
-                label: 'En cours',
-                data: trends?.map(t => t.en_cours) || [],
-                borderColor: 'rgb(255, 159, 64)',
-                tension: 0.1
-            },
-            {
-                label: 'Résolu',
-                data: trends?.map(t => t.resolu) || [],
-                borderColor: 'rgb(54, 162, 235)',
-                tension: 0.1
-            }
-        ]
-    };
-
-    const resolutionTimesData = {
-        labels: resolutionTimes?.map(r => r.type) || [],
-        datasets: [{
-            label: 'Temps moyen de résolution (heures)',
-            data: resolutionTimes?.map(r => r.avg_resolution_time) || [],
-            backgroundColor: 'rgba(75, 192, 192, 0.5)'
-        }]
-    };
-
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Typography variant="h4" gutterBottom>
-                Analytique des Réclamations
+            <Typography variant="h4" gutterBottom component="h1">
+                Analyse des Réclamations
             </Typography>
 
             <Grid container spacing={3}>
-                {/* Performance Metrics */}
-                <Grid item xs={12}>
-                    <Paper sx={{ p: 2 }}>
-                        <Typography variant="h6" gutterBottom>
-                            Métriques de Performance
-                        </Typography>
-                        <Grid container spacing={2}>
-                            <Grid item xs={12} sm={4}>
-                                <Typography variant="subtitle1">
-                                    Temps moyen de résolution
-                                </Typography>
-                                <Typography variant="h4">
-                                    {performance?.avg_resolution_time?.toFixed(1) || 0} heures
-                                </Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                                <Typography variant="subtitle1">
-                                    Taux de résolution
-                                </Typography>
-                                <Typography variant="h4">
-                                    {performance?.resolution_rate?.toFixed(1) || 0}%
-                                </Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                                <Typography variant="subtitle1">
-                                    Total des réclamations
-                                </Typography>
-                                <Typography variant="h4">
-                                    {performance?.total_reclamations || 0}
-                                </Typography>
-                            </Grid>
-                        </Grid>
-                    </Paper>
-                </Grid>
-
-                {/* Trends Chart */}
                 <Grid item xs={12}>
                     <Paper sx={{ p: 2 }}>
                         <Typography variant="h6" gutterBottom>
                             Tendances des Réclamations
                         </Typography>
                         <Box sx={{ height: 300 }}>
-                            <Line
-                                data={trendsData}
-                                options={{
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        title: {
-                                            display: true,
-                                            text: 'Tendances sur 6 mois'
-                                        }
-                                    }
-                                }}
-                            />
+                            <Bar data={trendsData} options={{
+                                responsive: true,
+                                maintainAspectRatio: false,
+                            }} />
                         </Box>
                     </Paper>
                 </Grid>
 
-                {/* Resolution Times Chart */}
+                <Grid item xs={12}>
+                    <Paper sx={{ p: 2 }}>
+                        <Typography variant="h6" gutterBottom>
+                            Performance par Utilisateur
+                        </Typography>
+                        <Box sx={{ height: 300 }}>
+                            <Bar data={performanceData} options={{
+                                responsive: true,
+                                maintainAspectRatio: false,
+                            }} />
+                        </Box>
+                    </Paper>
+                </Grid>
+
                 <Grid item xs={12}>
                     <Paper sx={{ p: 2 }}>
                         <Typography variant="h6" gutterBottom>
                             Temps de Résolution par Type
                         </Typography>
                         <Box sx={{ height: 300 }}>
-                            <Bar
-                                data={resolutionTimesData}
-                                options={{
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        title: {
-                                            display: true,
-                                            text: 'Temps moyen de résolution par type de réclamation'
-                                        }
-                                    }
-                                }}
-                            />
+                            <Line data={resolutionData} options={{
+                                responsive: true,
+                                maintainAspectRatio: false,
+                            }} />
                         </Box>
                     </Paper>
                 </Grid>

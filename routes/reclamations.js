@@ -162,16 +162,14 @@ router.get('/', async (req, res) => {
                    u1.nom as nom_commercial, 
                    u1.prenom as prenom_commercial,
                    u2.nom as nom_gerant, 
-                   u2.prenom as prenom_gerant,
-                   s.nom as nom_station
+                   u2.prenom as prenom_gerant
             FROM Reclamation r
             LEFT JOIN Utilisateur u1 ON r.idCommercial = u1.identifiant
             LEFT JOIN Utilisateur u2 ON r.idGerant = u2.identifiant
-            LEFT JOIN StationService s ON r.idStation = s.idStation
-            ORDER BY r.date_creation DESC
+            ORDER BY r.date DESC
         `;
         
-        const [results] = await db.execute(query);
+        const [results] = await db.query(query);
         res.json(results);
     } catch (err) {
         console.error('Erreur SQL GET all:', err);
@@ -183,41 +181,44 @@ router.get('/', async (req, res) => {
 router.get('/user', async (req, res) => {
     try {
         const userId = req.user.id;
-        const userRole = req.user.roles; // Changed from role to roles to match auth middleware
+        const userRole = req.user.role;
         console.log('User ID from token:', userId, 'Role:', userRole);
         
         let query = `
             SELECT r.*, 
-                   u1.nom as nom_commercial, 
-                   u1.prenom as prenom_commercial,
-                   u2.nom as nom_gerant, 
-                   u2.prenom as prenom_gerant,
-                   s.nom as nom_station
+                   u1.nom as nom_gerant, 
+                   u1.prenom as prenom_gerant,
+                   u2.nom as nom_commercial, 
+                   u2.prenom as prenom_commercial
             FROM Reclamation r
-            LEFT JOIN Utilisateur u1 ON r.idCommercial = u1.identifiant
-            LEFT JOIN Utilisateur u2 ON r.idGerant = u2.identifiant
-            LEFT JOIN StationService s ON r.idStation = s.idStation
-            WHERE 1=1
+            LEFT JOIN Utilisateur u1 ON r.idGerant = u1.identifiant
+            LEFT JOIN Utilisateur u2 ON r.idCommercial = u2.identifiant
         `;
         
         const queryParams = [];
         
         // Adapter la requête en fonction du rôle
         if (userRole === 'GERANT') {
-            query += ' AND r.idGerant = ?';
+            query += ' WHERE r.idGerant = ?';
             queryParams.push(userId);
         } else if (userRole === 'COMMERCIAL') {
-            query += ' AND r.idCommercial = ?';
+            query += ' WHERE r.idCommercial = ?';
             queryParams.push(userId);
+        } else if (userRole === 'ADMIN') {
+            // Pas de condition WHERE pour l'admin
+        } else {
+            return res.status(403).json({ error: "Rôle non autorisé" });
         }
         
-        query += ' ORDER BY r.date_creation DESC';
+        query += ' ORDER BY r.date DESC';
         
-        const [results] = await db.execute(query, queryParams);
+        console.log('Executing query:', query, 'with params:', queryParams);
+        
+        const [results] = await db.query(query, queryParams);
         res.json(results);
     } catch (err) {
         console.error('Erreur SQL GET user reclamations:', err);
-        res.status(500).json({ error: "Erreur lors de la récupération des réclamations", details: err.message });
+        res.status(500).json({ error: "Erreur lors de la récupération des réclamations de l'utilisateur", details: err.message });
     }
 });
 
@@ -227,82 +228,76 @@ router.post('/', upload.single('image'), async (req, res) => {
         let imageAnalysis = null;
         let imageUrl = null;
 
-        const { description, type, idGerant, idStation } = req.body;
-        const userId = req.user.id;
-        const userRole = req.user.roles;
-
-        // Validation des données requises
-        if (!description || !type) {
-            return res.status(400).json({ 
-                error: "La description et le type sont obligatoires" 
-            });
-        }
-
         if (req.file) {
             imageUrl = `/uploads/reclamations/${req.file.filename}`;
             try {
+                // Analyser l'image si elle est présente
                 imageAnalysis = await imageAnalysisService.analyzeImage(req.file.path);
                 console.log('Analyse de l\'image terminée:', imageAnalysis);
             } catch (error) {
                 console.error('Erreur lors de l\'analyse de l\'image:', error);
-                // On continue même si l'analyse d'image échoue
             }
         }
+
+        const { description, type, idGerant } = req.body;
+        const userId = req.user.id;
+        const userRole = req.user.role;
 
         // Analyse NLP
         const analysis = analyzeReclamation(description);
 
+        // Utiliser le type recommandé par l'analyse d'image si disponible
+        const finalType = imageAnalysis?.recommendedType || type;
+
         const query = `
             INSERT INTO Reclamation 
-            (description, type, idGerant, idCommercial, idStation, date_creation, etat, image_url, 
-             priority, satisfaction, gravite, sentiment_score)
-            VALUES (?, ?, ?, ?, ?, NOW(), 'En instance', ?, ?, ?, ?, ?)
+            (description, type, idGerant, idCommercial, date, etat, image_url, 
+             priority, satisfaction, gravite, sentiment_score, estimatedResolutionTime, image_analysis)
+            VALUES (?, ?, ?, ?, NOW(), 'En instance', ?, ?, ?, ?, ?, ?, 
+            ${imageAnalysis ? 'CAST(? AS JSON)' : 'NULL'})
         `;
 
         const values = [
             description,
-            type,
+            finalType,
             idGerant,
             userRole === 'COMMERCIAL' ? userId : null,
-            idStation || null,
             imageUrl,
-            analysis.priority || 'NORMAL',
-            analysis.sentiment?.satisfaction || 0,
-            analysis.sentiment?.gravite || 0,
-            analysis.sentiment?.score || 0
+            analysis.priority,
+            analysis.sentiment.satisfaction,
+            analysis.sentiment.gravite,
+            analysis.sentiment.score,
+            analysis.estimatedResolutionTime
         ];
 
-        const [result] = await db.execute(query, values);
+        if (imageAnalysis) {
+            values.push(JSON.stringify(imageAnalysis));
+        }
+
+        const [result] = await db.query(query, values);
 
         // Récupérer la réclamation créée avec les informations complètes
         const getNewReclamationQuery = `
             SELECT r.*, 
                    u1.nom as nom_gerant, u1.prenom as prenom_gerant,
-                   u2.nom as nom_commercial, u2.prenom as prenom_commercial,
-                   s.nom as nom_station
+                   u2.nom as nom_commercial, u2.prenom as prenom_commercial
             FROM Reclamation r
             LEFT JOIN Utilisateur u1 ON r.idGerant = u1.identifiant
             LEFT JOIN Utilisateur u2 ON r.idCommercial = u2.identifiant
-            LEFT JOIN StationService s ON r.idStation = s.idStation
             WHERE r.idReclamation = ?
         `;
 
-        const [reclamation] = await db.execute(getNewReclamationQuery, [result.insertId]);
-
-        if (!reclamation || reclamation.length === 0) {
-            throw new Error("La réclamation a été créée mais impossible de la récupérer");
-        }
-
+        const [reclamation] = await db.query(getNewReclamationQuery, [result.insertId]);
         res.status(201).json({
             message: "Réclamation créée avec succès",
-            reclamation: reclamation[0]
+            id: result.insertId,
+            reclamation: reclamation[0],
+            analysis,
+            imageAnalysis
         });
     } catch (error) {
         console.error('Erreur lors de la création de la réclamation:', error);
-        res.status(500).json({ 
-            error: "Erreur lors de la création de la réclamation",
-            details: error.message 
-        });
+        res.status(500).json({ message: error.message });
     }
 });
 
@@ -310,19 +305,17 @@ router.post('/', upload.single('image'), async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const userId = req.user.id;
-        const userRole = req.user.roles;
+        const userRole = req.user.role;
         
         const query = `
             SELECT r.*, 
                    u1.nom as nom_gerant, 
                    u1.prenom as prenom_gerant,
                    u2.nom as nom_commercial, 
-                   u2.prenom as prenom_commercial,
-                   s.nom as nom_station
+                   u2.prenom as prenom_commercial
             FROM Reclamation r
             LEFT JOIN Utilisateur u1 ON r.idGerant = u1.identifiant
             LEFT JOIN Utilisateur u2 ON r.idCommercial = u2.identifiant
-            LEFT JOIN StationService s ON r.idStation = s.idStation
             WHERE r.idReclamation = ? 
             AND (
                 r.idGerant = ? 
@@ -331,7 +324,7 @@ router.get('/:id', async (req, res) => {
             )
         `;
         
-        const [results] = await db.execute(query, [req.params.id, userId, userId, userId]);
+        const [results] = await db.query(query, [req.params.id, userId, userId, userId]);
 
         if (results.length === 0) {
             return res.status(404).json({ error: "Réclamation non trouvée ou accès non autorisé" });
@@ -349,7 +342,7 @@ router.put('/:id/status', async (req, res) => {
     try {
         const { etat } = req.body;
         const userId = req.user.id;
-        const userRole = req.user.roles;
+        const userRole = req.user.role;
 
         // Vérifier que l'état est valide
         const etatsValides = ['En instance', 'En cours', 'Validée'];
@@ -369,14 +362,14 @@ router.put('/:id/status', async (req, res) => {
             )
         `;
         
-        const [results] = await db.execute(checkQuery, [req.params.id, userId, userId, userId, userId]);
+        const [results] = await db.query(checkQuery, [req.params.id, userId, userId, userId, userId]);
 
         if (results.length === 0) {
             return res.status(403).json({ error: "Non autorisé à modifier cette réclamation" });
         }
         
         const updateQuery = 'UPDATE Reclamation SET etat = ? WHERE idReclamation = ?';
-        const [result] = await db.execute(updateQuery, [etat, req.params.id]);
+        const [result] = await db.query(updateQuery, [etat, req.params.id]);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: "Réclamation non trouvée" });
@@ -386,6 +379,10 @@ router.put('/:id/status', async (req, res) => {
     } catch (err) {
         console.error('Erreur SQL UPDATE status:', err);
         res.status(500).json({ error: "Erreur lors de la mise à jour du statut" });
+    }
+});
+
+module.exports = router;
     }
 });
 
