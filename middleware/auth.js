@@ -10,11 +10,12 @@ const auth = async (req, res, next) => {
         }
 
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET || 'votre_secret_jwt');
+        console.log('Token décodé:', decodedToken);
         
         // Récupérer les informations de l'utilisateur
         const [rows] = await db.execute(
             'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?',
-            [decodedToken.id]
+            [decodedToken.identifiant || decodedToken.id] // Accepte les deux formats
         );
 
         if (rows.length === 0) {
@@ -22,6 +23,7 @@ const auth = async (req, res, next) => {
         }
 
         req.user = rows[0];
+        console.log('Utilisateur authentifié:', req.user);
         next();
     } catch (error) {
         console.error('Erreur d\'authentification:', error);

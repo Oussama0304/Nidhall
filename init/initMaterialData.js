@@ -25,22 +25,22 @@ async function initializeMaterialData() {
         if (count === 0) {
             console.log('Initialisation des données des matériels...');
             
-            // Get all stations
-            const [stations] = await db.execute('SELECT idStation FROM StationService');
-            console.log('Stations trouvées:', stations);
+            // Get all stations with a more explicit query
+            const [stations] = await db.execute('SELECT * FROM StationService ORDER BY idStation');
+            console.log('Stations trouvées:', JSON.stringify(stations, null, 2));
             
             if (!stations || stations.length === 0) {
                 console.log('Aucune station n\'existe. Skipping Material initialization.');
                 return;
             }
 
-            // Préparer la requête d'insertion
+            // Construire la requête d'insertion
+            let insertQuery = 'INSERT INTO Material (idStation, Actif, Description, Emplacement, status) VALUES ';
             const values = [];
-            const placeholders = [];
-            
-            // Pour chaque station, ajouter 3 matériels
-            stations.forEach(station => {
-                // Pompe 1
+
+            // Pour chaque station, ajouter les matériels
+            stations.forEach((station, index) => {
+                // Ajouter Pompe 1
                 values.push(
                     station.idStation,
                     'Pompe 1',
@@ -48,7 +48,8 @@ async function initializeMaterialData() {
                     'Zone A',
                     'Actif'
                 );
-                // Pompe 2
+                
+                // Ajouter Pompe 2
                 values.push(
                     station.idStation,
                     'Pompe 2',
@@ -56,7 +57,8 @@ async function initializeMaterialData() {
                     'Zone B',
                     'Actif'
                 );
-                // Réservoir
+                
+                // Ajouter Réservoir
                 values.push(
                     station.idStation,
                     'Réservoir 1',
@@ -64,19 +66,21 @@ async function initializeMaterialData() {
                     'Zone C',
                     'Actif'
                 );
-                
-                // Ajouter les placeholders pour cette station
-                placeholders.push('(?, ?, ?, ?, ?)');
-                placeholders.push('(?, ?, ?, ?, ?)');
-                placeholders.push('(?, ?, ?, ?, ?)');
-            });
 
-            // Construire et exécuter la requête d'insertion
-            const insertQuery = `
-                INSERT INTO Material (idStation, Actif, Description, Emplacement, status)
-                VALUES ${placeholders.join(', ')}
-            `;
+                // Ajouter les placeholders pour cette station
+                const stationPlaceholders = [
+                    '(?, ?, ?, ?, ?)',
+                    '(?, ?, ?, ?, ?)',
+                    '(?, ?, ?, ?, ?)'
+                ].join(',');
+
+                insertQuery += stationPlaceholders;
+                if (index < stations.length - 1) {
+                    insertQuery += ',';
+                }
+            });
             
+            console.log('Executing query with values:', JSON.stringify(values, null, 2));
             await db.execute(insertQuery, values);
             console.log('Données des matériels initialisées avec succès pour toutes les stations');
         } else {
