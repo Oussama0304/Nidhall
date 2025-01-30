@@ -2,11 +2,14 @@ module.exports = {
   testEnvironment: 'jsdom',
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    '^axios$': require.resolve('axios'),
+    '^axios$': require.resolve('axios/dist/node/axios.cjs')
   },
   transform: {
     '^.+\\.(js|jsx)$': 'babel-jest'
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(axios)/)'
+  ],
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.js'],
   collectCoverageFrom: [
     'src/**/*.{js,jsx}',
@@ -14,8 +17,5 @@ module.exports = {
     '!src/reportWebVitals.js',
     '!src/setupTests.js'
   ],
-  coverageReporters: ['lcov', 'text', 'clover'],
-  transformIgnorePatterns: [
-    '/node_modules/(?!axios).+\\.js$'
-  ]
+  coverageReporters: ['lcov', 'text', 'clover']
 };
