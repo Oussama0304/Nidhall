@@ -96,6 +96,7 @@ const imageAnalysisRoutes = require('./routes/imageAnalysis');
 const dashboardRoutesNew = require('./routes/dashboard');
 const materialRoutes = require('./routes/material');
 
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/commandes', auth, commandeRoutes);
