@@ -1,7 +1,10 @@
 {
-  "name": "pfe-project-front",
+  "name": "@pfe/frontend",
   "version": "0.1.0",
   "private": true,
+  "publishConfig": {
+    "registry": "http://192.168.74.167:8081/repository/npm-hosted/"
+  },
   "dependencies": {
     "@emotion/react": "11.13.5",
     "@emotion/styled": "11.13.5",
