@@ -1,7 +1,7 @@
 {
   "name": "@pfe/frontend",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "publishConfig": {
     "registry": "http://192.168.74.167:8081/repository/npm-hosted/"
   },
@@ -65,3 +65,5 @@
     ]
   }
 }
+
+

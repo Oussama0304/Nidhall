@@ -1,6 +1,7 @@
 {
   "name": "@pfe/backend",
   "version": "1.0.0",
+  "private": false, 
   "description": "Projet PFE Agil - Gestion des commandes et réclamations",
   "publishConfig": {
     "registry": "http://192.168.74.167:8081/repository/npm-hosted/"
@@ -46,3 +47,5 @@
     "nodemon": "3.0.2"
   }
 }
+
+

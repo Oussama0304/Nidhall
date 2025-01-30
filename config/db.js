@@ -88,3 +88,21 @@ module.exports = {
     testConnection,
     pool
 };
+
+
+module.exports = {
+    execute,
+    query,
+    getConnection,
+    testConnection,
+    pool
+};
+
+
+module.exports = {
+    execute,
+    query,
+    getConnection,
+    testConnection,
+    pool
+};
