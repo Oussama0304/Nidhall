@@ -2,13 +2,13 @@ module.exports = {
   testEnvironment: 'jsdom',
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    '^axios$': require.resolve('axios/dist/node/axios.cjs')
+    '^axios$': require.resolve('axios/dist/axios.js')
   },
   transform: {
     '^.+\\.(js|jsx)$': 'babel-jest'
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(axios)/)'
+    'node_modules/(?!(axios|@babel|@mui)/)'
   ],
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.js'],
   collectCoverageFrom: [
