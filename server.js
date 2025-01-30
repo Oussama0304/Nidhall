@@ -14,8 +14,9 @@ const app = express();
 const server = http.createServer(app);
 const io = require('socket.io')(server, {
   cors: {
-    origin: "http://localhost:3001",
-    methods: ["GET", "POST"]
+    origin: process.env.NODE_ENV === 'production' ? '*' : 'http://localhost:3001',
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
@@ -24,7 +25,7 @@ app.use(helmet());
 
 // Configuration CORS
 app.use(cors({
-    origin: '*',  // Permet toutes les origines en développement
+    origin: process.env.NODE_ENV === 'production' ? '*' : 'http://localhost:3001',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -156,54 +157,33 @@ const pool = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0,
     enableKeepAlive: true,
-    keepAliveInitialDelay: 0
+    keepAliveInitialDelay: 0,
+    connectTimeout: 60000, // 60 secondes
+    acquireTimeout: 60000,
+    timeout: 60000,
+    debug: process.env.NODE_ENV !== 'production'
 });
 
 // Promisify pour utilisation avec async/await
 const promisePool = pool.promise();
 
-// Test initial de la connexion
-async function testDatabaseConnection() {
-    try {
-        const connection = await promisePool.getConnection();
-        console.log('Successfully connected to the database');
-        connection.release();
-        return true;
-    } catch (err) {
-        console.error('Error connecting to the database:', err);
-        return false;
+// Test initial de la connexion avec retry
+async function testDatabaseConnection(retries = 5, delay = 5000) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const connection = await promisePool.getConnection();
+            console.log('Successfully connected to the database');
+            connection.release();
+            return true;
+        } catch (err) {
+            console.error(`Attempt ${i + 1}/${retries} - Error connecting to the database:`, err);
+            if (i < retries - 1) {
+                console.log(`Retrying in ${delay/1000} seconds...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
     }
-}
-
-// Fonction pour initialiser les données de manière séquentielle
-async function initializeAllData() {
-    try {
-        console.log('Démarrage de l\'initialisation des données...');
-        
-        // Initialiser les tables de base d'abord
-        await initializeUtilisateurData();
-        await initializeDepotData();
-        await initializeProduitData();
-        
-        // Puis les tables avec des clés étrangères
-        await initializeGerantData();
-        await initializeMaterialData();
-        
-        // Puis les tables liées aux commandes
-        await initializeCommandeData();
-        
-        // Les tables dépendantes des commandes
-        await initializeLivraisonData();
-        await initializeCommandeProduitData();
-        await initializeMouvementStockData();
-        
-        // Et les réclamations en dernier
-        await initializeData();
-        
-        console.log('Initialisation des données terminée avec succès');
-    } catch (error) {
-        console.error('Erreur lors de l\'initialisation des données:', error);
-    }
+    return false;
 }
 
 // Attendre que la base de données soit prête avant d'initialiser les données
