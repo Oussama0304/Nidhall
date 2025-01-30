@@ -12,14 +12,14 @@ const auth = async (req, res, next) => {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET || 'votre_secret_jwt');
         console.log('Token décodé:', decodedToken);
         
-        // Récupérer les informations de l'utilisateur en utilisant l'identifiant du token
+        // Récupérer les informations de l'utilisateur en utilisant l'ID du token
         const [rows] = await db.execute(
-            'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?',
-            [decodedToken.id]
+            'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ? OR id = ?',
+            [decodedToken.id, decodedToken.id] // Essayer les deux champs possibles
         );
 
         if (rows.length === 0) {
-            console.error('Utilisateur non trouvé pour l\'identifiant:', decodedToken.id);
+            console.error('Utilisateur non trouvé pour l\'ID:', decodedToken.id);
             return res.status(404).json({ error: "Utilisateur non trouvé" });
         }
 
