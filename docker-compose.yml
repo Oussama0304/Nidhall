@@ -9,7 +9,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=ProjectPfeAgil
       - MYSQL_DATABASE=ProjetPfeAgil
-      - MYSQL_USER=pfeuser
+      - MYSQL_USER=root
       - MYSQL_PASSWORD=ProjectPfeAgil
       - MYSQL_ROOT_HOST=%
     volumes:
@@ -36,7 +36,7 @@ services:
     environment:
       - NODE_ENV=production
       - DB_HOST=database
-      - DB_USER=pfeuser
+      - DB_USER=root
       - DB_PASSWORD=ProjectPfeAgil
       - DB_NAME=ProjetPfeAgil
       - PORT=3000
