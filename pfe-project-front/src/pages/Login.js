@@ -288,6 +288,7 @@ const Login = () => {
                   autoFocus
                   value={formData.email}
                   onChange={handleChange}
+                  data-testid="email-input"
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       '&:hover fieldset': {
@@ -314,6 +315,7 @@ const Login = () => {
                   autoComplete="current-password"
                   value={formData.mot_de_passe}
                   onChange={handleChange}
+                  data-testid="password-input"
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
