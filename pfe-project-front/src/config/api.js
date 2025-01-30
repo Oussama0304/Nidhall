@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
         PERFORMANCE_METRICS: `${API_BASE_URL}/api/analysis/performance-metrics`,
         ANALYSIS_HISTORY: (id) => `${API_BASE_URL}/api/analysis/history/${id}`,
         SUGGESTIONS: (id) => `${API_BASE_URL}/api/analysis/suggestions/${id}`,
+        RESOLUTION_TIMES: `${API_BASE_URL}/api/analysis/reclamations/resolution-times`
     }
 };
 

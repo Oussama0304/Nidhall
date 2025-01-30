@@ -57,7 +57,7 @@ router.get('/user', async (req, res) => {
 // Create new station
 router.post('/', async (req, res) => {
     try {
-        const { nom, adresse, ville, telephone, email } = req.body;
+        const { nom, adresse, ville, telephone, email, capacite } = req.body;
         const userRole = req.user.role;
 
         if (userRole !== 'ADMIN') {
@@ -65,11 +65,11 @@ router.post('/', async (req, res) => {
         }
 
         const query = `
-            INSERT INTO StationService (nom, adresse, ville, telephone, email)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO StationService (nom, adresse, ville, telephone, email, capacite)
+            VALUES (?, ?, ?, ?, ?, ?)
         `;
 
-        const [result] = await db.query(query, [nom, adresse, ville, telephone, email]);
+        const [result] = await db.query(query, [nom, adresse, ville, telephone, email, capacite]);
 
         // Récupérer la station créée
         const getStationQuery = `

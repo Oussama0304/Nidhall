@@ -184,7 +184,6 @@ router.post('/', upload.single('image'), async (req, res) => {
         if (req.file) {
             imageUrl = `/uploads/reclamations/${req.file.filename}`;
             try {
-                // Analyser l'image si elle est présente
                 imageAnalysis = await imageAnalysisService.analyzeImage(req.file.path);
                 console.log('Analyse de l\'image terminée:', imageAnalysis);
             } catch (error) {
@@ -192,7 +191,7 @@ router.post('/', upload.single('image'), async (req, res) => {
             }
         }
 
-        const { description, type, idGerant } = req.body;
+        const { description, type } = req.body;
         const userId = req.user.identifiant;
         const userRole = req.user.roles;
 
@@ -201,6 +200,17 @@ router.post('/', upload.single('image'), async (req, res) => {
 
         // Utiliser le type recommandé par l'analyse d'image si disponible
         const finalType = imageAnalysis?.recommendedType || type;
+
+        let idGerantValue = null;
+        let idCommercialValue = null;
+
+        // Déterminer qui crée la réclamation
+        if (userRole === 'GERANT') {
+            idGerantValue = userId;
+        } else if (userRole === 'COMMERCIAL') {
+            idCommercialValue = userId;
+            idGerantValue = req.body.idGerant;
+        }
 
         const query = `
             INSERT INTO Reclamation 
@@ -213,8 +223,8 @@ router.post('/', upload.single('image'), async (req, res) => {
         const values = [
             description,
             finalType,
-            idGerant,
-            userRole === 'COMMERCIAL' ? userId : null,
+            idGerantValue,
+            idCommercialValue,
             imageUrl,
             analysis.priority,
             analysis.sentiment.satisfaction,
@@ -240,17 +250,11 @@ router.post('/', upload.single('image'), async (req, res) => {
             WHERE r.idReclamation = ?
         `;
 
-        const [reclamation] = await db.query(getNewReclamationQuery, [result.insertId]);
-        res.status(201).json({
-            message: "Réclamation créée avec succès",
-            id: result.insertId,
-            reclamation: reclamation[0],
-            analysis,
-            imageAnalysis
-        });
-    } catch (error) {
-        console.error('Erreur lors de la création de la réclamation:', error);
-        res.status(500).json({ message: error.message });
+        const [newReclamation] = await db.query(getNewReclamationQuery, [result.insertId]);
+        res.status(201).json(newReclamation[0]);
+    } catch (err) {
+        console.error('Erreur lors de la création de la réclamation:', err);
+        res.status(500).json({ error: "Erreur lors de la création de la réclamation", details: err.message });
     }
 });
 

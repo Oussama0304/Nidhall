@@ -103,10 +103,10 @@ app.use('/api/users', auth, userRoutes);
 app.use('/api/stations', auth, stationRoutes);
 app.use('/api/products', auth, productRoutes);
 app.use('/api/admin/dashboard', auth, dashboardRoutes);
-app.use('/api', auth, exportRoutes);  
+app.use('/api/export', auth, exportRoutes);  
 app.use('/api/recommendations', auth, recommendationRoutes);
 app.use('/api/analysis', auth, analysisRoutes);
-app.use('/api/analysis/image', imageAnalysisRoutes);
+app.use('/api/analysis/image', auth, imageAnalysisRoutes);
 app.use('/dashboard', dashboardRoutesNew);
 app.use('/material', materialRoutes);
 

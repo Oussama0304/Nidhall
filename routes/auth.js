@@ -108,7 +108,7 @@ router.get('/profile', verifyToken, async (req, res) => {
 // Registration route
 router.post('/register', async (req, res) => {
     try {
-        const { nom, prenom, telephone, email, mot_de_passe, matricule, roles } = req.body;
+        const { nom, prenom, telephone, email, mot_de_passe, matricule, roles, idStation } = req.body;
         
         // Validate required fields
         if (!nom || !prenom || !telephone || !email || !mot_de_passe || !matricule || !roles) {
@@ -127,21 +127,61 @@ router.post('/register', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(mot_de_passe, salt);
 
-        // Insert new user
-        const insertQuery = `
-            INSERT INTO Utilisateur (nom, prenom, telephone, mail, mot_de_passe, matricule, roles)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `;
+        // Commencer une transaction
+        await db.query('START TRANSACTION');
 
-        await db.query(
-            insertQuery,
-            [nom, prenom, telephone, email, hashedPassword, matricule, roles]
-        );
+        try {
+            // Insert new user
+            const insertUserQuery = `
+                INSERT INTO Utilisateur (nom, prenom, telephone, mail, mot_de_passe, matricule, roles)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            `;
 
-        res.status(201).json({ message: "Utilisateur créé avec succès" });
+            const [userResult] = await db.query(
+                insertUserQuery,
+                [nom, prenom, telephone, email, hashedPassword, matricule, roles]
+            );
+
+            // Si c'est un gérant, l'ajouter aussi dans la table Gerant
+            if (roles === 'GERANT') {
+                // Générer un numéro de gérant unique
+                const [lastGerant] = await db.query('SELECT MAX(numGerant) as maxNum FROM Gerant');
+                const numGerant = (lastGerant[0].maxNum || 1000) + 1;
+
+                const insertGerantQuery = `
+                    INSERT INTO Gerant (idGerant, nom, prenom, matricule, numGerant, idStation)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                `;
+
+                await db.query(insertGerantQuery, [
+                    userResult.insertId,
+                    nom,
+                    prenom,
+                    matricule,
+                    numGerant,
+                    idStation || null  // idStation est optionnel
+                ]);
+            }
+
+            // Valider la transaction
+            await db.query('COMMIT');
+
+            res.status(201).json({ 
+                message: "Utilisateur créé avec succès",
+                userId: userResult.insertId
+            });
+        } catch (error) {
+            // En cas d'erreur, annuler la transaction
+            await db.query('ROLLBACK');
+            throw error;
+        }
     } catch (error) {
         console.error('Server error:', error);
-        res.status(500).json({ error: "Erreur serveur" });
+        res.status(500).json({ 
+            error: "Erreur serveur", 
+            details: error.message,
+            sqlMessage: error.sqlMessage 
+        });
     }
 });
 
