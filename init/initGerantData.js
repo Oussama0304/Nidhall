@@ -3,60 +3,41 @@ const db = require('../config/db');
 async function initializeGerantData() {
     try {
         // Vérifier si la table Gerant est vide
-        const results = await db.query('SELECT COUNT(*) as count FROM Gerant');
-        
-        if (!results || !results[0] || typeof results[0].count === 'undefined') {
-            throw new Error('Erreur lors de la vérification de la table Gerant');
-        }
-
-        const count = results[0].count;
+        const [result] = await db.execute('SELECT COUNT(*) as count FROM Gerant');
+        const count = result[0].count;
 
         if (count === 0) {
             console.log('Initialisation des données des gérants...');
-            
-            // D'abord, vérifions que les utilisateurs existent
-            const users = await db.query(
-                'SELECT identifiant FROM Utilisateur WHERE roles = ?',
-                ['GERANT']
-            );
 
-            if (!users || users.length === 0) {
-                console.log('Aucun utilisateur avec le rôle GERANT n\'existe');
-                return false;
+            // Récupérer les utilisateurs qui ont le rôle GERANT
+            const [gerants] = await db.execute('SELECT identifiant, nom, prenom, matricule FROM Utilisateur WHERE roles = ?', ['GERANT']);
+
+            if (gerants.length === 0) {
+                console.log('Aucun utilisateur avec le rôle GERANT trouvé');
+                return;
             }
 
-            // Ensuite, vérifions que les stations existent
-            const stations = await db.query('SELECT idStation FROM StationService');
-            
-            if (!stations || stations.length === 0) {
-                console.log('Aucune station n\'existe');
-                return false;
-            }
+            // Préparer les données pour l'insertion
+            const values = gerants.map(gerant => {
+                return [
+                    gerant.identifiant,  // idGerant (même que l'identifiant utilisateur)
+                    gerant.nom,
+                    gerant.prenom,
+                    gerant.matricule,    // matricule
+                    Math.floor(10000000 + Math.random() * 90000000), // numGerant (généré aléatoirement)
+                    null                 // idStation (sera mis à jour plus tard)
+                ];
+            });
 
-            // Associer chaque gérant à une station
-            const values = [];
-            const params = [];
-            
-            for (let i = 0; i < Math.min(users.length, stations.length); i++) {
-                values.push('(?, ?)');
-                params.push(users[i].identifiant, stations[i].idStation);
-            }
+            // Insérer les gérants
+            const insertQuery = `
+                INSERT INTO Gerant (idGerant, nom, prenom, matricule, numGerant, idStation)
+                VALUES ?`;
 
-            if (values.length > 0) {
-                const insertQuery = `
-                    INSERT INTO Gerant (idGerant, idStation) 
-                    VALUES ${values.join(', ')}`;
-                
-                await db.query(insertQuery, params);
-                console.log('Données des gérants initialisées avec succès');
-                return true;
-            } else {
-                console.log('Pas de données à insérer pour les gérants');
-                return false;
-            }
+            await db.query(insertQuery, [values]);
+            console.log('Données des gérants initialisées avec succès');
         } else {
             console.log('La table Gerant contient déjà des données');
-            return false;
         }
     } catch (error) {
         console.error('Erreur lors de l\'initialisation des gérants:', error);

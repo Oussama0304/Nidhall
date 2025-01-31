@@ -192,12 +192,16 @@ async function testDatabaseConnection(retries = 5, delay = 5000) {
     return false;
 }
 
+// Initialiser les données après la connexion
+const initializeAllData = require('./init/init');
+
 // Attendre que la base de données soit prête avant d'initialiser les données
 setTimeout(async () => {
     try {
         const isConnected = await testDatabaseConnection();
         if (isConnected) {
             await initializeAllData();
+            console.log('Toutes les données ont été initialisées avec succès');
         } else {
             console.error('Impossible d\'initialiser les données : la base de données n\'est pas connectée');
         }
@@ -205,18 +209,6 @@ setTimeout(async () => {
         console.error('Erreur lors de la vérification de la connexion:', error);
     }
 }, 5000);
-
-// Initialiser les données après la connexion
-const initializeData = require('./init/initData');
-const initializeGerantData = require('./init/initGerantData');
-const initializeUtilisateurData = require('./init/initUtilisateurData');
-const initializeDepotData = require('./init/initDepotData');
-const initializeProduitData = require('./init/initProduitData');
-const initializeMaterialData = require('./init/initMaterialData');
-const initializeCommandeData = require('./init/initCommandeData');
-const initializeLivraisonData = require('./init/initLivraisonData');
-const initializeCommandeProduitData = require('./init/initCommandeProduitData');
-const initializeMouvementStockData = require('./init/initMouvementStockData');
 
 // Démarrer le serveur
 const PORT = process.env.PORT || 3000;

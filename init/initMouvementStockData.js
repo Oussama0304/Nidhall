@@ -3,21 +3,20 @@ const db = require('../config/db');
 async function initializeMouvementstockData() {
     try {
         // Vérifier si la table Mouvementstock est vide
-        const results = await db.query('SELECT COUNT(*) as count FROM Mouvementstock');
-        const count = results[0].count;
+        const [result] = await db.execute('SELECT COUNT(*) as count FROM Mouvementstock');
+        const count = result[0].count;
 
         if (count === 0) {
             console.log('Initialisation des données des mouvements de stock...');
-            
-            await db.query(`
-                INSERT INTO Mouvementstock (id, idProduit, quantite, type_mouvement, date_mouvement, idCommande, raison)
-                VALUES
-                (1, 4, 10, 'ENTREE', '2024-12-27 14:23:48', NULL, 'Réapprovisionnement'),
-                (2, 5, 50, 'RETRAIT', '2024-12-27 14:25:43', NULL, 'Réapprovisionnement'),
-                (3, 2, 3, 'RETRAIT', '2024-12-27 22:42:27', 20, NULL),
-                (4, 2, 1, 'RETRAIT', '2024-12-27 22:43:56', 21, NULL)
-            `);
 
+            const insertQuery = `
+                INSERT INTO Mouvementstock (idProduit, quantite, type_mouvement, date_mouvement, idCommande, raison) VALUES
+                (4, 10, 'ENTREE', '2024-12-27 14:23:48', NULL, 'Réapprovisionnement'),
+                (5, 50, 'RETRAIT', '2024-12-27 14:25:43', NULL, 'Réapprovisionnement'),
+                (2, 3, 'RETRAIT', '2024-12-27 22:42:27', 20, NULL),
+                (2, 1, 'RETRAIT', '2024-12-27 22:43:56', 21, NULL)`;
+
+            await db.execute(insertQuery);
             console.log('Données des mouvements de stock initialisées avec succès');
         } else {
             console.log('La table Mouvementstock contient déjà des données');
