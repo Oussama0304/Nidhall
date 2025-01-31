@@ -4,9 +4,9 @@ const initializeGerantData = require('./initGerantData');
 const initializeProduitData = require('./initProduitData');
 const initializeMaterialData = require('./initMaterialData');
 const initializeCommandeData = require('./initCommandeData');
-const initializeCommandeproduitData = require('./initCommandeproduitData');
+const initializeCommandeProduitData = require('./initCommandeProduitData');
 const initializeLivraisonData = require('./initLivraisonData');
-const initializeMouvementstockData = require('./initMouvementstockData');
+const initializeMouvementStockData = require('./initMouvementStockData');
 const initializeReclamationData = require('./initReclamationData');
 
 async function initializeAllData() {
@@ -30,13 +30,13 @@ async function initializeAllData() {
         await initializeCommandeData();
 
         // 7. Initialiser les relations commande-produit (dépend des commandes et des produits)
-        await initializeCommandeproduitData();
+        await initializeCommandeProduitData();
 
         // 8. Initialiser les livraisons (dépend des commandes)
         await initializeLivraisonData();
 
         // 9. Initialiser les mouvements de stock (dépend des produits et des commandes)
-        await initializeMouvementstockData();
+        await initializeMouvementStockData();
 
         // 10. Initialiser les réclamations (dépend des gérants)
         await initializeReclamationData();

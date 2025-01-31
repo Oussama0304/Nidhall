@@ -198,17 +198,24 @@ const initializeAllData = require('./init/init');
 // Attendre que la base de données soit prête avant d'initialiser les données
 setTimeout(async () => {
     try {
+        console.log('Tentative de connexion à la base de données...');
         const isConnected = await testDatabaseConnection();
         if (isConnected) {
-            await initializeAllData();
-            console.log('Toutes les données ont été initialisées avec succès');
+            console.log('Démarrage de l\'initialisation des données...');
+            try {
+                await initializeAllData();
+                console.log('✅ Initialisation des données terminée avec succès');
+            } catch (initError) {
+                console.error('❌ Erreur lors de l\'initialisation des données:', initError);
+                // Ne pas arrêter le serveur, continuer avec les données existantes
+            }
         } else {
-            console.error('Impossible d\'initialiser les données : la base de données n\'est pas connectée');
+            console.error('❌ Impossible d\'initialiser les données : échec de la connexion à la base de données après plusieurs tentatives');
         }
     } catch (error) {
-        console.error('Erreur lors de la vérification de la connexion:', error);
+        console.error('❌ Erreur lors de la vérification de la connexion:', error);
     }
-}, 5000);
+}, process.env.NODE_ENV === 'production' ? 10000 : 5000); // Attendre plus longtemps en production
 
 // Démarrer le serveur
 const PORT = process.env.PORT || 3000;
