@@ -14,8 +14,8 @@ const auth = async (req, res, next) => {
         
         // Récupérer les informations de l'utilisateur en utilisant l'ID du token
         const [rows] = await db.execute(
-            'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ? OR id = ?',
-            [decodedToken.id, decodedToken.id] // Essayer les deux champs possibles
+            'SELECT identifiant, nom, prenom, telephone, mail, matricule, roles FROM Utilisateur WHERE identifiant = ?',
+            [decodedToken.id]
         );
 
         if (rows.length === 0) {
