@@ -21,7 +21,7 @@ const testConnection = async (retries = 5, delay = 5000) => {
     for (let i = 0; i < retries; i++) {
         try {
             const connection = await pool.getConnection();
-            console.log('Successfully connected to the database.');
+            console.log('Successfully connected to the database');
             connection.release();
             return true;
         } catch (err) {
@@ -32,7 +32,6 @@ const testConnection = async (retries = 5, delay = 5000) => {
             }
         }
     }
-    console.error('Failed to connect to the database after all retries');
     return false;
 };
 
@@ -41,9 +40,9 @@ const execute = async (sql, params = []) => {
     try {
         const [results] = await pool.execute(sql, params);
         return results;
-    } catch (err) {
-        console.error('Error executing query:', err);
-        throw err;
+    } catch (error) {
+        console.error('Database query error:', error);
+        throw error;
     }
 };
 
@@ -51,9 +50,9 @@ const execute = async (sql, params = []) => {
 const getConnection = async () => {
     try {
         return await pool.getConnection();
-    } catch (err) {
-        console.error('Error getting connection:', err);
-        throw err;
+    } catch (error) {
+        console.error('Error getting database connection:', error);
+        throw error;
     }
 };
 
@@ -62,16 +61,19 @@ console.log('Initializing database connection...');
 testConnection()
     .then(success => {
         if (!success) {
-            console.error('Failed to establish initial database connection');
+            console.error('Failed to establish database connection after multiple retries');
+            process.exit(1);
         }
     })
     .catch(err => {
         console.error('Error during initial database connection:', err);
+        process.exit(1);
     });
 
 module.exports = {
     execute,
+    query: execute, // Alias pour la compatibilité
     getConnection,
     testConnection,
-    pool
+    pool // Exporter le pool pour un accès direct si nécessaire
 };

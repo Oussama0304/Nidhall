@@ -31,8 +31,8 @@ export const reclamationService = {
     createReclamation: (data) => axios.post(`${API_ENDPOINTS.BASE_URL}/reclamations`, data, getAuthHeader()),
     updateReclamation: (id, data) => axios.put(`${API_ENDPOINTS.BASE_URL}/reclamations/${id}`, data, getAuthHeader()),
     deleteReclamation: (id) => axios.delete(`${API_ENDPOINTS.BASE_URL}/reclamations/${id}`, getAuthHeader()),
-    getUserReclamations: () => axios.get(`${API_ENDPOINTS.USER_RECLAMATIONS}`, getAuthHeader()),
-    updateReclamationStatus: (id, etat) => axios.put(`${API_ENDPOINTS.BASE_URL}/reclamations/${id}/status`, { etat }, getAuthHeader())
+    getUserReclamations: () => axios.get(`${API_ENDPOINTS.BASE_URL}/reclamations/user`, getAuthHeader()),
+    updateReclamationStatus: (id, etat) => axios.put(`${API_ENDPOINTS.BASE_URL}/reclamations/${id}/status`, { etat }, getAuthHeader()),
 };
 
 // Services pour les stations
@@ -41,7 +41,7 @@ export const stationService = {
     getStationById: (id) => axios.get(`${API_ENDPOINTS.BASE_URL}/stations/${id}`, getAuthHeader()),
     createStation: (data) => axios.post(`${API_ENDPOINTS.BASE_URL}/stations`, data, getAuthHeader()),
     updateStation: (id, data) => axios.put(`${API_ENDPOINTS.BASE_URL}/stations/${id}`, data, getAuthHeader()),
-    deleteStation: (id) => axios.delete(`${API_ENDPOINTS.BASE_URL}/stations/${id}`, getAuthHeader())
+    deleteStation: (id) => axios.delete(`${API_ENDPOINTS.BASE_URL}/stations/${id}`, getAuthHeader()),
 };
 
 // Services pour les produits

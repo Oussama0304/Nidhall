@@ -14,9 +14,8 @@ const app = express();
 const server = http.createServer(app);
 const io = require('socket.io')(server, {
   cors: {
-    origin: process.env.NODE_ENV === 'production' ? '*' : 'http://localhost:3001',
-    methods: ["GET", "POST"],
-    credentials: true
+    origin: "http://localhost:3001",
+    methods: ["GET", "POST"]
   }
 });
 
@@ -25,7 +24,7 @@ app.use(helmet());
 
 // Configuration CORS
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production' ? '*' : 'http://localhost:3001',
+    origin: '*',  // Permet toutes les origines en développement
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -57,11 +56,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
         }
     }
 }));
-
-// Health check endpoint
-app.get('/', (req, res) => {
-    res.status(200).json({ status: 'ok' });
-});
 
 // Health check endpoint
 app.get('/health', async (req, res) => {
@@ -100,7 +94,6 @@ const analysisRoutes = require('./routes/analysis');
 const imageAnalysisRoutes = require('./routes/imageAnalysis');
 const dashboardRoutesNew = require('./routes/dashboard');
 const materialRoutes = require('./routes/material');
-
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -163,59 +156,81 @@ const pool = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0,
     enableKeepAlive: true,
-    keepAliveInitialDelay: 0,
-    connectTimeout: 60000, // 60 secondes
-    acquireTimeout: 60000,
-    timeout: 60000,
-    debug: process.env.NODE_ENV !== 'production'
+    keepAliveInitialDelay: 0
 });
 
 // Promisify pour utilisation avec async/await
 const promisePool = pool.promise();
 
-// Test initial de la connexion avec retry
-async function testDatabaseConnection(retries = 5, delay = 5000) {
-    for (let i = 0; i < retries; i++) {
-        try {
-            const connection = await promisePool.getConnection();
-            console.log('Successfully connected to the database');
-            connection.release();
-            return true;
-        } catch (err) {
-            console.error(`Attempt ${i + 1}/${retries} - Error connecting to the database:`, err);
-            if (i < retries - 1) {
-                console.log(`Retrying in ${delay/1000} seconds...`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-            }
-        }
+// Test initial de la connexion
+async function testDatabaseConnection() {
+    try {
+        const connection = await promisePool.getConnection();
+        console.log('Successfully connected to the database');
+        connection.release();
+        return true;
+    } catch (err) {
+        console.error('Error connecting to the database:', err);
+        return false;
     }
-    return false;
 }
 
-// Initialiser les données après la connexion
-const initializeAllData = require('./init/init');
+// Fonction pour initialiser les données de manière séquentielle
+async function initializeAllData() {
+    try {
+        console.log('Démarrage de l\'initialisation des données...');
+        
+        // Initialiser les tables de base d'abord
+        await initializeUtilisateurData();
+        await initializeDepotData();
+        await initializeProduitData();
+        
+        // Puis les tables avec des clés étrangères
+        await initializeGerantData();
+        await initializeMaterialData();
+        
+        // Puis les tables liées aux commandes
+        await initializeCommandeData();
+        
+        // Les tables dépendantes des commandes
+        await initializeLivraisonData();
+        await initializeCommandeProduitData();
+        await initializeMouvementStockData();
+        
+        // Et les réclamations en dernier
+        await initializeData();
+        
+        console.log('Initialisation des données terminée avec succès');
+    } catch (error) {
+        console.error('Erreur lors de l\'initialisation des données:', error);
+    }
+}
 
 // Attendre que la base de données soit prête avant d'initialiser les données
 setTimeout(async () => {
     try {
-        console.log('Tentative de connexion à la base de données...');
         const isConnected = await testDatabaseConnection();
         if (isConnected) {
-            console.log('Démarrage de l\'initialisation des données...');
-            try {
-                await initializeAllData();
-                console.log('✅ Initialisation des données terminée avec succès');
-            } catch (initError) {
-                console.error('❌ Erreur lors de l\'initialisation des données:', initError);
-                // Ne pas arrêter le serveur, continuer avec les données existantes
-            }
+            await initializeAllData();
         } else {
-            console.error('❌ Impossible d\'initialiser les données : échec de la connexion à la base de données après plusieurs tentatives');
+            console.error('Impossible d\'initialiser les données : la base de données n\'est pas connectée');
         }
     } catch (error) {
-        console.error('❌ Erreur lors de la vérification de la connexion:', error);
+        console.error('Erreur lors de la vérification de la connexion:', error);
     }
-}, process.env.NODE_ENV === 'production' ? 10000 : 5000); // Attendre plus longtemps en production
+}, 5000);
+
+// Initialiser les données après la connexion
+const initializeData = require('./init/initData');
+const initializeGerantData = require('./init/initGerantData');
+const initializeUtilisateurData = require('./init/initUtilisateurData');
+const initializeDepotData = require('./init/initDepotData');
+const initializeProduitData = require('./init/initProduitData');
+const initializeMaterialData = require('./init/initMaterialData');
+const initializeCommandeData = require('./init/initCommandeData');
+const initializeLivraisonData = require('./init/initLivraisonData');
+const initializeCommandeProduitData = require('./init/initCommandeProduitData');
+const initializeMouvementStockData = require('./init/initMouvementStockData');
 
 // Démarrer le serveur
 const PORT = process.env.PORT || 3000;

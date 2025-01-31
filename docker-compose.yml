@@ -22,7 +22,7 @@ services:
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "pfeuser", "-pProjectPfeAgil"]
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       timeout: 20s
       retries: 10
 
@@ -54,16 +54,14 @@ services:
     build: 
       context: ./pfe-project-front
       dockerfile: Dockerfile
-      args:
-        - REACT_APP_API_URL=http://localhost:3000
-        - REACT_APP_UPLOADS_URL=http://localhost:3000/uploads
-        - REACT_APP_PUBLIC_URL=http://localhost:3000/public
-    container_name: pfe_frontend
+    container_name: pfe_pip_agil_frontend
     ports:
       - "8095:80"
+    environment:
+      - NODE_ENV=production
     volumes:
-      - ./uploads:/usr/share/nginx/html/uploads
-      - ./public:/usr/share/nginx/html/public
+      - ./pfe-project-front/public:/usr/share/nginx/html/public
+      - ./pfe-project-front/uploads:/usr/share/nginx/html/uploads
     depends_on:
       - backend
     networks:

@@ -51,8 +51,8 @@ const ReclamationAnalytics = () => {
                 };
 
                 const [trendsRes, perfRes, timeRes] = await Promise.all([
-                    axios.get(API_ENDPOINTS.ANALYSIS.ANALYZE_RECLAMATION, config),
-                    axios.get(API_ENDPOINTS.ANALYSIS.PERFORMANCE_METRICS, config),
+                    axios.get(`${API_ENDPOINTS.BASE_URL}/analysis/reclamations/trends`, config),
+                    axios.get(`${API_ENDPOINTS.BASE_URL}/analysis/performance/users`, config),
                     axios.get(`${API_ENDPOINTS.BASE_URL}/analysis/reclamations/resolution-times`, config)
                 ]);
 
