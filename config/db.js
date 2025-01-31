@@ -5,7 +5,7 @@ dotenv.config();
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'database',
-    user: process.env.DB_USER || 'root',
+    user: process.env.DB_USER || 'pfeuser',
     password: process.env.DB_PASSWORD || 'ProjectPfeAgil',
     database: process.env.DB_NAME || 'ProjetPfeAgil',
     waitForConnections: true,
@@ -13,10 +13,7 @@ const pool = mysql.createPool({
     queueLimit: 0,
     enableKeepAlive: true,
     keepAliveInitialDelay: 0,
-    charset: 'utf8mb4',
-    connectTimeout: 60000,
-    acquireTimeout: 60000,
-    timeout: 60000
+    charset: 'utf8mb4'
 });
 
 // Fonction pour tester la connexion avec retry
@@ -35,6 +32,7 @@ const testConnection = async (retries = 5, delay = 5000) => {
             }
         }
     }
+    console.error('Failed to connect to the database after all retries');
     return false;
 };
 
@@ -42,17 +40,6 @@ const testConnection = async (retries = 5, delay = 5000) => {
 const execute = async (sql, params = []) => {
     try {
         const [results] = await pool.execute(sql, params);
-        return results;
-    } catch (err) {
-        console.error('Error executing query:', err);
-        throw err;
-    }
-};
-
-// Fonction pour faire une requête
-const query = async (sql, params = []) => {
-    try {
-        const [results] = await pool.query(sql, params);
         return results;
     } catch (err) {
         console.error('Error executing query:', err);
@@ -71,37 +58,19 @@ const getConnection = async () => {
 };
 
 // Initialisation de la connexion au démarrage
-(async () => {
-    try {
-        console.log('Initializing database connection...');
-        await testConnection();
-    } catch (err) {
-        console.error('Error during database initialization:', err);
-        process.exit(1);
-    }
-})();
+console.log('Initializing database connection...');
+testConnection()
+    .then(success => {
+        if (!success) {
+            console.error('Failed to establish initial database connection');
+        }
+    })
+    .catch(err => {
+        console.error('Error during initial database connection:', err);
+    });
 
 module.exports = {
     execute,
-    query,
-    getConnection,
-    testConnection,
-    pool
-};
-
-
-module.exports = {
-    execute,
-    query,
-    getConnection,
-    testConnection,
-    pool
-};
-
-
-module.exports = {
-    execute,
-    query,
     getConnection,
     testConnection,
     pool
