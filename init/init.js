@@ -1,45 +1,35 @@
 const initializeUtilisateurData = require('./initUtilisateurData');
 const initializeStationData = require('./initStationData');
-const initializeGerantData = require('./initGerantData');
 const initializeProduitData = require('./initProduitData');
-const initializeMaterialData = require('./initMaterialData');
 const initializeCommandeData = require('./initCommandeData');
-const initializeCommandeProduitData = require('./initCommandeProduitData');
+const initializeCommandeproduitData = require('./initCommandeProduitData');
 const initializeLivraisonData = require('./initLivraisonData');
-const initializeMouvementStockData = require('./initMouvementStockData');
-const initializeReclamationData = require('./initReclamationData');
+const initializeMouvementstockData = require('./initMouvementStockData');
 
 async function initializeAllData() {
     try {
-        // 1. Initialiser les utilisateurs (nécessaire pour les gérants et les commandes)
+        console.log('Démarrage de l\'initialisation des données...');
+
+        // Initialiser les utilisateurs en premier car ils sont référencés par d'autres tables
         await initializeUtilisateurData();
 
-        // 2. Initialiser les stations (nécessaire pour les gérants et le matériel)
+        // Initialiser les stations service
         await initializeStationData();
 
-        // 3. Initialiser les gérants (dépend des utilisateurs et des stations)
-        await initializeGerantData();
-
-        // 4. Initialiser les produits (nécessaire pour les commandes)
+        // Initialiser les produits
         await initializeProduitData();
 
-        // 5. Initialiser le matériel (dépend des stations)
-        await initializeMaterialData();
-
-        // 6. Initialiser les commandes (dépend des utilisateurs et des produits)
+        // Initialiser les commandes
         await initializeCommandeData();
 
-        // 7. Initialiser les relations commande-produit (dépend des commandes et des produits)
-        await initializeCommandeProduitData();
+        // Initialiser les commandes-produits
+        await initializeCommandeproduitData();
 
-        // 8. Initialiser les livraisons (dépend des commandes)
+        // Initialiser les livraisons
         await initializeLivraisonData();
 
-        // 9. Initialiser les mouvements de stock (dépend des produits et des commandes)
-        await initializeMouvementStockData();
-
-        // 10. Initialiser les réclamations (dépend des gérants)
-        await initializeReclamationData();
+        // Initialiser les mouvements de stock
+        await initializeMouvementstockData();
 
         console.log('Toutes les données ont été initialisées avec succès');
     } catch (error) {

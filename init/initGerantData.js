@@ -3,14 +3,15 @@ const db = require('../config/db');
 async function initializeGerantData() {
     try {
         // Vérifier si la table Gerant est vide
-        const [result] = await db.execute('SELECT COUNT(*) as count FROM Gerant');
-        const count = result[0].count;
+        const [rows] = await db.execute('SELECT COUNT(*) as count FROM Gerant');
+        const count = rows[0].count;
 
         if (count === 0) {
             console.log('Initialisation des données des gérants...');
 
             // Récupérer les utilisateurs qui ont le rôle GERANT
-            const [gerants] = await db.execute('SELECT identifiant, nom, prenom, matricule FROM Utilisateur WHERE roles = ?', ['GERANT']);
+            const [rows] = await db.execute('SELECT identifiant, nom, prenom, matricule FROM Utilisateur WHERE roles = ?', ['GERANT']);
+            const gerants = rows;
 
             if (gerants.length === 0) {
                 console.log('Aucun utilisateur avec le rôle GERANT trouvé');

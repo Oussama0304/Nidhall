@@ -3,13 +3,13 @@ const db = require('../config/db');
 async function initializeDepotData() {
     try {
         // Vérifier si la table Depot est vide
-        const results = await db.query('SELECT COUNT(*) as count FROM Depot');
-        const count = results[0].count;
+        const [rows] = await db.execute('SELECT COUNT(*) as count FROM Depot');
+        const count = rows[0].count;
 
         if (count === 0) {
             console.log('Initialisation des données des dépôts...');
             
-            await db.query(`
+            await db.execute(`
                 INSERT INTO Depot (idDepot, nomDepot, adresse, ville, telephone, email, capacite) VALUES
                 (1, 'depot tunis', '124 Rue ', 'Tunis', '1478526', 'station.test@pfe.tn', 500),
                 (2, 'station bardo', '124 Rue ', NULL, NULL, NULL, NULL),

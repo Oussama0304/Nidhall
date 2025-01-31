@@ -3,8 +3,8 @@ const db = require('../config/db');
 async function initializeMouvementstockData() {
     try {
         // Vérifier si la table Mouvementstock est vide
-        const [result] = await db.execute('SELECT COUNT(*) as count FROM Mouvementstock');
-        const count = result[0].count;
+        const [rows] = await db.execute('SELECT COUNT(*) as count FROM Mouvementstock');
+        const count = rows[0].count;
 
         if (count === 0) {
             console.log('Initialisation des données des mouvements de stock...');

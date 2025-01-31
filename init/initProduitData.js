@@ -3,8 +3,8 @@ const db = require('../config/db');
 async function initializeProduitData() {
     try {
         // Vérifier si la table Produit est vide
-        const [result] = await db.execute('SELECT COUNT(*) as count FROM Produit');
-        const count = result[0].count;
+        const [rows] = await db.execute('SELECT COUNT(*) as count FROM Produit');
+        const count = rows[0].count;
 
         if (count === 0) {
             console.log('Initialisation des données des produits...');

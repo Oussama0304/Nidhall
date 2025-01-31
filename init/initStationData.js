@@ -3,8 +3,8 @@ const db = require('../config/db');
 async function initializeStationData() {
     try {
         // Vérifier si la table StationService est vide
-        const [result] = await db.execute('SELECT COUNT(*) as count FROM StationService');
-        const count = result[0].count;
+        const [rows] = await db.execute('SELECT COUNT(*) as count FROM StationService');
+        const count = rows[0].count;
 
         if (count === 0) {
             console.log('Initialisation des données des stations...');

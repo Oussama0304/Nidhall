@@ -4,27 +4,34 @@ const bcrypt = require('bcryptjs');
 async function initializeUtilisateurData() {
     try {
         // Vérifier si la table Utilisateur est vide
-        const results = await db.execute('SELECT COUNT(*) as count FROM Utilisateur');
-        const count = results[0]['COUNT(*)'] || results[0].count || 0;
+        const [rows] = await db.execute('SELECT COUNT(*) as count FROM Utilisateur');
+        const count = rows[0].count;
 
         if (count === 0) {
             console.log('Initialisation des données utilisateurs...');
             
-            // Hasher le mot de passe
+            // Hasher le mot de passe (nous utiliserons le même pour tous les utilisateurs pour simplifier)
             const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash('password123', salt);
+            const hashedPassword = await bcrypt.hash('$2a$10$7he4/mlhVcwDso6exKbQx.tUEoxeK5POd1gioUGXvD.l9UeDJulNi', salt);
             
             // Insérer les utilisateurs
             const insertQuery = `
                 INSERT INTO Utilisateur (nom, prenom, telephone, mail, mot_de_passe, matricule, roles) VALUES
                 ('Admin', 'System', '21612345678', 'admin@pfe.tn', ?, 9999, 'ADMIN'),
-                ('Gerant', 'Station', '21612345679', 'gerant@pfe.tn', ?, 1001, 'GERANT'),
-                ('Client', 'Test', '21612345680', 'client@pfe.tn', ?, 1002, 'CLIENT'),
-                ('Chauffeur', 'Test', '21612345681', 'chauffeur@pfe.tn', ?, 1003, 'CHAUFFEUR'),
-                ('Responsable', 'Depot', '21612345682', 'responsable@pfe.tn', ?, 1004, 'RESPONSABLE_DEPOT')`;
-
-            await db.execute(insertQuery, [hashedPassword, hashedPassword, hashedPassword, hashedPassword, hashedPassword]);
-            console.log('Données des utilisateurs initialisées avec succès');
+                ('neder', 'boughanmi', '26593757', 'commercial@agil.com', ?, 123456, 'COMMERCIAL'),
+                ('rodrigo', 'rodriguez', '23456781', 'gerant.test@station.com', ?, 654321, 'GERANT'),
+                ('mouldi', 'aifa', '28456934', 'depot.test@gmail.com', ?, 9876554, 'DEPOT'),
+                ('brian', 'ruiz', '12365478', 'brian.depot@gmail.com', ?, 471852, 'DEPOT'),
+                ('oussema', 'boughan', '26593757', 'boughanmi.commercial@agil.com', ?, 14455, 'COMMERCIAL'),
+                ('nidhal', 'boughanmi', '26593758', 'nidhal.gerant@station.com', ?, 213456, 'GERANT'),
+                ('nidhal', 'boughanmi', '26593759', 'nidhal2.gerant@station.com', ?, 123455, 'GERANT'),
+                ('oussema', 'boughanmi', '26593760', 'oussema.gerant@station.com', ?, 124563, 'GERANT'),
+                ('boughanmi', 'nidhal', '26593761', 'nidhal3.gerant@station.com', ?, 987655, 'GERANT'),
+                ('aloui', 'omar', '26593762', 'omar.gerant@station.com', ?, 987656, 'GERANT')`;
+            
+            const params = Array(11).fill(hashedPassword);
+            await db.execute(insertQuery, params);
+            console.log('Données utilisateurs initialisées avec succès');
         } else {
             console.log('La table Utilisateur contient déjà des données');
         }
