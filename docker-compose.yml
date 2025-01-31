@@ -9,6 +9,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=ProjectPfeAgil
       - MYSQL_DATABASE=ProjetPfeAgil
+      - MYSQL_USER=pfeuser
       - MYSQL_PASSWORD=ProjectPfeAgil
       - MYSQL_ROOT_HOST=%
     volumes:
@@ -48,27 +49,19 @@ services:
     networks:
       - app-network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
 
   frontend:
-    build:
+    build: 
       context: ./pfe-project-front
       dockerfile: Dockerfile
-      args:
-        - REACT_APP_API_URL=http://localhost:3000
-        - REACT_APP_UPLOADS_URL=http://localhost:3000/uploads
-        - REACT_APP_PUBLIC_URL=http://localhost:3000/public
-    container_name: pfe_frontend
+    container_name: pfe_pip_agil_frontend
     ports:
-      - "80:80"
+      - "8095:80"
+    environment:
+      - NODE_ENV=production
     volumes:
-      - ./uploads:/usr/share/nginx/html/uploads
-      - ./public:/usr/share/nginx/html/public
+      - ./pfe-project-front/public:/usr/share/nginx/html/public
+      - uploads:/usr/share/nginx/html/uploads
     depends_on:
       - backend
     networks:
@@ -81,4 +74,5 @@ networks:
 
 volumes:
   mysql_data:
+    driver: local
   uploads:

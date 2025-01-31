@@ -59,6 +59,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
 }));
 
 // Health check endpoint
+app.get('/', (req, res) => {
+    res.status(200).json({ status: 'ok' });
+});
+
+// Health check endpoint
 app.get('/health', async (req, res) => {
     console.log('Health check appelé');
     try {
